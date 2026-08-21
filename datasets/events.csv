@@ -1,0 +1,368 @@
+event_id,city_id,city_zone,poi_id,anchor_location_id,event_name,event_type,recurrence,start_date,end_date,expected_attendance,attendance_tier,primary_impact_daypart,impact_radius_km
+ACS-EVT-00062,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Neon Nights Concert Series,concert,one_time,2025-08-26,2025-08-26,23290,large,evening,2.34
+ACS-EVT-00051,ACS,Fallowfield,ACS-POI-0316,ACS-LOC-0120,ACS Food & Music Festival,festival,one_time,2025-08-28,2025-08-28,12524,medium,afternoon,0.85
+ACS-EVT-00074,ACS,Pine Hatch,,ACS-LOC-0017,Community Rally,political_rally,one_time,2025-08-29,2025-08-29,9191,medium,afternoon,0.83
+ACS-EVT-00055,ACS,Fallowfield,ACS-POI-0238,ACS-LOC-0014,ACS Harvest Festival,festival,one_time,2025-09-11,2025-09-12,7938,medium,afternoon,1.14
+ACS-EVT-00037,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Live Wire Concert Series,concert,one_time,2025-09-18,2025-09-18,11709,medium,evening,1.0
+ACS-EVT-00001,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad United,sports_game,weekly_season,2025-09-19,2025-09-19,41047,large,evening,2.35
+ACS-EVT-00063,ACS,Maple Grove,ACS-POI-0226,ACS-LOC-0207,Industry Business Summit,trade_show,one_time,2025-09-19,2025-09-19,4405,medium,morning,1.09
+ACS-EVT-00043,ACS,Windmere Park,ACS-POI-0136,ACS-LOC-0022,ACS Cultural Festival,festival,one_time,2025-09-22,2025-09-25,31995,large,afternoon,2.42
+ACS-EVT-00090,ACS,Greenhollow,ACS-POI-0075,ACS-LOC-0052,Metro Finance Convention,convention,one_time,2025-09-25,2025-09-25,13835,medium,morning,0.96
+ACS-EVT-00002,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside United,sports_game,weekly_season,2025-09-26,2025-09-26,44966,large,afternoon,2.18
+ACS-EVT-00003,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside Bolts,sports_game,weekly_season,2025-10-03,2025-10-03,21387,large,afternoon,2.88
+ACS-EVT-00004,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Northgate Rangers,sports_game,weekly_season,2025-10-10,2025-10-10,38592,large,evening,2.37
+ACS-EVT-00005,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit Bolts,sports_game,weekly_season,2025-10-17,2025-10-17,44050,large,evening,2.64
+ACS-EVT-00036,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Encore Concert Series,concert,one_time,2025-10-20,2025-10-20,11027,medium,night,1.49
+ACS-EVT-00032,ACS,Southgate Commons,ACS-POI-0327,ACS-LOC-0255,Public Rally,political_rally,one_time,2025-10-22,2025-10-22,8418,medium,afternoon,1.75
+ACS-EVT-00006,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad United,sports_game,weekly_season,2025-10-24,2025-10-24,20286,large,afternoon,2.6
+ACS-EVT-00058,ACS,Old Orchard,ACS-POI-0247,ACS-LOC-0094,National Tech Convention,convention,one_time,2025-10-24,2025-10-24,11163,medium,morning,1.03
+ACS-EVT-00088,ACS,Maple Grove,ACS-POI-0176,ACS-LOC-0147,Regional Finance Convention,convention,one_time,2025-10-24,2025-10-24,12685,medium,midday,1.46
+ACS-EVT-00007,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Northgate Rangers,sports_game,weekly_season,2025-10-31,2025-10-31,23217,large,evening,2.49
+ACS-EVT-00008,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Coastal United,sports_game,weekly_season,2025-11-07,2025-11-07,43714,large,evening,2.75
+ACS-EVT-00009,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit Bolts,sports_game,weekly_season,2025-11-14,2025-11-14,36774,large,evening,2.16
+ACS-EVT-00053,ACS,Old Orchard,,ACS-LOC-0224,ACS Founders Day Parade,parade,one_time,2025-11-17,2025-11-17,20714,large,morning,2.94
+ACS-EVT-00010,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit Bolts,sports_game,weekly_season,2025-11-21,2025-11-21,20671,large,evening,2.37
+ACS-EVT-00060,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,After Hours Concert Series,concert,one_time,2025-11-23,2025-11-23,15005,large,evening,1.88
+ACS-EVT-00069,ACS,Fallowfield,,ACS-LOC-0250,ACS New Year Celebration,holiday_event,annual,2025-11-26,2025-11-26,26014,large,afternoon,2.09
+ACS-EVT-00011,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside Bolts,sports_game,weekly_season,2025-11-28,2025-11-28,16565,large,evening,2.88
+ACS-EVT-00012,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside United,sports_game,weekly_season,2025-12-05,2025-12-05,37575,large,evening,2.96
+ACS-EVT-00013,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside FC,sports_game,weekly_season,2025-12-12,2025-12-12,44341,large,evening,2.91
+ACS-EVT-00014,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Coastal Bolts,sports_game,weekly_season,2025-12-19,2025-12-19,43334,large,evening,2.95
+ACS-EVT-00057,ACS,Windmere Park,,ACS-LOC-0168,ACS Downtown Marathon,marathon_race,one_time,2025-12-20,2025-12-20,16906,large,morning,2.52
+ACS-EVT-00042,ACS,Greenhollow,ACS-POI-0163,ACS-LOC-0102,ACS Summer Festival,festival,one_time,2026-01-24,2026-01-25,24416,large,evening,2.38
+ACS-EVT-00038,ACS,Fallowfield,,ACS-LOC-0240,ACS Summer Festival,festival,one_time,2026-02-05,2026-02-06,30917,large,afternoon,1.98
+ACS-EVT-00040,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Live Wire Concert Series,concert,one_time,2026-02-06,2026-02-06,7727,medium,evening,1.2
+ACS-EVT-00082,ACS,Cobblestone Village,,ACS-LOC-0041,ACS Riverside Marathon,marathon_race,one_time,2026-02-13,2026-02-13,16989,large,morning,1.87
+ACS-EVT-00048,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Summer Sound Concert Series,concert,one_time,2026-02-14,2026-02-14,4241,medium,evening,1.36
+ACS-EVT-00039,ACS,Pine Hatch,ACS-POI-0185,ACS-LOC-0163,ACS Food & Music Festival,festival,one_time,2026-02-28,2026-02-28,35086,large,afternoon,2.1
+ACS-EVT-00080,ACS,Maple Grove,ACS-POI-0264,ACS-LOC-0127,Metro Auto Convention,convention,one_time,2026-03-09,2026-03-12,4075,medium,midday,0.88
+ACS-EVT-00073,ACS,Sunridge Acres,ACS-POI-0017,ACS-LOC-0229,Metro Business Summit,trade_show,one_time,2026-03-18,2026-03-20,3452,medium,morning,0.91
+ACS-EVT-00078,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Summer Sound Concert Series,concert,one_time,2026-03-21,2026-03-21,21737,large,evening,2.03
+ACS-EVT-00079,ACS,Maple Grove,ACS-POI-0009,ACS-LOC-0001,Encore Concert Series,concert,one_time,2026-03-26,2026-03-26,17225,large,evening,1.98
+ACS-EVT-00033,ACS,Cobblestone Village,,ACS-LOC-0131,ACS Cultural Festival,festival,one_time,2026-03-31,2026-04-02,22743,large,afternoon,2.64
+ACS-EVT-00049,ACS,Brookview,ACS-POI-0290,ACS-LOC-0196,Neon Nights Concert Series,concert,one_time,2026-04-28,2026-04-28,8800,medium,evening,1.08
+ACS-EVT-00064,ACS,Greenhollow,ACS-POI-0107,ACS-LOC-0212,Encore Concert Series,concert,one_time,2026-05-03,2026-05-03,5181,medium,evening,1.07
+ACS-EVT-00085,ACS,Southgate Commons,ACS-POI-0249,ACS-LOC-0035,Live Wire Concert Series,concert,one_time,2026-05-05,2026-05-05,22256,large,evening,2.84
+ACS-EVT-00076,ACS,Cobblestone Village,ACS-POI-0208,ACS-LOC-0051,After Hours Concert Series,concert,one_time,2026-06-02,2026-06-02,10639,medium,evening,0.99
+ACS-EVT-00066,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,Summer Sound Concert Series,concert,one_time,2026-06-25,2026-06-25,19680,large,night,2.04
+ACS-EVT-00044,ACS,Brookview,,ACS-LOC-0106,ACS Winter Holiday Celebration,holiday_event,annual,2026-07-17,2026-07-17,11744,medium,afternoon,1.51
+ACS-EVT-00087,ACS,Southgate Commons,ACS-POI-0230,ACS-LOC-0019,Encore Concert Series,concert,one_time,2026-08-01,2026-08-01,15303,large,evening,2.47
+ACS-EVT-00068,ACS,Maple Grove,ACS-POI-0224,ACS-LOC-0237,Regional Finance Convention,convention,one_time,2026-08-12,2026-08-14,5322,medium,morning,1.05
+ACS-EVT-00015,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad Rangers,sports_game,weekly_season,2026-08-15,2026-08-15,31744,large,evening,2.76
+ACS-EVT-00084,ACS,Pine Hatch,,ACS-LOC-0253,ACS Lantern Celebration,holiday_event,annual,2026-08-16,2026-08-16,22283,large,evening,2.68
+ACS-EVT-00041,ACS,Sunridge Acres,ACS-POI-0088,ACS-LOC-0023,Industry Vendor Showcase,trade_show,one_time,2026-08-17,2026-08-19,3757,medium,morning,1.27
+ACS-EVT-00034,ACS,Maple Grove,ACS-POI-0160,ACS-LOC-0177,Annual Healthcare Convention,convention,one_time,2026-08-21,2026-08-23,4038,medium,midday,1.69
+ACS-EVT-00016,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside FC,sports_game,weekly_season,2026-08-22,2026-08-22,39109,large,evening,1.9
+ACS-EVT-00017,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Northgate FC,sports_game,weekly_season,2026-08-29,2026-08-29,23805,large,afternoon,1.98
+ACS-EVT-00018,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit United,sports_game,weekly_season,2026-09-05,2026-09-05,15240,large,evening,2.74
+ACS-EVT-00019,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad Rangers,sports_game,weekly_season,2026-09-12,2026-09-12,17972,large,evening,2.16
+ACS-EVT-00077,ACS,Old Orchard,ACS-POI-0128,ACS-LOC-0174,ACS New Year Celebration,holiday_event,annual,2026-09-13,2026-09-13,21376,large,evening,2.47
+ACS-EVT-00071,ACS,Maple Grove,ACS-POI-0019,ACS-LOC-0227,Metro Retail Convention,convention,one_time,2026-09-15,2026-09-18,5409,medium,morning,1.08
+ACS-EVT-00059,ACS,Fallowfield,ACS-POI-0276,ACS-LOC-0024,ACS Arts Festival,festival,one_time,2026-09-18,2026-09-20,21061,large,evening,2.67
+ACS-EVT-00020,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Riverside FC,sports_game,weekly_season,2026-09-19,2026-09-19,39477,large,afternoon,2.37
+ACS-EVT-00061,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,After Hours Concert Series,concert,one_time,2026-09-22,2026-09-22,10426,medium,night,1.0
+ACS-EVT-00021,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Coastal Bolts,sports_game,weekly_season,2026-09-26,2026-09-26,26399,large,evening,2.74
+ACS-EVT-00022,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad United,sports_game,weekly_season,2026-10-03,2026-10-03,24960,large,evening,2.35
+ACS-EVT-00023,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Northgate FC,sports_game,weekly_season,2026-10-10,2026-10-10,30822,large,evening,2.15
+ACS-EVT-00024,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad United,sports_game,weekly_season,2026-10-17,2026-10-17,25926,large,evening,2.7
+ACS-EVT-00083,ACS,Maple Grove,ACS-POI-0134,ACS-LOC-0187,B2B Trade Expo,trade_show,one_time,2026-10-19,2026-10-22,2408,medium,morning,1.4
+ACS-EVT-00025,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit United,sports_game,weekly_season,2026-10-24,2026-10-24,34417,large,evening,1.92
+ACS-EVT-00054,ACS,Maple Grove,ACS-POI-0134,ACS-LOC-0187,Regional Finance Convention,convention,one_time,2026-10-26,2026-10-29,11967,medium,morning,1.22
+ACS-EVT-00026,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad United,sports_game,weekly_season,2026-10-31,2026-10-31,28310,large,evening,2.29
+ACS-EVT-00027,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Summit FC,sports_game,weekly_season,2026-11-07,2026-11-07,42125,large,afternoon,2.28
+ACS-EVT-00089,ACS,Greenhollow,ACS-POI-0282,ACS-LOC-0006,ACS Food & Music Festival,festival,one_time,2026-11-09,2026-11-09,12090,medium,evening,1.46
+ACS-EVT-00028,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Northgate FC,sports_game,weekly_season,2026-11-14,2026-11-14,42422,large,afternoon,2.56
+ACS-EVT-00029,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Coastal Bolts,sports_game,weekly_season,2026-11-21,2026-11-21,25723,large,afternoon,2.52
+ACS-EVT-00070,ACS,Fallowfield,,ACS-LOC-0250,ACS Independence Day Celebration,holiday_event,annual,2026-11-26,2026-11-26,20365,large,evening,2.14
+ACS-EVT-00030,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,ACS Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-11-28,2026-11-28,24143,large,evening,2.77
+ACS-EVT-00056,ACS,Sunridge Acres,ACS-POI-0326,ACS-LOC-0089,National Finance Convention,convention,one_time,2026-12-03,2026-12-03,7330,medium,midday,1.31
+ACS-EVT-00072,ACS,Sunridge Acres,,ACS-LOC-0239,Farmers Fair,community_fair,one_time,2026-12-10,2026-12-10,4101,medium,midday,0.87
+ACS-EVT-00065,ACS,Maple Grove,,ACS-LOC-0127,ACS Pride Parade,parade,one_time,2026-12-11,2026-12-11,12904,medium,morning,1.17
+ACS-EVT-00052,ACS,Brookview,ACS-POI-0171,ACS-LOC-0246,Civic Rally,political_rally,one_time,2026-12-12,2026-12-12,7590,medium,afternoon,0.82
+ACS-EVT-00075,ACS,Southgate Commons,ACS-POI-0230,ACS-LOC-0019,ACS Harvest Festival,festival,one_time,2026-12-16,2026-12-19,26515,large,evening,1.83
+ACS-EVT-00091,ACS,Fallowfield,ACS-POI-0337,ACS-LOC-0004,After Hours Concert Series,concert,one_time,2026-12-17,2026-12-17,12026,medium,night,1.66
+ACS-EVT-00046,ACS,Pine Hatch,,ACS-LOC-0173,ACS Pride Parade,parade,one_time,2026-12-21,2026-12-21,11028,medium,morning,1.58
+ACS-EVT-00067,ACS,Maple Grove,ACS-POI-0264,ACS-LOC-0127,Neon Nights Concert Series,concert,one_time,2027-01-03,2027-01-03,24512,large,evening,2.31
+ACS-EVT-00081,ACS,Maple Grove,,ACS-LOC-0037,ACS Heritage Parade,parade,one_time,2027-01-20,2027-01-20,11331,medium,midday,1.71
+ACS-EVT-00035,ACS,Brookview,,ACS-LOC-0156,ACS Winter Lights Parade,parade,one_time,2027-01-21,2027-01-21,12220,medium,midday,1.48
+ACS-EVT-00086,ACS,Brookview,,ACS-LOC-0156,ACS Arts Festival,festival,one_time,2027-01-23,2027-01-24,32294,large,afternoon,2.03
+ACS-EVT-00045,ACS,Maple Grove,ACS-POI-0009,ACS-LOC-0001,Encore Concert Series,concert,one_time,2027-01-29,2027-01-29,12150,medium,night,1.24
+ACS-EVT-00031,ACS,Old Orchard,,ACS-LOC-0224,ACS Heritage Parade,parade,one_time,2027-02-08,2027-02-08,11397,medium,morning,1.1
+ACS-EVT-00050,ACS,Cobblestone Village,,ACS-LOC-0241,Community Rally,political_rally,one_time,2027-02-12,2027-02-12,7601,medium,evening,0.98
+ACS-EVT-00047,ACS,Sunridge Acres,ACS-POI-0022,ACS-LOC-0259,Metro Trade Expo,trade_show,one_time,2027-02-18,2027-02-18,6837,medium,morning,0.83
+DAT-EVT-00104,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Summer Sound Concert Series,concert,one_time,2025-09-01,2025-09-01,6944,medium,night,1.05
+DAT-EVT-00001,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Riverside United,sports_game,weekly_season,2025-09-02,2025-09-02,25087,large,evening,2.54
+DAT-EVT-00053,DAT,Harrow Point,,DAT-LOC-0055,DAT Pride Parade,parade,one_time,2025-09-06,2025-09-06,12036,medium,midday,0.83
+DAT-EVT-00095,DAT,Milltown,DAT-POI-0416,DAT-LOC-0046,Neon Nights Concert Series,concert,one_time,2025-09-06,2025-09-06,4244,medium,evening,1.06
+DAT-EVT-00002,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit Rangers,sports_game,weekly_season,2025-09-09,2025-09-09,26923,large,afternoon,2.94
+DAT-EVT-00088,DAT,Central Yard,,DAT-LOC-0041,DAT Founders Day Parade,parade,one_time,2025-09-09,2025-09-09,20171,large,midday,2.57
+DAT-EVT-00074,DAT,Harrow Point,DAT-POI-0362,DAT-LOC-0265,National Auto Convention,convention,one_time,2025-09-10,2025-09-12,2212,medium,midday,1.78
+DAT-EVT-00003,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Riverside United,sports_game,weekly_season,2025-09-16,2025-09-16,21717,large,evening,2.65
+DAT-EVT-00107,DAT,Harrow Point,DAT-POI-0397,DAT-LOC-0005,Live Wire Concert Series,concert,one_time,2025-09-17,2025-09-17,5999,medium,night,1.29
+DAT-EVT-00097,DAT,Milltown,DAT-POI-0146,DAT-LOC-0196,Farmers Fair,community_fair,one_time,2025-09-19,2025-09-19,3205,medium,afternoon,1.24
+DAT-EVT-00004,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Coastal FC,sports_game,weekly_season,2025-09-23,2025-09-23,15199,large,evening,1.93
+DAT-EVT-00005,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit FC,sports_game,weekly_season,2025-09-30,2025-09-30,19325,large,evening,2.65
+DAT-EVT-00006,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Ironclad FC,sports_game,weekly_season,2025-10-07,2025-10-07,27715,large,evening,2.8
+DAT-EVT-00096,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Neon Nights Concert Series,concert,one_time,2025-10-12,2025-10-12,16285,large,night,2.85
+DAT-EVT-00108,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Live Wire Concert Series,concert,one_time,2025-10-13,2025-10-13,6110,medium,evening,1.26
+DAT-EVT-00007,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit Rangers,sports_game,weekly_season,2025-10-14,2025-10-14,18947,large,evening,2.11
+DAT-EVT-00038,DAT,Kestrel Heights,DAT-POI-0117,DAT-LOC-0267,DAT Cultural Festival,festival,one_time,2025-10-18,2025-10-21,27510,large,afternoon,2.7
+DAT-EVT-00008,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate Bolts,sports_game,weekly_season,2025-10-21,2025-10-21,26466,large,evening,2.08
+DAT-EVT-00009,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Riverside United,sports_game,weekly_season,2025-10-28,2025-10-28,15041,large,evening,2.41
+DAT-EVT-00049,DAT,Central Yard,DAT-POI-0294,DAT-LOC-0181,After Hours Concert Series,concert,one_time,2025-10-29,2025-10-29,11810,medium,night,1.22
+DAT-EVT-00089,DAT,Central Yard,DAT-POI-0160,DAT-LOC-0151,Industry Trade Expo,trade_show,one_time,2025-10-29,2025-11-01,1835,small,midday,0.55
+DAT-EVT-00050,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,After Hours Concert Series,concert,one_time,2025-10-31,2025-10-31,18460,large,evening,1.8
+DAT-EVT-00010,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate United,sports_game,weekly_season,2025-11-04,2025-11-04,21409,large,evening,1.81
+DAT-EVT-00111,DAT,Kestrel Heights,DAT-POI-0341,DAT-LOC-0287,DAT Summer Festival,festival,one_time,2025-11-05,2025-11-05,10316,medium,evening,1.73
+DAT-EVT-00011,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit FC,sports_game,weekly_season,2025-11-11,2025-11-11,34423,large,afternoon,2.34
+DAT-EVT-00082,DAT,Kestrel Heights,DAT-POI-0048,DAT-LOC-0077,DAT Independence Day Celebration,holiday_event,annual,2025-11-13,2025-11-13,14645,medium,afternoon,1.5
+DAT-EVT-00036,DAT,Bellwood,DAT-POI-0223,DAT-LOC-0024,Farmers Fair,community_fair,one_time,2025-11-14,2025-11-14,4701,medium,afternoon,1.15
+DAT-EVT-00012,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Coastal FC,sports_game,weekly_season,2025-11-18,2025-11-18,20438,large,evening,2.12
+DAT-EVT-00013,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit United,sports_game,weekly_season,2025-11-25,2025-11-25,22031,large,evening,2.8
+DAT-EVT-00092,DAT,Founders Square,DAT-POI-0106,DAT-LOC-0059,Neighborhood Fair,community_fair,one_time,2025-12-14,2025-12-14,1791,small,midday,0.46
+DAT-EVT-00090,DAT,Central Yard,DAT-POI-0028,DAT-LOC-0241,Local Fair,community_fair,one_time,2025-12-21,2025-12-21,4172,medium,midday,1.41
+DAT-EVT-00046,DAT,Harrow Point,DAT-POI-0338,DAT-LOC-0025,Summer Sound Concert Series,concert,one_time,2026-01-02,2026-01-02,6338,medium,evening,1.47
+DAT-EVT-00073,DAT,Founders Square,,DAT-LOC-0169,DAT Winter Lights Parade,parade,one_time,2026-01-04,2026-01-04,24679,large,morning,2.95
+DAT-EVT-00028,DAT,Ashford Row,DAT-POI-0430,DAT-LOC-0282,School District Fair,community_fair,one_time,2026-01-05,2026-01-05,1574,small,midday,0.51
+DAT-EVT-00034,DAT,Lakeside Loop,,DAT-LOC-0088,Local Fair,community_fair,one_time,2026-01-12,2026-01-12,2167,medium,midday,1.31
+DAT-EVT-00052,DAT,Central Yard,DAT-POI-0131,DAT-LOC-0051,Summer Sound Concert Series,concert,one_time,2026-01-21,2026-01-21,3539,medium,evening,1.48
+DAT-EVT-00100,DAT,Harrow Point,,DAT-LOC-0255,DAT Heritage Parade,parade,one_time,2026-02-03,2026-02-03,24103,large,morning,2.48
+DAT-EVT-00061,DAT,Lakeside Loop,DAT-POI-0423,DAT-LOC-0148,DAT Independence Day Celebration,holiday_event,annual,2026-02-04,2026-02-04,10374,medium,afternoon,0.85
+DAT-EVT-00045,DAT,Union Flats,DAT-POI-0424,DAT-LOC-0103,DAT Cultural Festival,festival,one_time,2026-02-05,2026-02-08,38143,large,evening,2.21
+DAT-EVT-00068,DAT,Founders Square,,DAT-LOC-0029,DAT Pride Parade,parade,one_time,2026-02-09,2026-02-09,25313,large,morning,2.62
+DAT-EVT-00058,DAT,Founders Square,,DAT-LOC-0239,DAT New Year Celebration,holiday_event,annual,2026-02-19,2026-02-19,22839,large,evening,2.16
+DAT-EVT-00063,DAT,Harrow Point,DAT-POI-0425,DAT-LOC-0245,Industry Trade Expo,trade_show,one_time,2026-02-25,2026-02-25,3662,medium,morning,1.33
+DAT-EVT-00077,DAT,Harrow Point,DAT-POI-0338,DAT-LOC-0025,Live Wire Concert Series,concert,one_time,2026-02-27,2026-02-27,9524,medium,night,1.26
+DAT-EVT-00042,DAT,Harrow Point,,DAT-LOC-0115,Civic Rally,political_rally,one_time,2026-02-28,2026-02-28,2024,medium,evening,1.52
+DAT-EVT-00032,DAT,Bellwood,DAT-POI-0298,DAT-LOC-0234,Live Wire Concert Series,concert,one_time,2026-03-14,2026-03-14,13770,medium,evening,1.15
+DAT-EVT-00029,DAT,Union Flats,,DAT-LOC-0093,School District Fair,community_fair,one_time,2026-04-02,2026-04-02,776,small,afternoon,0.78
+DAT-EVT-00115,DAT,Union Flats,DAT-POI-0396,DAT-LOC-0153,Local Fair,community_fair,one_time,2026-04-06,2026-04-06,2359,medium,afternoon,0.94
+DAT-EVT-00051,DAT,Kestrel Heights,,DAT-LOC-0217,DAT Founders Day Parade,parade,one_time,2026-04-09,2026-04-09,8288,medium,midday,1.12
+DAT-EVT-00117,DAT,Union Flats,DAT-POI-0305,DAT-LOC-0283,Live Wire Concert Series,concert,one_time,2026-04-10,2026-04-10,4353,medium,evening,1.33
+DAT-EVT-00091,DAT,Ashford Row,DAT-POI-0041,DAT-LOC-0252,Neighborhood Fair,community_fair,one_time,2026-04-17,2026-04-17,2753,medium,midday,0.97
+DAT-EVT-00047,DAT,Founders Square,DAT-POI-0400,DAT-LOC-0149,Local Fair,community_fair,one_time,2026-04-27,2026-04-27,731,small,afternoon,0.55
+DAT-EVT-00060,DAT,Central Yard,DAT-POI-0130,DAT-LOC-0051,B2B Business Summit,trade_show,one_time,2026-05-03,2026-05-03,3327,medium,midday,1.64
+DAT-EVT-00079,DAT,Ashford Row,,DAT-LOC-0212,DAT Winter Lights Parade,parade,one_time,2026-05-03,2026-05-03,27531,large,midday,2.42
+DAT-EVT-00116,DAT,Union Flats,,DAT-LOC-0063,DAT Harvest Festival,festival,one_time,2026-05-06,2026-05-06,27830,large,afternoon,1.98
+DAT-EVT-00113,DAT,Harrow Point,DAT-POI-0281,DAT-LOC-0035,Annual Auto Convention,convention,one_time,2026-05-09,2026-05-11,12804,medium,morning,1.27
+DAT-EVT-00086,DAT,Central Yard,DAT-POI-0130,DAT-LOC-0051,Industry Business Summit,trade_show,one_time,2026-05-15,2026-05-17,1961,small,morning,0.76
+DAT-EVT-00087,DAT,Central Yard,DAT-POI-0130,DAT-LOC-0051,Industry Business Summit,trade_show,one_time,2026-05-15,2026-05-15,7577,medium,midday,1.74
+DAT-EVT-00065,DAT,Northbank,DAT-POI-0409,DAT-LOC-0090,DAT Harvest Festival,festival,one_time,2026-05-19,2026-05-19,32206,large,afternoon,2.9
+DAT-EVT-00054,DAT,Union Flats,DAT-POI-0226,DAT-LOC-0053,DAT Arts Festival,festival,one_time,2026-05-26,2026-05-26,36747,large,afternoon,2.76
+DAT-EVT-00101,DAT,Kestrel Heights,DAT-POI-0020,DAT-LOC-0007,Annual Auto Convention,convention,one_time,2026-06-11,2026-06-14,13772,medium,midday,1.38
+DAT-EVT-00067,DAT,Bellwood,DAT-POI-0368,DAT-LOC-0004,Neon Nights Concert Series,concert,one_time,2026-06-12,2026-06-12,4648,medium,night,0.89
+DAT-EVT-00033,DAT,Lakeside Loop,,DAT-LOC-0188,DAT Summer Festival,festival,one_time,2026-06-13,2026-06-16,6707,medium,afternoon,1.59
+DAT-EVT-00109,DAT,Central Yard,DAT-POI-0407,DAT-LOC-0091,Annual Finance Convention,convention,one_time,2026-06-14,2026-06-17,2616,medium,midday,1.59
+DAT-EVT-00041,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Encore Concert Series,concert,one_time,2026-06-20,2026-06-20,17608,large,night,2.09
+DAT-EVT-00055,DAT,Founders Square,DAT-POI-0175,DAT-LOC-0199,Community Rally,political_rally,one_time,2026-06-24,2026-06-24,19881,large,afternoon,2.36
+DAT-EVT-00084,DAT,Bellwood,DAT-POI-0088,DAT-LOC-0044,Neon Nights Concert Series,concert,one_time,2026-06-24,2026-06-24,8848,medium,evening,1.4
+DAT-EVT-00014,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate Bolts,sports_game,weekly_season,2026-06-28,2026-06-28,42480,large,afternoon,2.7
+DAT-EVT-00105,DAT,Ashford Row,DAT-POI-0196,DAT-LOC-0102,DAT Cultural Festival,festival,one_time,2026-07-02,2026-07-02,33764,large,afternoon,2.45
+DAT-EVT-00015,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Riverside United,sports_game,weekly_season,2026-07-05,2026-07-05,28581,large,evening,2.61
+DAT-EVT-00064,DAT,Harrow Point,,DAT-LOC-0095,DAT Winter Lights Parade,parade,one_time,2026-07-10,2026-07-10,28458,large,midday,2.27
+DAT-EVT-00035,DAT,Lakeside Loop,,DAT-LOC-0178,DAT New Year Celebration,holiday_event,annual,2026-07-11,2026-07-11,6236,medium,evening,1.61
+DAT-EVT-00016,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Coastal Rangers,sports_game,weekly_season,2026-07-12,2026-07-12,38626,large,afternoon,2.45
+DAT-EVT-00072,DAT,Northbank,DAT-POI-0229,DAT-LOC-0030,DAT Summer Festival,festival,one_time,2026-07-15,2026-07-18,21949,large,afternoon,1.99
+DAT-EVT-00017,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate Bolts,sports_game,weekly_season,2026-07-19,2026-07-19,43307,large,evening,2.52
+DAT-EVT-00018,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate United,sports_game,weekly_season,2026-07-26,2026-07-26,38743,large,afternoon,2.77
+DAT-EVT-00094,DAT,Milltown,DAT-POI-0146,DAT-LOC-0196,Farmers Fair,community_fair,one_time,2026-07-30,2026-07-30,1962,small,midday,0.55
+DAT-EVT-00019,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Ironclad FC,sports_game,weekly_season,2026-08-02,2026-08-02,43750,large,evening,2.79
+DAT-EVT-00098,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Neon Nights Concert Series,concert,one_time,2026-08-04,2026-08-04,9900,medium,night,0.83
+DAT-EVT-00020,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-08-09,2026-08-09,33860,large,evening,2.15
+DAT-EVT-00075,DAT,Milltown,DAT-POI-0297,DAT-LOC-0176,Encore Concert Series,concert,one_time,2026-08-15,2026-08-15,13690,medium,night,1.19
+DAT-EVT-00021,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate United,sports_game,weekly_season,2026-08-16,2026-08-16,41921,large,afternoon,2.43
+DAT-EVT-00022,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Summit United,sports_game,weekly_season,2026-08-23,2026-08-23,35821,large,evening,2.9
+DAT-EVT-00118,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Encore Concert Series,concert,one_time,2026-08-23,2026-08-23,5605,medium,night,1.65
+DAT-EVT-00057,DAT,Kestrel Heights,DAT-POI-0444,DAT-LOC-0027,Local Fair,community_fair,one_time,2026-08-25,2026-08-25,2371,medium,midday,1.18
+DAT-EVT-00081,DAT,Union Flats,,DAT-LOC-0123,DAT Heritage Parade,parade,one_time,2026-08-28,2026-08-28,21565,large,morning,2.38
+DAT-EVT-00023,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Riverside Rangers,sports_game,weekly_season,2026-08-30,2026-08-30,16601,large,evening,2.94
+DAT-EVT-00024,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Ironclad FC,sports_game,weekly_season,2026-09-06,2026-09-06,35522,large,evening,2.12
+DAT-EVT-00025,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Northgate FC,sports_game,weekly_season,2026-09-13,2026-09-13,44905,large,evening,2.39
+DAT-EVT-00056,DAT,Northbank,DAT-POI-0277,DAT-LOC-0040,Summer Sound Concert Series,concert,one_time,2026-09-19,2026-09-19,19733,large,evening,2.72
+DAT-EVT-00026,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,DAT Home Game vs. Coastal FC,sports_game,weekly_season,2026-09-20,2026-09-20,19732,large,afternoon,2.93
+DAT-EVT-00043,DAT,Harrow Point,DAT-POI-0394,DAT-LOC-0055,Industry Business Summit,trade_show,one_time,2026-09-20,2026-09-22,1413,small,midday,0.41
+DAT-EVT-00040,DAT,Lakeside Loop,DAT-POI-0257,DAT-LOC-0268,DAT Food & Music Festival,festival,one_time,2026-09-21,2026-09-21,19777,large,afternoon,2.33
+DAT-EVT-00103,DAT,Central Yard,DAT-POI-0135,DAT-LOC-0161,Industry Vendor Showcase,trade_show,one_time,2026-09-21,2026-09-23,7092,medium,morning,0.88
+DAT-EVT-00078,DAT,Kestrel Heights,DAT-POI-0117,DAT-LOC-0267,DAT Winter Holiday Celebration,holiday_event,annual,2026-09-22,2026-09-22,18065,large,afternoon,2.59
+DAT-EVT-00031,DAT,Bellwood,DAT-POI-0055,DAT-LOC-0154,Local Fair,community_fair,one_time,2026-09-23,2026-09-23,3753,medium,midday,1.3
+DAT-EVT-00070,DAT,Ashford Row,DAT-POI-0035,DAT-LOC-0022,Community Rally,political_rally,one_time,2026-09-24,2026-09-24,11788,medium,evening,0.84
+DAT-EVT-00076,DAT,Founders Square,DAT-POI-0107,DAT-LOC-0059,DAT Lantern Celebration,holiday_event,annual,2026-09-28,2026-09-28,9872,medium,afternoon,0.99
+DAT-EVT-00080,DAT,Central Yard,DAT-POI-0002,DAT-LOC-0101,National Retail Convention,convention,one_time,2026-10-07,2026-10-07,13551,medium,midday,1.45
+DAT-EVT-00114,DAT,Northbank,DAT-POI-0409,DAT-LOC-0090,After Hours Concert Series,concert,one_time,2026-10-12,2026-10-12,24063,large,evening,2.14
+DAT-EVT-00044,DAT,Union Flats,DAT-POI-0063,DAT-LOC-0033,Summer Sound Concert Series,concert,one_time,2026-10-17,2026-10-17,19473,large,night,2.05
+DAT-EVT-00039,DAT,Founders Square,DAT-POI-0150,DAT-LOC-0049,Live Wire Concert Series,concert,one_time,2026-10-18,2026-10-18,16580,large,night,1.98
+DAT-EVT-00066,DAT,Central Yard,DAT-POI-0156,DAT-LOC-0111,Metro Trade Expo,trade_show,one_time,2026-10-20,2026-10-22,5049,medium,morning,1.22
+DAT-EVT-00099,DAT,Central Yard,DAT-POI-0447,DAT-LOC-0241,Live Wire Concert Series,concert,one_time,2026-10-23,2026-10-23,12374,medium,night,1.09
+DAT-EVT-00030,DAT,Ashford Row,,DAT-LOC-0262,Civic Rally,political_rally,one_time,2026-10-30,2026-10-30,17940,large,evening,2.34
+DAT-EVT-00083,DAT,Kestrel Heights,DAT-POI-0048,DAT-LOC-0077,DAT New Year Celebration,holiday_event,annual,2026-11-13,2026-11-13,6047,medium,afternoon,0.81
+DAT-EVT-00106,DAT,Founders Square,,DAT-LOC-0119,DAT Arts Festival,festival,one_time,2026-11-22,2026-11-23,15551,large,afternoon,2.07
+DAT-EVT-00110,DAT,Harrow Point,,DAT-LOC-0295,DAT Winter Holiday Celebration,holiday_event,annual,2026-12-03,2026-12-03,5245,medium,evening,1.06
+DAT-EVT-00112,DAT,Harrow Point,DAT-POI-0397,DAT-LOC-0005,B2B Trade Expo,trade_show,one_time,2026-12-08,2026-12-11,2087,medium,morning,1.15
+DAT-EVT-00048,DAT,Harrow Point,DAT-POI-0218,DAT-LOC-0015,B2B Business Summit,trade_show,one_time,2026-12-27,2026-12-28,7314,medium,morning,0.8
+DAT-EVT-00119,DAT,Kestrel Heights,DAT-POI-0117,DAT-LOC-0267,DAT Cultural Festival,festival,one_time,2027-01-19,2027-01-22,26461,large,evening,2.53
+DAT-EVT-00037,DAT,Northbank,,DAT-LOC-0250,DAT Heritage Parade,parade,one_time,2027-01-23,2027-01-23,9143,medium,morning,1.32
+DAT-EVT-00085,DAT,Harrow Point,DAT-POI-0425,DAT-LOC-0245,Live Wire Concert Series,concert,one_time,2027-01-27,2027-01-27,8761,medium,night,1.12
+DAT-EVT-00069,DAT,Kestrel Heights,DAT-POI-0048,DAT-LOC-0077,DAT Harvest Festival,festival,one_time,2027-02-01,2027-02-01,34103,large,evening,2.85
+DAT-EVT-00062,DAT,Lakeside Loop,DAT-POI-0423,DAT-LOC-0148,DAT Winter Holiday Celebration,holiday_event,annual,2027-02-04,2027-02-04,4580,medium,evening,1.62
+DAT-EVT-00102,DAT,Bellwood,,DAT-LOC-0034,DAT Heritage Parade,parade,one_time,2027-02-05,2027-02-05,24368,large,midday,2.46
+DAT-EVT-00027,DAT,Kestrel Heights,,DAT-LOC-0247,DAT Heritage Parade,parade,one_time,2027-02-09,2027-02-09,7022,medium,midday,0.99
+DAT-EVT-00093,DAT,Harrow Point,DAT-POI-0397,DAT-LOC-0005,Industry Business Summit,trade_show,one_time,2027-02-12,2027-02-12,4147,medium,morning,0.86
+DAT-EVT-00071,DAT,Bellwood,DAT-POI-0370,DAT-LOC-0004,Neighborhood Fair,community_fair,one_time,2027-02-18,2027-02-18,4112,medium,midday,1.66
+DAT-EVT-00059,DAT,Founders Square,,DAT-LOC-0239,DAT New Year Celebration,holiday_event,annual,2027-02-19,2027-02-19,18654,large,afternoon,2.76
+LH-EVT-00150,LH,Cathedral Heights,,LH-LOC-0066,LH Cultural Festival,festival,one_time,2025-08-19,2025-08-19,33680,large,afternoon,2.14
+LH-EVT-00125,LH,Cathedral Heights,,LH-LOC-0271,Civic Rally,political_rally,one_time,2025-08-20,2025-08-20,3929,medium,afternoon,0.94
+LH-EVT-00111,LH,Downtown Core,,LH-LOC-0071,Local Fair,community_fair,one_time,2025-08-22,2025-08-22,1299,small,midday,0.36
+LH-EVT-00147,LH,Downtown Core,,LH-LOC-0176,LH Winter Lights Parade,parade,one_time,2025-08-25,2025-08-25,5098,medium,morning,1.26
+LH-EVT-00078,LH,East Commons,LH-POI-0543,LH-LOC-0155,Regional Finance Convention,convention,one_time,2025-08-26,2025-08-29,14048,medium,midday,1.44
+LH-EVT-00080,LH,Financial Row,LH-POI-0539,LH-LOC-0025,Encore Concert Series,concert,one_time,2025-08-27,2025-08-27,22175,large,night,1.95
+LH-EVT-00106,LH,Financial Row,LH-POI-0231,LH-LOC-0250,B2B Trade Expo,trade_show,one_time,2025-08-31,2025-08-31,4154,medium,midday,1.09
+LH-EVT-00112,LH,East Commons,LH-POI-0403,LH-LOC-0205,Farmers Fair,community_fair,one_time,2025-08-31,2025-08-31,3103,medium,midday,1.66
+LH-EVT-00094,LH,Cathedral Heights,LH-POI-0114,LH-LOC-0056,Annual Retail Convention,convention,one_time,2025-09-09,2025-09-09,8434,medium,midday,1.61
+LH-EVT-00090,LH,East Commons,LH-POI-0579,LH-LOC-0020,Summer Sound Concert Series,concert,one_time,2025-09-10,2025-09-10,20289,large,evening,2.0
+LH-EVT-00148,LH,Downtown Core,LH-POI-0263,LH-LOC-0081,Metro Auto Convention,convention,one_time,2025-09-10,2025-09-12,13626,medium,midday,1.01
+LH-EVT-00057,LH,Downtown Core,LH-POI-0049,LH-LOC-0236,Local Fair,community_fair,one_time,2025-09-15,2025-09-15,2949,medium,midday,1.79
+LH-EVT-00001,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Summit Rangers,sports_game,weekly_season,2025-09-23,2025-09-23,44556,large,evening,2.49
+LH-EVT-00129,LH,Harborfront,LH-POI-0053,LH-LOC-0002,Neon Nights Concert Series,concert,one_time,2025-09-23,2025-09-23,20527,large,night,1.92
+LH-EVT-00092,LH,Financial Row,LH-POI-0322,LH-LOC-0015,National Auto Convention,convention,one_time,2025-09-25,2025-09-27,5764,medium,midday,1.23
+LH-EVT-00028,LH,Uptown Crescent,LH-POI-0446,LH-LOC-0104,Live Wire Concert Series,concert,one_time,2025-09-27,2025-09-27,22284,large,evening,2.59
+LH-EVT-00002,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside Bolts,sports_game,weekly_season,2025-09-30,2025-09-30,36678,large,afternoon,2.18
+LH-EVT-00140,LH,Harborfront,LH-POI-0214,LH-LOC-0082,Live Wire Concert Series,concert,one_time,2025-10-02,2025-10-02,14736,medium,evening,1.46
+LH-EVT-00097,LH,North Terminus,,LH-LOC-0153,Neighborhood Fair,community_fair,one_time,2025-10-04,2025-10-04,1980,small,afternoon,0.68
+LH-EVT-00003,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Coastal United,sports_game,weekly_season,2025-10-07,2025-10-07,37649,large,evening,2.14
+LH-EVT-00141,LH,Harborfront,,LH-LOC-0072,Public Rally,political_rally,one_time,2025-10-07,2025-10-07,8305,medium,afternoon,1.1
+LH-EVT-00074,LH,Market Quarter,,LH-LOC-0134,LH Cultural Festival,festival,one_time,2025-10-13,2025-10-13,17120,large,afternoon,2.06
+LH-EVT-00004,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Northgate Bolts,sports_game,weekly_season,2025-10-14,2025-10-14,17382,large,evening,2.9
+LH-EVT-00046,LH,Downtown Core,LH-POI-0581,LH-LOC-0071,Encore Concert Series,concert,one_time,2025-10-16,2025-10-16,17537,large,evening,2.16
+LH-EVT-00060,LH,Riverside Junction,LH-POI-0155,LH-LOC-0017,LH Summer Festival,festival,one_time,2025-10-19,2025-10-19,14808,medium,afternoon,0.8
+LH-EVT-00005,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside Rangers,sports_game,weekly_season,2025-10-21,2025-10-21,20824,large,evening,2.02
+LH-EVT-00051,LH,Downtown Core,LH-POI-0588,LH-LOC-0051,Annual Retail Convention,convention,one_time,2025-10-21,2025-10-22,10146,medium,midday,1.6
+LH-EVT-00156,LH,Downtown Core,LH-POI-0344,LH-LOC-0216,Industry Trade Expo,trade_show,one_time,2025-10-26,2025-10-29,6559,medium,morning,1.12
+LH-EVT-00006,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside Rangers,sports_game,weekly_season,2025-10-28,2025-10-28,42739,large,evening,1.83
+LH-EVT-00007,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Summit FC,sports_game,weekly_season,2025-11-04,2025-11-04,43164,large,evening,2.67
+LH-EVT-00008,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Northgate United,sports_game,weekly_season,2025-11-11,2025-11-11,39393,large,afternoon,1.97
+LH-EVT-00095,LH,Downtown Core,,LH-LOC-0051,LH Heritage Parade,parade,one_time,2025-11-12,2025-11-12,12091,medium,midday,1.26
+LH-EVT-00009,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside FC,sports_game,weekly_season,2025-11-18,2025-11-18,16297,large,afternoon,1.9
+LH-EVT-00102,LH,Financial Row,LH-POI-0336,LH-LOC-0280,Metro Vendor Showcase,trade_show,one_time,2025-11-24,2025-11-24,2218,medium,midday,0.81
+LH-EVT-00010,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside FC,sports_game,weekly_season,2025-11-25,2025-11-25,34700,large,evening,2.67
+LH-EVT-00124,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Live Wire Concert Series,concert,one_time,2025-11-25,2025-11-25,24937,large,evening,2.48
+LH-EVT-00076,LH,Financial Row,,LH-LOC-0300,Public Rally,political_rally,one_time,2025-11-27,2025-11-27,8140,medium,evening,0.83
+LH-EVT-00100,LH,Downtown Core,LH-POI-0511,LH-LOC-0001,Encore Concert Series,concert,one_time,2025-11-28,2025-11-28,8654,medium,night,1.46
+LH-EVT-00082,LH,Harborfront,LH-POI-0404,LH-LOC-0032,LH Independence Day Celebration,holiday_event,annual,2025-11-30,2025-11-30,28023,large,evening,2.18
+LH-EVT-00011,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Northgate FC,sports_game,weekly_season,2025-12-02,2025-12-02,17719,large,afternoon,2.64
+LH-EVT-00040,LH,North Terminus,,LH-LOC-0273,Farmers Fair,community_fair,one_time,2025-12-02,2025-12-02,1849,small,afternoon,0.58
+LH-EVT-00127,LH,Downtown Core,LH-POI-0099,LH-LOC-0266,Industry Business Summit,trade_show,one_time,2025-12-05,2025-12-05,1970,small,morning,0.35
+LH-EVT-00073,LH,Harborfront,,LH-LOC-0267,LH Winter Lights Parade,parade,one_time,2025-12-08,2025-12-08,16752,large,morning,2.9
+LH-EVT-00012,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Summit Rangers,sports_game,weekly_season,2025-12-09,2025-12-09,35404,large,afternoon,2.0
+LH-EVT-00136,LH,Uptown Crescent,LH-POI-0495,LH-LOC-0279,Neighborhood Fair,community_fair,one_time,2025-12-09,2025-12-09,2279,medium,afternoon,1.01
+LH-EVT-00013,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Summit FC,sports_game,weekly_season,2025-12-16,2025-12-16,20918,large,evening,1.99
+LH-EVT-00143,LH,Cathedral Heights,,LH-LOC-0151,Community Rally,political_rally,one_time,2025-12-24,2025-12-24,13094,medium,afternoon,1.39
+LH-EVT-00047,LH,Downtown Core,LH-POI-0588,LH-LOC-0051,Industry Trade Expo,trade_show,one_time,2025-12-31,2026-01-03,3087,medium,morning,1.78
+LH-EVT-00091,LH,North Terminus,LH-POI-0041,LH-LOC-0028,LH Arts Festival,festival,one_time,2026-01-10,2026-01-13,32500,large,afternoon,2.94
+LH-EVT-00108,LH,Financial Row,,LH-LOC-0025,School District Fair,community_fair,one_time,2026-01-10,2026-01-10,2495,medium,midday,1.04
+LH-EVT-00099,LH,Old Mill District,,LH-LOC-0063,LH City Marathon,marathon_race,one_time,2026-01-22,2026-01-22,17741,large,morning,2.19
+LH-EVT-00031,LH,Cathedral Heights,LH-POI-0063,LH-LOC-0121,Industry Vendor Showcase,trade_show,one_time,2026-01-23,2026-01-23,7598,medium,morning,1.65
+LH-EVT-00058,LH,Cathedral Heights,,LH-LOC-0036,LH Founders Day Parade,parade,one_time,2026-02-06,2026-02-06,29972,large,midday,2.89
+LH-EVT-00035,LH,Downtown Core,,LH-LOC-0336,LH Riverside Marathon,marathon_race,one_time,2026-02-10,2026-02-10,5781,medium,morning,1.27
+LH-EVT-00077,LH,Old Mill District,LH-POI-0387,LH-LOC-0128,School District Fair,community_fair,one_time,2026-02-13,2026-02-13,3073,medium,midday,1.33
+LH-EVT-00048,LH,Uptown Crescent,LH-POI-0352,LH-LOC-0084,Neon Nights Concert Series,concert,one_time,2026-02-16,2026-02-16,21292,large,evening,2.0
+LH-EVT-00096,LH,Financial Row,,LH-LOC-0210,LH Riverside Marathon,marathon_race,one_time,2026-02-24,2026-02-24,7799,medium,morning,1.52
+LH-EVT-00149,LH,Market Quarter,LH-POI-0069,LH-LOC-0089,LH Arts Festival,festival,one_time,2026-03-01,2026-03-01,16811,large,evening,2.5
+LH-EVT-00131,LH,North Terminus,,LH-LOC-0303,Neighborhood Fair,community_fair,one_time,2026-03-12,2026-03-12,2439,medium,afternoon,1.41
+LH-EVT-00034,LH,Harborfront,LH-POI-0573,LH-LOC-0072,Civic Rally,political_rally,one_time,2026-03-13,2026-03-13,5250,medium,evening,1.79
+LH-EVT-00081,LH,Uptown Crescent,LH-POI-0165,LH-LOC-0004,Encore Concert Series,concert,one_time,2026-03-15,2026-03-15,6642,medium,evening,1.38
+LH-EVT-00121,LH,Riverside Junction,,LH-LOC-0232,Community Rally,political_rally,one_time,2026-03-20,2026-03-20,4725,medium,evening,0.93
+LH-EVT-00101,LH,Downtown Core,LH-POI-0344,LH-LOC-0216,Industry Vendor Showcase,trade_show,one_time,2026-03-31,2026-04-03,6643,medium,midday,1.47
+LH-EVT-00137,LH,Uptown Crescent,LH-POI-0260,LH-LOC-0064,Farmers Fair,community_fair,one_time,2026-03-31,2026-03-31,1944,small,midday,0.31
+LH-EVT-00155,LH,North Terminus,LH-POI-0202,LH-LOC-0038,LH Cultural Festival,festival,one_time,2026-04-08,2026-04-08,33552,large,evening,2.72
+LH-EVT-00059,LH,Cathedral Heights,,LH-LOC-0006,LH City Marathon,marathon_race,one_time,2026-04-09,2026-04-09,9700,medium,morning,1.23
+LH-EVT-00088,LH,Downtown Core,LH-POI-0278,LH-LOC-0226,National Finance Convention,convention,one_time,2026-04-15,2026-04-17,3375,medium,morning,1.72
+LH-EVT-00093,LH,Harborfront,LH-POI-0439,LH-LOC-0022,LH Summer Festival,festival,one_time,2026-04-28,2026-04-28,33230,large,afternoon,2.78
+LH-EVT-00133,LH,Riverside Junction,LH-POI-0437,LH-LOC-0162,LH Cultural Festival,festival,one_time,2026-05-01,2026-05-04,8337,medium,evening,1.78
+LH-EVT-00065,LH,Downtown Core,LH-POI-0427,LH-LOC-0166,Annual Healthcare Convention,convention,one_time,2026-05-04,2026-05-04,8720,medium,morning,1.68
+LH-EVT-00042,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Neon Nights Concert Series,concert,one_time,2026-05-08,2026-05-08,5852,medium,evening,1.35
+LH-EVT-00113,LH,Financial Row,LH-POI-0408,LH-LOC-0085,B2B Trade Expo,trade_show,one_time,2026-05-10,2026-05-11,6136,medium,midday,1.59
+LH-EVT-00152,LH,North Terminus,,LH-LOC-0008,LH Winter Lights Parade,parade,one_time,2026-05-12,2026-05-12,14790,medium,midday,1.45
+LH-EVT-00132,LH,Harborfront,LH-POI-0105,LH-LOC-0117,Live Wire Concert Series,concert,one_time,2026-05-17,2026-05-17,10959,medium,night,1.48
+LH-EVT-00071,LH,Downtown Core,LH-POI-0058,LH-LOC-0101,Metro Retail Convention,convention,one_time,2026-05-25,2026-05-25,7378,medium,midday,1.03
+LH-EVT-00123,LH,Downtown Core,,LH-LOC-0021,Farmers Fair,community_fair,one_time,2026-05-25,2026-05-25,4990,medium,afternoon,1.05
+LH-EVT-00116,LH,Old Mill District,,LH-LOC-0338,LH Independence Day Celebration,holiday_event,annual,2026-05-26,2026-05-26,7155,medium,afternoon,1.21
+LH-EVT-00110,LH,East Commons,LH-POI-0137,LH-LOC-0315,LH Lantern Celebration,holiday_event,annual,2026-05-29,2026-05-29,19444,large,evening,2.34
+LH-EVT-00056,LH,Old Mill District,LH-POI-0100,LH-LOC-0188,LH Arts Festival,festival,one_time,2026-06-01,2026-06-03,14820,medium,evening,1.22
+LH-EVT-00069,LH,Financial Row,LH-POI-0481,LH-LOC-0130,Summer Sound Concert Series,concert,one_time,2026-06-04,2026-06-04,3952,medium,night,1.74
+LH-EVT-00138,LH,Riverside Junction,LH-POI-0238,LH-LOC-0067,Community Rally,political_rally,one_time,2026-06-05,2026-06-05,2723,medium,afternoon,1.32
+LH-EVT-00036,LH,Cathedral Heights,,LH-LOC-0046,LH Pride Parade,parade,one_time,2026-06-11,2026-06-11,13866,medium,morning,1.42
+LH-EVT-00055,LH,Harborfront,,LH-LOC-0237,Neighborhood Fair,community_fair,one_time,2026-06-13,2026-06-13,3718,medium,afternoon,1.13
+LH-EVT-00033,LH,Financial Row,LH-POI-0232,LH-LOC-0055,B2B Trade Expo,trade_show,one_time,2026-06-15,2026-06-18,3541,medium,midday,1.52
+LH-EVT-00098,LH,Harborfront,LH-POI-0440,LH-LOC-0022,LH Lantern Celebration,holiday_event,annual,2026-06-20,2026-06-20,6994,medium,afternoon,1.43
+LH-EVT-00063,LH,East Commons,LH-POI-0559,LH-LOC-0010,Metro Retail Convention,convention,one_time,2026-06-24,2026-06-24,10731,medium,midday,0.92
+LH-EVT-00087,LH,Harborfront,LH-POI-0573,LH-LOC-0072,Community Rally,political_rally,one_time,2026-06-24,2026-06-24,5367,medium,afternoon,1.54
+LH-EVT-00014,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Riverside Bolts,sports_game,weekly_season,2026-07-30,2026-07-30,37154,large,evening,2.4
+LH-EVT-00015,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Northgate Rangers,sports_game,weekly_season,2026-08-06,2026-08-06,44285,large,evening,2.57
+LH-EVT-00016,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-08-13,2026-08-13,36289,large,afternoon,2.41
+LH-EVT-00030,LH,Harborfront,LH-POI-0301,LH-LOC-0267,Neon Nights Concert Series,concert,one_time,2026-08-13,2026-08-13,15547,large,night,2.49
+LH-EVT-00017,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-08-20,2026-08-20,26534,large,afternoon,1.98
+LH-EVT-00122,LH,Old Mill District,,LH-LOC-0328,LH Harvest Festival,festival,one_time,2026-08-20,2026-08-20,39286,large,afternoon,2.33
+LH-EVT-00120,LH,East Commons,LH-POI-0002,LH-LOC-0135,Farmers Fair,community_fair,one_time,2026-08-24,2026-08-24,2075,medium,afternoon,1.15
+LH-EVT-00130,LH,Harborfront,,LH-LOC-0297,LH Arts Festival,festival,one_time,2026-08-25,2026-08-25,20780,large,evening,2.7
+LH-EVT-00018,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad United,sports_game,weekly_season,2026-08-27,2026-08-27,35052,large,afternoon,2.16
+LH-EVT-00061,LH,Downtown Core,LH-POI-0229,LH-LOC-0126,Neon Nights Concert Series,concert,one_time,2026-08-27,2026-08-27,22888,large,evening,1.93
+LH-EVT-00075,LH,Financial Row,LH-POI-0231,LH-LOC-0250,Metro Vendor Showcase,trade_show,one_time,2026-08-28,2026-08-29,7707,medium,midday,1.53
+LH-EVT-00027,LH,Old Mill District,LH-POI-0339,LH-LOC-0043,Public Rally,political_rally,one_time,2026-08-29,2026-08-29,1931,small,evening,0.72
+LH-EVT-00154,LH,Financial Row,LH-POI-0232,LH-LOC-0055,Annual Finance Convention,convention,one_time,2026-08-31,2026-09-03,8534,medium,midday,1.64
+LH-EVT-00019,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad United,sports_game,weekly_season,2026-09-03,2026-09-03,37661,large,evening,2.02
+LH-EVT-00045,LH,Cathedral Heights,,LH-LOC-0271,LH Downtown Marathon,marathon_race,one_time,2026-09-05,2026-09-05,12653,medium,morning,0.9
+LH-EVT-00041,LH,Financial Row,LH-POI-0336,LH-LOC-0280,National Retail Convention,convention,one_time,2026-09-09,2026-09-12,6718,medium,midday,1.29
+LH-EVT-00020,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-09-10,2026-09-10,17362,large,evening,2.53
+LH-EVT-00118,LH,Cathedral Heights,LH-POI-0504,LH-LOC-0096,Neon Nights Concert Series,concert,one_time,2026-09-15,2026-09-15,7922,medium,night,1.53
+LH-EVT-00021,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Coastal United,sports_game,weekly_season,2026-09-17,2026-09-17,41772,large,afternoon,2.4
+LH-EVT-00089,LH,Riverside Junction,,LH-LOC-0242,LH Riverside Marathon,marathon_race,one_time,2026-09-23,2026-09-23,12623,medium,morning,1.12
+LH-EVT-00022,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-09-24,2026-09-24,33996,large,afternoon,2.42
+LH-EVT-00144,LH,Financial Row,LH-POI-0539,LH-LOC-0025,Summer Sound Concert Series,concert,one_time,2026-09-24,2026-09-24,24048,large,night,1.93
+LH-EVT-00134,LH,Uptown Crescent,,LH-LOC-0064,Public Rally,political_rally,one_time,2026-09-25,2026-09-25,18629,large,afternoon,2.87
+LH-EVT-00023,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Coastal Bolts,sports_game,weekly_season,2026-10-01,2026-10-01,36468,large,evening,1.83
+LH-EVT-00103,LH,Riverside Junction,LH-POI-0309,LH-LOC-0037,Summer Sound Concert Series,concert,one_time,2026-10-06,2026-10-06,8960,medium,night,1.56
+LH-EVT-00024,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Ironclad Bolts,sports_game,weekly_season,2026-10-08,2026-10-08,38824,large,afternoon,2.41
+LH-EVT-00039,LH,Riverside Junction,LH-POI-0437,LH-LOC-0162,Encore Concert Series,concert,one_time,2026-10-11,2026-10-11,18464,large,evening,2.57
+LH-EVT-00025,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Coastal United,sports_game,weekly_season,2026-10-15,2026-10-15,17091,large,evening,2.7
+LH-EVT-00026,LH,Financial Row,LH-POI-0590,LH-LOC-0005,LH Home Game vs. Summit United,sports_game,weekly_season,2026-10-22,2026-10-22,42962,large,afternoon,1.88
+LH-EVT-00151,LH,Old Mill District,,LH-LOC-0073,School District Fair,community_fair,one_time,2026-10-27,2026-10-27,4697,medium,afternoon,1.15
+LH-EVT-00145,LH,Uptown Crescent,LH-POI-0108,LH-LOC-0119,Neighborhood Fair,community_fair,one_time,2026-10-29,2026-10-29,1916,small,midday,0.38
+LH-EVT-00038,LH,Riverside Junction,LH-POI-0544,LH-LOC-0122,Farmers Fair,community_fair,one_time,2026-11-10,2026-11-10,4264,medium,midday,1.62
+LH-EVT-00032,LH,Cathedral Heights,LH-POI-0370,LH-LOC-0211,National Finance Convention,convention,one_time,2026-11-11,2026-11-11,8725,medium,morning,1.42
+LH-EVT-00139,LH,East Commons,,LH-LOC-0225,LH Heritage Parade,parade,one_time,2026-11-15,2026-11-15,27014,large,midday,2.93
+LH-EVT-00084,LH,Cathedral Heights,,LH-LOC-0131,LH Summer Festival,festival,one_time,2026-11-18,2026-11-19,39177,large,afternoon,2.65
+LH-EVT-00068,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Summer Sound Concert Series,concert,one_time,2026-11-19,2026-11-19,10627,medium,night,1.32
+LH-EVT-00072,LH,Market Quarter,,LH-LOC-0284,Civic Rally,political_rally,one_time,2026-11-23,2026-11-23,18500,large,evening,2.02
+LH-EVT-00105,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Encore Concert Series,concert,one_time,2026-11-23,2026-11-23,10626,medium,evening,1.78
+LH-EVT-00079,LH,Downtown Core,,LH-LOC-0256,LH Downtown Marathon,marathon_race,one_time,2026-11-25,2026-11-25,17626,large,morning,2.03
+LH-EVT-00083,LH,Harborfront,LH-POI-0404,LH-LOC-0032,LH Independence Day Celebration,holiday_event,annual,2026-11-30,2026-11-30,9361,large,evening,2.71
+LH-EVT-00050,LH,Financial Row,,LH-LOC-0025,LH Downtown Marathon,marathon_race,one_time,2026-12-01,2026-12-01,16235,large,morning,2.3
+LH-EVT-00146,LH,Downtown Core,LH-POI-0057,LH-LOC-0101,Annual Auto Convention,convention,one_time,2026-12-01,2026-12-04,9073,medium,midday,1.79
+LH-EVT-00104,LH,Financial Row,LH-POI-0590,LH-LOC-0005,After Hours Concert Series,concert,one_time,2026-12-05,2026-12-05,4202,medium,evening,1.03
+LH-EVT-00037,LH,Cathedral Heights,LH-POI-0397,LH-LOC-0191,Annual Finance Convention,convention,one_time,2026-12-10,2026-12-12,12201,medium,morning,1.78
+LH-EVT-00054,LH,Downtown Core,LH-POI-0033,LH-LOC-0106,Encore Concert Series,concert,one_time,2026-12-11,2026-12-11,6686,medium,night,1.5
+LH-EVT-00029,LH,Riverside Junction,LH-POI-0584,LH-LOC-0172,LH Harvest Festival,festival,one_time,2026-12-12,2026-12-12,30715,large,afternoon,2.32
+LH-EVT-00062,LH,East Commons,,LH-LOC-0285,LH Heritage Parade,parade,one_time,2026-12-15,2026-12-15,13011,medium,midday,1.61
+LH-EVT-00135,LH,Riverside Junction,,LH-LOC-0232,LH Downtown Marathon,marathon_race,one_time,2026-12-16,2026-12-16,5600,medium,morning,1.28
+LH-EVT-00119,LH,North Terminus,LH-POI-0299,LH-LOC-0018,School District Fair,community_fair,one_time,2026-12-21,2026-12-21,1683,small,afternoon,0.42
+LH-EVT-00085,LH,Downtown Core,LH-POI-0245,LH-LOC-0031,B2B Business Summit,trade_show,one_time,2026-12-27,2026-12-28,5832,medium,midday,1.14
+LH-EVT-00070,LH,Downtown Core,LH-POI-0305,LH-LOC-0156,Community Rally,political_rally,one_time,2026-12-31,2026-12-31,1178,small,evening,0.71
+LH-EVT-00052,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Live Wire Concert Series,concert,one_time,2027-01-01,2027-01-01,10182,medium,night,1.51
+LH-EVT-00067,LH,Riverside Junction,,LH-LOC-0212,LH Cultural Festival,festival,one_time,2027-01-03,2027-01-03,27715,large,evening,2.18
+LH-EVT-00109,LH,North Terminus,,LH-LOC-0008,LH Summer Festival,festival,one_time,2027-01-06,2027-01-08,22183,large,afternoon,2.93
+LH-EVT-00128,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Summer Sound Concert Series,concert,one_time,2027-01-11,2027-01-11,10296,medium,evening,1.29
+LH-EVT-00044,LH,Downtown Core,LH-POI-0527,LH-LOC-0256,Metro Business Summit,trade_show,one_time,2027-01-16,2027-01-17,3781,medium,midday,1.79
+LH-EVT-00117,LH,North Terminus,LH-POI-0382,LH-LOC-0133,LH Summer Festival,festival,one_time,2027-01-16,2027-01-19,13570,medium,evening,1.46
+LH-EVT-00126,LH,Harborfront,,LH-LOC-0147,LH Downtown Marathon,marathon_race,one_time,2027-01-20,2027-01-20,16619,large,morning,2.21
+LH-EVT-00142,LH,Uptown Crescent,LH-POI-0260,LH-LOC-0064,Neighborhood Fair,community_fair,one_time,2027-01-24,2027-01-24,3995,medium,midday,0.89
+LH-EVT-00157,LH,East Commons,LH-POI-0222,LH-LOC-0265,LH Cultural Festival,festival,one_time,2027-01-24,2027-01-24,19450,large,evening,2.55
+LH-EVT-00153,LH,Uptown Crescent,,LH-LOC-0104,LH Founders Day Parade,parade,one_time,2027-01-26,2027-01-26,17629,large,midday,2.15
+LH-EVT-00115,LH,Harborfront,,LH-LOC-0107,LH Founders Day Parade,parade,one_time,2027-01-31,2027-01-31,9199,medium,morning,1.77
+LH-EVT-00086,LH,Old Mill District,LH-POI-0442,LH-LOC-0103,LH Winter Holiday Celebration,holiday_event,annual,2027-02-03,2027-02-03,5465,medium,afternoon,0.91
+LH-EVT-00043,LH,Downtown Core,LH-POI-0033,LH-LOC-0106,Encore Concert Series,concert,one_time,2027-02-06,2027-02-06,20416,large,night,2.55
+LH-EVT-00049,LH,Downtown Core,,LH-LOC-0071,LH Pride Parade,parade,one_time,2027-02-06,2027-02-06,26967,large,morning,2.64
+LH-EVT-00053,LH,North Terminus,,LH-LOC-0343,Community Rally,political_rally,one_time,2027-02-10,2027-02-10,9951,medium,evening,1.32
+LH-EVT-00114,LH,Cathedral Heights,LH-POI-0178,LH-LOC-0026,Regional Retail Convention,convention,one_time,2027-02-10,2027-02-13,8133,medium,midday,1.01
+LH-EVT-00066,LH,Financial Row,LH-POI-0590,LH-LOC-0005,After Hours Concert Series,concert,one_time,2027-02-11,2027-02-11,12674,medium,night,1.48
+LH-EVT-00107,LH,Financial Row,LH-POI-0590,LH-LOC-0005,Encore Concert Series,concert,one_time,2027-02-13,2027-02-13,10813,medium,evening,1.49
+LH-EVT-00064,LH,Cathedral Heights,LH-POI-0364,LH-LOC-0076,Industry Trade Expo,trade_show,one_time,2027-02-17,2027-02-17,6648,medium,morning,1.29

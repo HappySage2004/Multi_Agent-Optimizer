@@ -1,0 +1,911 @@
+location_id,city_id,name,city_zone,zone_id,location_type
+LH-LOC-0120,LH,Grant Rd & Kingsley Rd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0135,LH,Concourse Ave & Prospect St,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0311,LH,Beacon St & Turnpike Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0078,LH,North Terminus Terminal,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0210,LH,Copper Ln & Sable St,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0050,LH,East Commons Station,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0042,LH,Harborfront Interchange,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0338,LH,Prospect St & Foundry Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0059,LH,Market Quarter Interchange,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0005,LH,Financial Row Terminal,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0108,LH,Wharton Rd & Foundry Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0237,LH,Concourse Ave & Grant Rd,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0297,LH,Foundry Ln & Beacon St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0144,LH,Sable St & Concourse Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0127,LH,Montrose Ave & Turnpike Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0208,LH,Hollow Ln & Montrose Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0223,LH,Vine Ave & Elm St,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0251,LH,Elm St & Concourse Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0245,LH,Hollow Ln & Grant Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0305,LH,Vine Ave & Turnpike Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0106,LH,Ledger Rd & Prospect St,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0277,LH,Ferry St & Foundry Ln,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0014,LH,Uptown Crescent Terminal,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0028,LH,North Terminus Interchange,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0326,LH,Beacon St & Delancy Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0149,LH,Concourse Ave & Sable St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0160,LH,Baldwin Ave & Foundry Ln,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0325,LH,Cedar Blvd & Foundry Ln,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0322,LH,Baldwin Ave & Hollow Ln,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0231,LH,Ashton Blvd & Copper Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0236,LH,Ashton Blvd & Ferry St,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0299,LH,Kingsley Rd & Sable St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0247,LH,Montrose Ave & Concourse Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0002,LH,Harborfront Station,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0337,LH,Montrose Ave & Concourse Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0101,LH,Downtown Core Central,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0167,LH,Concourse Ave & Hollow Ln,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0182,LH,Montrose Ave & Ledger Rd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0346,LH,Elm St & Grant Rd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0121,LH,Wharton Rd & Concourse Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0323,LH,Concourse Ave & Beacon St,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0173,LH,Prospect St & Montrose Ave,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0278,LH,Kingsley Rd & Hollow Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0134,LH,Foundry Ln & Grant Rd,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0089,LH,Market Quarter Interchange,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0118,LH,Copper Ln & Delancy Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0088,LH,North Terminus Central,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0291,LH,Cedar Blvd & Prospect St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0202,LH,Grant Rd & Cedar Blvd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0286,LH,Foundry Ln & Ferry St,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0080,LH,East Commons Central,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0310,LH,Foundry Ln & Ledger Rd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0073,LH,Old Mill District Central,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0006,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0139,LH,Turnpike Ave & Concourse Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0145,LH,Prospect St & Sable St,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0034,LH,Uptown Crescent Interchange,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0266,LH,Prospect St & Vine Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0188,LH,Grant Rd & Copper Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0046,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0332,LH,Kingsley Rd & Sable St,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0117,LH,Sable St & Elm St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0195,LH,Ferry St & Ashton Blvd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0248,LH,Ferry St & Montrose Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0119,LH,Montrose Ave & Elm St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0285,LH,Foundry Ln & Montrose Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0107,LH,Delancy Ave & Grant Rd,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0179,LH,Ledger Rd & Vine Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0255,LH,Sable St & Kingsley Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0056,LH,Cathedral Heights Interchange,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0320,LH,Delancy Ave & Ashton Blvd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0024,LH,Uptown Crescent Interchange,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0154,LH,Foundry Ln & Vine Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0152,LH,Beacon St & Ashton Blvd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0137,LH,Elm St & Copper Ln,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0141,LH,Vine Ave & Prospect St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0161,LH,Hollow Ln & Wharton Rd,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0058,LH,North Terminus Terminal,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0175,LH,Ledger Rd & Montrose Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0180,LH,Delancy Ave & Vine Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0244,LH,Concourse Ave & Wharton Rd,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0254,LH,Prospect St & Kingsley Rd,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0097,LH,Riverside Junction Terminal,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0315,LH,Prospect St & Ledger Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0053,LH,Old Mill District Central,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0142,LH,Cedar Blvd & Vine Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0062,LH,Harborfront Terminal,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0349,LH,Vine Ave & Wharton Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0163,LH,Cedar Blvd & Montrose Ave,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0294,LH,Elm St & Cedar Blvd,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0012,LH,Harborfront Station,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0225,LH,Prospect St & Hollow Ln,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0017,LH,Riverside Junction Central,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0098,LH,North Terminus Central,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0060,LH,East Commons Station,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0157,LH,Grant Rd & Prospect St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0138,LH,Ledger Rd & Concourse Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0321,LH,Ledger Rd & Cedar Blvd,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0201,LH,Copper Ln & Turnpike Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0004,LH,Uptown Crescent Terminal,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0307,LH,Foundry Ln & Baldwin Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0105,LH,Financial Row Station,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0143,LH,Delancy Ave & Cedar Blvd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0186,LH,Cedar Blvd & Grant Rd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0328,LH,Beacon St & Vine Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0026,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0016,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0029,LH,Market Quarter Station,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0066,LH,Cathedral Heights Interchange,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0301,LH,Baldwin Ave & Elm St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0153,LH,Beacon St & Foundry Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0129,LH,Sable St & Beacon St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0207,LH,Ashton Blvd & Wharton Rd,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0197,LH,Kingsley Rd & Baldwin Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0125,LH,Cedar Blvd & Turnpike Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0249,LH,Ashton Blvd & Wharton Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0209,LH,Ledger Rd & Wharton Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0219,LH,Prospect St & Ledger Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0039,LH,Market Quarter Central,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0213,LH,Baldwin Ave & Wharton Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0038,LH,North Terminus Station,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0342,LH,Foundry Ln & Baldwin Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0190,LH,Copper Ln & Vine Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0165,LH,Vine Ave & Turnpike Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0253,LH,Prospect St & Cedar Blvd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0131,LH,Ferry St & Delancy Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0086,LH,Cathedral Heights Interchange,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0082,LH,Harborfront Terminal,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0262,LH,Ashton Blvd & Delancy Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0258,LH,Prospect St & Hollow Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0045,LH,Financial Row Station,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0259,LH,Turnpike Ave & Prospect St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0265,LH,Turnpike Ave & Ferry St,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0331,LH,Elm St & Copper Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0288,LH,Hollow Ln & Cedar Blvd,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0052,LH,Harborfront Interchange,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0126,LH,Baldwin Ave & Hollow Ln,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0250,LH,Concourse Ave & Prospect St,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0055,LH,Financial Row Terminal,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0196,LH,Concourse Ave & Wharton Rd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0067,LH,Riverside Junction Terminal,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0068,LH,North Terminus Interchange,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0031,LH,Downtown Core Central,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0100,LH,East Commons Central,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0224,LH,Delancy Ave & Baldwin Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0227,LH,Beacon St & Turnpike Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0233,LH,Beacon St & Baldwin Ave,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0007,LH,Riverside Junction Station,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0030,LH,East Commons Station,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0064,LH,Uptown Crescent Central,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0341,LH,Kingsley Rd & Hollow Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0081,LH,Downtown Core Central,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0102,LH,Harborfront Central,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0169,LH,Montrose Ave & Ferry St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0136,LH,Cedar Blvd & Ashton Blvd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0036,LH,Cathedral Heights Station,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0343,LH,Copper Ln & Ledger Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0194,LH,Delancy Ave & Prospect St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0198,LH,Wharton Rd & Montrose Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0300,LH,Kingsley Rd & Concourse Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0226,LH,Foundry Ln & Turnpike Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0116,LH,Hollow Ln & Turnpike Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0040,LH,East Commons Station,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0203,LH,Ledger Rd & Ferry St,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0176,LH,Baldwin Ave & Concourse Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0146,LH,Ferry St & Turnpike Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0232,LH,Ledger Rd & Baldwin Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0093,LH,Old Mill District Station,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0282,LH,Wharton Rd & Delancy Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0252,LH,Kingsley Rd & Delancy Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0061,LH,Downtown Core Terminal,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0018,LH,North Terminus Terminal,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0267,LH,Beacon St & Elm St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0283,LH,Ferry St & Foundry Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0234,LH,Vine Ave & Delancy Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0274,LH,Beacon St & Delancy Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0156,LH,Kingsley Rd & Delancy Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0037,LH,Riverside Junction Central,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0008,LH,North Terminus Station,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0336,LH,Ledger Rd & Concourse Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0273,LH,Sable St & Wharton Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0334,LH,Wharton Rd & Beacon St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0298,LH,Turnpike Ave & Ferry St,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0263,LH,Beacon St & Ledger Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0189,LH,Concourse Ave & Copper Ln,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0347,LH,Beacon St & Baldwin Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0344,LH,Elm St & Beacon St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0015,LH,Financial Row Station,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0350,LH,Kingsley Rd & Delancy Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0345,LH,Turnpike Ave & Copper Ln,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0329,LH,Ferry St & Foundry Ln,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0158,LH,Ferry St & Concourse Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0091,LH,Downtown Core Terminal,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0314,LH,Prospect St & Concourse Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0290,LH,Copper Ln & Delancy Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0257,LH,Elm St & Baldwin Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0272,LH,Grant Rd & Delancy Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0114,LH,Copper Ln & Ferry St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0280,LH,Wharton Rd & Beacon St,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0043,LH,Old Mill District Terminal,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0110,LH,Elm St & Wharton Rd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0184,LH,Vine Ave & Ledger Rd,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0216,LH,Prospect St & Delancy Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0115,LH,Baldwin Ave & Kingsley Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0079,LH,Market Quarter Central,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0212,LH,Wharton Rd & Grant Rd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0170,LH,Kingsley Rd & Vine Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0084,LH,Uptown Crescent Terminal,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0218,LH,Delancy Ave & Ferry St,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0027,LH,Riverside Junction Terminal,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0083,LH,Old Mill District Interchange,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0076,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0140,LH,Elm St & Grant Rd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0047,LH,Riverside Junction Interchange,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0211,LH,Elm St & Turnpike Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0324,LH,Baldwin Ave & Concourse Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0348,LH,Foundry Ln & Hollow Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0021,LH,Downtown Core Station,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0109,LH,Hollow Ln & Montrose Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0187,LH,Concourse Ave & Beacon St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0292,LH,Wharton Rd & Concourse Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0206,LH,Cedar Blvd & Prospect St,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0276,LH,Ledger Rd & Baldwin Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0133,LH,Foundry Ln & Ledger Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0240,LH,Concourse Ave & Hollow Ln,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0239,LH,Beacon St & Baldwin Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0229,LH,Cedar Blvd & Hollow Ln,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0178,LH,Vine Ave & Copper Ln,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0128,LH,Hollow Ln & Wharton Rd,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0048,LH,North Terminus Station,North Terminus,LH-ZONE-008,metro_station
+LH-LOC-0087,LH,Riverside Junction Central,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0099,LH,Market Quarter Station,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0339,LH,Montrose Ave & Elm St,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0113,LH,Wharton Rd & Ledger Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0191,LH,Copper Ln & Cedar Blvd,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0261,LH,Copper Ln & Beacon St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0228,LH,Elm St & Baldwin Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0112,LH,Sable St & Grant Rd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0095,LH,Financial Row Station,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0205,LH,Baldwin Ave & Kingsley Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0032,LH,Harborfront Station,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0268,LH,Sable St & Turnpike Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0085,LH,Financial Row Terminal,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0168,LH,Beacon St & Sable St,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0222,LH,Beacon St & Prospect St,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0013,LH,Old Mill District Terminal,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0289,LH,Wharton Rd & Ledger Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0221,LH,Vine Ave & Grant Rd,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0092,LH,Harborfront Central,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0308,LH,Foundry Ln & Ledger Rd,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0049,LH,Market Quarter Terminal,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0166,LH,Elm St & Grant Rd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0193,LH,Turnpike Ave & Sable St,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0335,LH,Beacon St & Turnpike Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0065,LH,Financial Row Central,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0243,LH,Delancy Ave & Foundry Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0204,LH,Sable St & Prospect St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0159,LH,Ledger Rd & Foundry Ln,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0162,LH,Foundry Ln & Concourse Ave,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0022,LH,Harborfront Terminal,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0103,LH,Old Mill District Interchange,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0313,LH,Montrose Ave & Foundry Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0104,LH,Uptown Crescent Station,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0151,LH,Grant Rd & Baldwin Ave,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0019,LH,Market Quarter Central,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0318,LH,Cedar Blvd & Delancy Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0317,LH,Prospect St & Montrose Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0070,LH,East Commons Terminal,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0094,LH,Uptown Crescent Station,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0246,LH,Kingsley Rd & Vine Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0238,LH,Ashton Blvd & Turnpike Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0090,LH,East Commons Terminal,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0174,LH,Wharton Rd & Foundry Ln,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0304,LH,Sable St & Foundry Ln,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0287,LH,Sable St & Montrose Ave,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0069,LH,Market Quarter Station,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0171,LH,Hollow Ln & Beacon St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0054,LH,Uptown Crescent Interchange,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0303,LH,Concourse Ave & Hollow Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0177,LH,Wharton Rd & Ferry St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0296,LH,Copper Ln & Cedar Blvd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0183,LH,Sable St & Hollow Ln,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0330,LH,Kingsley Rd & Copper Ln,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0130,LH,Ferry St & Turnpike Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0192,LH,Beacon St & Copper Ln,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0199,LH,Delancy Ave & Cedar Blvd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0023,LH,Old Mill District Central,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0340,LH,Kingsley Rd & Delancy Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0200,LH,Elm St & Montrose Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0011,LH,Downtown Core Station,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0284,LH,Turnpike Ave & Delancy Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0302,LH,Grant Rd & Foundry Ln,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0260,LH,Vine Ave & Baldwin Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0279,LH,Copper Ln & Turnpike Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0270,LH,Beacon St & Cedar Blvd,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0035,LH,Financial Row Interchange,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0185,LH,Cedar Blvd & Ferry St,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0269,LH,Ferry St & Kingsley Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0044,LH,Uptown Crescent Station,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0096,LH,Cathedral Heights Terminal,Cathedral Heights,LH-ZONE-006,metro_station
+LH-LOC-0214,LH,Grant Rd & Baldwin Ave,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0293,LH,Ferry St & Baldwin Ave,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0309,LH,Ledger Rd & Delancy Ave,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0181,LH,Vine Ave & Copper Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0001,LH,Downtown Core Station,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0220,LH,Montrose Ave & Prospect St,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0150,LH,Beacon St & Ferry St,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0074,LH,Uptown Crescent Interchange,Uptown Crescent,LH-ZONE-004,metro_station
+LH-LOC-0124,LH,Cedar Blvd & Sable St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0295,LH,Concourse Ave & Sable St,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0264,LH,Grant Rd & Beacon St,Market Quarter,LH-ZONE-009,bus_stop
+LH-LOC-0009,LH,Market Quarter Central,Market Quarter,LH-ZONE-009,metro_station
+LH-LOC-0275,LH,Kingsley Rd & Wharton Rd,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0306,LH,Concourse Ave & Grant Rd,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0256,LH,Ledger Rd & Delancy Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0327,LH,Ledger Rd & Foundry Ln,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0033,LH,Old Mill District Interchange,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0235,LH,Ashton Blvd & Vine Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0319,LH,Concourse Ave & Wharton Rd,Uptown Crescent,LH-ZONE-004,bus_stop
+LH-LOC-0215,LH,Ledger Rd & Baldwin Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0123,LH,Turnpike Ave & Cedar Blvd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0025,LH,Financial Row Interchange,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0063,LH,Old Mill District Terminal,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0155,LH,Grant Rd & Vine Ave,East Commons,LH-ZONE-010,bus_stop
+LH-LOC-0122,LH,Vine Ave & Prospect St,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0148,LH,Turnpike Ave & Montrose Ave,Old Mill District,LH-ZONE-003,bus_stop
+LH-LOC-0057,LH,Riverside Junction Interchange,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0217,LH,Copper Ln & Ferry St,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0271,LH,Delancy Ave & Ashton Blvd,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0312,LH,Foundry Ln & Hollow Ln,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0281,LH,Ledger Rd & Elm St,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0077,LH,Riverside Junction Interchange,Riverside Junction,LH-ZONE-007,metro_station
+LH-LOC-0111,LH,Sable St & Hollow Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0132,LH,Kingsley Rd & Ashton Blvd,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0010,LH,East Commons Station,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0041,LH,Downtown Core Interchange,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0003,LH,Old Mill District Interchange,Old Mill District,LH-ZONE-003,metro_station
+LH-LOC-0316,LH,Montrose Ave & Concourse Ave,Downtown Core,LH-ZONE-001,bus_stop
+LH-LOC-0230,LH,Ledger Rd & Vine Ave,Financial Row,LH-ZONE-005,bus_stop
+LH-LOC-0241,LH,Hollow Ln & Foundry Ln,Cathedral Heights,LH-ZONE-006,bus_stop
+LH-LOC-0072,LH,Harborfront Interchange,Harborfront,LH-ZONE-002,metro_station
+LH-LOC-0242,LH,Elm St & Ferry St,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0147,LH,Baldwin Ave & Copper Ln,Harborfront,LH-ZONE-002,bus_stop
+LH-LOC-0020,LH,East Commons Interchange,East Commons,LH-ZONE-010,metro_station
+LH-LOC-0071,LH,Downtown Core Station,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0075,LH,Financial Row Station,Financial Row,LH-ZONE-005,metro_station
+LH-LOC-0172,LH,Elm St & Beacon St,Riverside Junction,LH-ZONE-007,bus_stop
+LH-LOC-0333,LH,Elm St & Kingsley Rd,North Terminus,LH-ZONE-008,bus_stop
+LH-LOC-0051,LH,Downtown Core Central,Downtown Core,LH-ZONE-001,metro_station
+LH-LOC-0164,LH,Ledger Rd & Grant Rd,Market Quarter,LH-ZONE-009,bus_stop
+ACS-LOC-0179,ACS,Grant Rd & Hollow Ln,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0055,ACS,Turnpike Ave & Kingsley Rd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0152,ACS,Cedar Blvd & Sable St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0107,ACS,Grant Rd & Turnpike Ave,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0198,ACS,Foundry Ln & Delancy Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0210,ACS,Foundry Ln & Elm St,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0001,ACS,Maple Grove Terminal,Maple Grove,ACS-ZONE-001,metro_station
+ACS-LOC-0066,ACS,Ledger Rd & Concourse Ave,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0194,ACS,Foundry Ln & Turnpike Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0029,ACS,Copper Ln & Grant Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0224,ACS,Hollow Ln & Delancy Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0190,ACS,Prospect St & Elm St,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0134,ACS,Wharton Rd & Montrose Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0229,ACS,Baldwin Ave & Prospect St,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0058,ACS,Hollow Ln & Sable St,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0227,ACS,Wharton Rd & Kingsley Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0038,ACS,Turnpike Ave & Vine Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0259,ACS,Baldwin Ave & Grant Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0167,ACS,Ashton Blvd & Sable St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0009,ACS,Southgate Commons Station,Southgate Commons,ACS-ZONE-009,metro_station
+ACS-LOC-0060,ACS,Prospect St & Ashton Blvd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0151,ACS,Beacon St & Sable St,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0197,ACS,Ledger Rd & Kingsley Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0043,ACS,Beacon St & Sable St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0092,ACS,Vine Ave & Turnpike Ave,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0002,ACS,Windmere Park Central,Windmere Park,ACS-ZONE-002,metro_station
+ACS-LOC-0203,ACS,Montrose Ave & Kingsley Rd,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0247,ACS,Montrose Ave & Grant Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0165,ACS,Beacon St & Vine Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0113,ACS,Turnpike Ave & Vine Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0070,ACS,Concourse Ave & Beacon St,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0211,ACS,Baldwin Ave & Foundry Ln,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0026,ACS,Greenhollow Terminal,Greenhollow,ACS-ZONE-006,metro_station
+ACS-LOC-0206,ACS,Baldwin Ave & Ledger Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0252,ACS,Kingsley Rd & Prospect St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0115,ACS,Ferry St & Concourse Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0078,ACS,Wharton Rd & Prospect St,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0071,ACS,Concourse Ave & Delancy Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0260,ACS,Vine Ave & Delancy Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0251,ACS,Wharton Rd & Elm St,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0110,ACS,Foundry Ln & Montrose Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0021,ACS,Maple Grove Terminal,Maple Grove,ACS-ZONE-001,metro_station
+ACS-LOC-0159,ACS,Vine Ave & Montrose Ave,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0181,ACS,Sable St & Prospect St,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0162,ACS,Grant Rd & Beacon St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0048,ACS,Prospect St & Turnpike Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0202,ACS,Vine Ave & Ashton Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0119,ACS,Cedar Blvd & Ferry St,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0176,ACS,Ledger Rd & Beacon St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0076,ACS,Delancy Ave & Kingsley Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0016,ACS,Greenhollow Station,Greenhollow,ACS-ZONE-006,metro_station
+ACS-LOC-0200,ACS,Turnpike Ave & Kingsley Rd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0166,ACS,Ferry St & Ledger Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0123,ACS,Concourse Ave & Delancy Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0017,ACS,Pine Hatch Station,Pine Hatch,ACS-ZONE-007,metro_station
+ACS-LOC-0045,ACS,Ashton Blvd & Montrose Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0052,ACS,Concourse Ave & Cedar Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0199,ACS,Ferry St & Prospect St,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0063,ACS,Sable St & Ferry St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0047,ACS,Hollow Ln & Ledger Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0204,ACS,Kingsley Rd & Baldwin Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0178,ACS,Grant Rd & Montrose Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0098,ACS,Delancy Ave & Hollow Ln,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0046,ACS,Baldwin Ave & Foundry Ln,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0044,ACS,Grant Rd & Foundry Ln,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0059,ACS,Ferry St & Kingsley Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0023,ACS,Sunridge Acres Terminal,Sunridge Acres,ACS-ZONE-003,metro_station
+ACS-LOC-0226,ACS,Delancy Ave & Vine Ave,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0097,ACS,Montrose Ave & Foundry Ln,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0189,ACS,Delancy Ave & Ledger Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0154,ACS,Delancy Ave & Ashton Blvd,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0139,ACS,Foundry Ln & Cedar Blvd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0169,ACS,Ferry St & Wharton Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0140,ACS,Copper Ln & Vine Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0067,ACS,Montrose Ave & Sable St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0018,ACS,Old Orchard Terminal,Old Orchard,ACS-ZONE-008,metro_station
+ACS-LOC-0008,ACS,Old Orchard Interchange,Old Orchard,ACS-ZONE-008,metro_station
+ACS-LOC-0114,ACS,Copper Ln & Grant Rd,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0212,ACS,Baldwin Ave & Cedar Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0065,ACS,Beacon St & Sable St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0083,ACS,Ferry St & Sable St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0027,ACS,Foundry Ln & Prospect St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0053,ACS,Prospect St & Montrose Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0020,ACS,Brookview Station,Brookview,ACS-ZONE-010,metro_station
+ACS-LOC-0125,ACS,Cedar Blvd & Prospect St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0217,ACS,Delancy Ave & Sable St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0057,ACS,Montrose Ave & Delancy Ave,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0191,ACS,Wharton Rd & Delancy Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0164,ACS,Ledger Rd & Foundry Ln,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0180,ACS,Montrose Ave & Wharton Rd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0090,ACS,Ledger Rd & Baldwin Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0228,ACS,Ashton Blvd & Foundry Ln,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0135,ACS,Grant Rd & Montrose Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0239,ACS,Elm St & Montrose Ave,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0088,ACS,Ashton Blvd & Hollow Ln,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0174,ACS,Hollow Ln & Delancy Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0219,ACS,Copper Ln & Cedar Blvd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0080,ACS,Ferry St & Ashton Blvd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0106,ACS,Cedar Blvd & Prospect St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0145,ACS,Turnpike Ave & Elm St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0187,ACS,Baldwin Ave & Cedar Blvd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0022,ACS,Windmere Park Terminal,Windmere Park,ACS-ZONE-002,metro_station
+ACS-LOC-0205,ACS,Montrose Ave & Vine Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0109,ACS,Sable St & Kingsley Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0007,ACS,Pine Hatch Central,Pine Hatch,ACS-ZONE-007,metro_station
+ACS-LOC-0214,ACS,Delancy Ave & Beacon St,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0030,ACS,Hollow Ln & Delancy Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0258,ACS,Copper Ln & Prospect St,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0124,ACS,Wharton Rd & Montrose Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0100,ACS,Montrose Ave & Grant Rd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0192,ACS,Turnpike Ave & Copper Ln,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0170,ACS,Ledger Rd & Baldwin Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0248,ACS,Concourse Ave & Beacon St,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0061,ACS,Prospect St & Wharton Rd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0218,ACS,Ledger Rd & Vine Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0004,ACS,Fallowfield Interchange,Fallowfield,ACS-ZONE-004,metro_station
+ACS-LOC-0220,ACS,Concourse Ave & Delancy Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0250,ACS,Turnpike Ave & Wharton Rd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0112,ACS,Beacon St & Wharton Rd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0177,ACS,Cedar Blvd & Prospect St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0171,ACS,Wharton Rd & Montrose Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0102,ACS,Montrose Ave & Cedar Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0040,ACS,Beacon St & Ashton Blvd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0232,ACS,Hollow Ln & Ferry St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0054,ACS,Concourse Ave & Montrose Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0015,ACS,Cobblestone Village Station,Cobblestone Village,ACS-ZONE-005,metro_station
+ACS-LOC-0136,ACS,Wharton Rd & Beacon St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0085,ACS,Sable St & Wharton Rd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0246,ACS,Ferry St & Beacon St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0005,ACS,Cobblestone Village Central,Cobblestone Village,ACS-ZONE-005,metro_station
+ACS-LOC-0147,ACS,Vine Ave & Ferry St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0137,ACS,Prospect St & Ledger Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0126,ACS,Prospect St & Copper Ln,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0156,ACS,Delancy Ave & Foundry Ln,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0172,ACS,Montrose Ave & Grant Rd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0256,ACS,Copper Ln & Ashton Blvd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0077,ACS,Foundry Ln & Prospect St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0163,ACS,Sable St & Elm St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0042,ACS,Delancy Ave & Elm St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0242,ACS,Foundry Ln & Ashton Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0223,ACS,Grant Rd & Montrose Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0149,ACS,Foundry Ln & Prospect St,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0215,ACS,Cedar Blvd & Ashton Blvd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0039,ACS,Ashton Blvd & Turnpike Ave,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0117,ACS,Hollow Ln & Prospect St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0133,ACS,Copper Ln & Turnpike Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0122,ACS,Wharton Rd & Vine Ave,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0086,ACS,Grant Rd & Concourse Ave,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0036,ACS,Concourse Ave & Grant Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0010,ACS,Brookview Central,Brookview,ACS-ZONE-010,metro_station
+ACS-LOC-0183,ACS,Montrose Ave & Concourse Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0011,ACS,Maple Grove Station,Maple Grove,ACS-ZONE-001,metro_station
+ACS-LOC-0129,ACS,Concourse Ave & Baldwin Ave,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0182,ACS,Beacon St & Sable St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0131,ACS,Cedar Blvd & Vine Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0155,ACS,Grant Rd & Ferry St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0051,ACS,Prospect St & Ashton Blvd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0235,ACS,Montrose Ave & Copper Ln,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0254,ACS,Vine Ave & Sable St,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0143,ACS,Elm St & Grant Rd,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0087,ACS,Wharton Rd & Concourse Ave,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0096,ACS,Wharton Rd & Sable St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0208,ACS,Grant Rd & Montrose Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0234,ACS,Copper Ln & Concourse Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0033,ACS,Turnpike Ave & Kingsley Rd,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0031,ACS,Grant Rd & Copper Ln,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0157,ACS,Montrose Ave & Wharton Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0160,ACS,Cedar Blvd & Ashton Blvd,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0072,ACS,Turnpike Ave & Ashton Blvd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0141,ACS,Beacon St & Delancy Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0237,ACS,Foundry Ln & Prospect St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0207,ACS,Turnpike Ave & Delancy Ave,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0231,ACS,Turnpike Ave & Hollow Ln,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0019,ACS,Southgate Commons Terminal,Southgate Commons,ACS-ZONE-009,metro_station
+ACS-LOC-0193,ACS,Montrose Ave & Baldwin Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0142,ACS,Copper Ln & Prospect St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0093,ACS,Wharton Rd & Baldwin Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0050,ACS,Beacon St & Copper Ln,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0244,ACS,Beacon St & Prospect St,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0146,ACS,Prospect St & Copper Ln,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0014,ACS,Fallowfield Terminal,Fallowfield,ACS-ZONE-004,metro_station
+ACS-LOC-0249,ACS,Turnpike Ave & Ashton Blvd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0012,ACS,Windmere Park Station,Windmere Park,ACS-ZONE-002,metro_station
+ACS-LOC-0186,ACS,Ferry St & Ledger Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0104,ACS,Baldwin Ave & Hollow Ln,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0094,ACS,Montrose Ave & Grant Rd,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0068,ACS,Foundry Ln & Elm St,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0035,ACS,Cedar Blvd & Copper Ln,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0111,ACS,Wharton Rd & Copper Ln,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0243,ACS,Turnpike Ave & Wharton Rd,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0003,ACS,Sunridge Acres Interchange,Sunridge Acres,ACS-ZONE-003,metro_station
+ACS-LOC-0138,ACS,Ledger Rd & Montrose Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0257,ACS,Concourse Ave & Ferry St,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0121,ACS,Foundry Ln & Sable St,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0173,ACS,Elm St & Prospect St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0168,ACS,Foundry Ln & Vine Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0153,ACS,Ashton Blvd & Foundry Ln,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0127,ACS,Ferry St & Foundry Ln,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0073,ACS,Montrose Ave & Turnpike Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0201,ACS,Concourse Ave & Foundry Ln,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0233,ACS,Cedar Blvd & Beacon St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0091,ACS,Prospect St & Vine Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0150,ACS,Hollow Ln & Copper Ln,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0056,ACS,Delancy Ave & Elm St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0241,ACS,Hollow Ln & Cedar Blvd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0118,ACS,Hollow Ln & Turnpike Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0130,ACS,Prospect St & Baldwin Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0101,ACS,Cedar Blvd & Beacon St,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0024,ACS,Fallowfield Central,Fallowfield,ACS-ZONE-004,metro_station
+ACS-LOC-0006,ACS,Greenhollow Interchange,Greenhollow,ACS-ZONE-006,metro_station
+ACS-LOC-0213,ACS,Montrose Ave & Prospect St,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0079,ACS,Concourse Ave & Grant Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0216,ACS,Ledger Rd & Kingsley Rd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0240,ACS,Wharton Rd & Turnpike Ave,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0245,ACS,Foundry Ln & Wharton Rd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0128,ACS,Grant Rd & Turnpike Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0225,ACS,Elm St & Cedar Blvd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0196,ACS,Delancy Ave & Turnpike Ave,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0049,ACS,Montrose Ave & Foundry Ln,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0081,ACS,Grant Rd & Turnpike Ave,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0185,ACS,Baldwin Ave & Beacon St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0148,ACS,Montrose Ave & Ledger Rd,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0084,ACS,Prospect St & Copper Ln,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0209,ACS,Grant Rd & Ledger Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0041,ACS,Cedar Blvd & Ledger Rd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0230,ACS,Sable St & Beacon St,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0236,ACS,Baldwin Ave & Prospect St,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0108,ACS,Beacon St & Concourse Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0158,ACS,Kingsley Rd & Turnpike Ave,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0222,ACS,Beacon St & Grant Rd,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0099,ACS,Vine Ave & Wharton Rd,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0075,ACS,Beacon St & Turnpike Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0013,ACS,Sunridge Acres Interchange,Sunridge Acres,ACS-ZONE-003,metro_station
+ACS-LOC-0025,ACS,Cobblestone Village Station,Cobblestone Village,ACS-ZONE-005,metro_station
+ACS-LOC-0037,ACS,Wharton Rd & Grant Rd,Maple Grove,ACS-ZONE-001,bus_stop
+ACS-LOC-0064,ACS,Cedar Blvd & Prospect St,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0116,ACS,Prospect St & Cedar Blvd,Brookview,ACS-ZONE-010,bus_stop
+ACS-LOC-0069,ACS,Cedar Blvd & Delancy Ave,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0032,ACS,Elm St & Delancy Ave,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0120,ACS,Elm St & Foundry Ln,Fallowfield,ACS-ZONE-004,bus_stop
+ACS-LOC-0062,ACS,Ledger Rd & Elm St,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0253,ACS,Elm St & Copper Ln,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0028,ACS,Ashton Blvd & Hollow Ln,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0144,ACS,Concourse Ave & Copper Ln,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0132,ACS,Hollow Ln & Delancy Ave,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0095,ACS,Elm St & Copper Ln,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0195,ACS,Montrose Ave & Ashton Blvd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0034,ACS,Kingsley Rd & Ferry St,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0103,ACS,Turnpike Ave & Vine Ave,Pine Hatch,ACS-ZONE-007,bus_stop
+ACS-LOC-0089,ACS,Wharton Rd & Elm St,Sunridge Acres,ACS-ZONE-003,bus_stop
+ACS-LOC-0255,ACS,Wharton Rd & Concourse Ave,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0188,ACS,Prospect St & Foundry Ln,Windmere Park,ACS-ZONE-002,bus_stop
+ACS-LOC-0082,ACS,Hollow Ln & Concourse Ave,Greenhollow,ACS-ZONE-006,bus_stop
+ACS-LOC-0184,ACS,Foundry Ln & Turnpike Ave,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0221,ACS,Concourse Ave & Cedar Blvd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0161,ACS,Prospect St & Ashton Blvd,Cobblestone Village,ACS-ZONE-005,bus_stop
+ACS-LOC-0074,ACS,Sable St & Ashton Blvd,Old Orchard,ACS-ZONE-008,bus_stop
+ACS-LOC-0175,ACS,Ledger Rd & Elm St,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0105,ACS,Turnpike Ave & Wharton Rd,Southgate Commons,ACS-ZONE-009,bus_stop
+ACS-LOC-0238,ACS,Foundry Ln & Prospect St,Windmere Park,ACS-ZONE-002,bus_stop
+DAT-LOC-0294,DAT,Foundry Ln & Ashton Blvd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0101,DAT,Vine Ave & Sable St,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0255,DAT,Baldwin Ave & Ledger Rd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0075,DAT,Concourse Ave & Baldwin Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0232,DAT,Vine Ave & Montrose Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0128,DAT,Turnpike Ave & Ledger Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0047,DAT,Kestrel Heights Terminal,Kestrel Heights,DAT-ZONE-007,metro_station
+DAT-LOC-0260,DAT,Ferry St & Ashton Blvd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0182,DAT,Ledger Rd & Ashton Blvd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0250,DAT,Ashton Blvd & Wharton Rd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0074,DAT,Vine Ave & Ashton Blvd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0210,DAT,Montrose Ave & Foundry Ln,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0065,DAT,Foundry Ln & Montrose Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0100,DAT,Foundry Ln & Elm St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0007,DAT,Kestrel Heights Interchange,Kestrel Heights,DAT-ZONE-007,metro_station
+DAT-LOC-0028,DAT,Lakeside Loop Station,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0152,DAT,Cedar Blvd & Ledger Rd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0286,DAT,Montrose Ave & Ashton Blvd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0133,DAT,Copper Ln & Wharton Rd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0241,DAT,Beacon St & Delancy Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0082,DAT,Prospect St & Baldwin Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0197,DAT,Sable St & Cedar Blvd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0192,DAT,Hollow Ln & Montrose Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0092,DAT,Sable St & Grant Rd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0022,DAT,Ashford Row Terminal,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0215,DAT,Foundry Ln & Cedar Blvd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0206,DAT,Grant Rd & Hollow Ln,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0175,DAT,Baldwin Ave & Wharton Rd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0137,DAT,Montrose Ave & Concourse Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0252,DAT,Copper Ln & Cedar Blvd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0237,DAT,Foundry Ln & Ledger Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0098,DAT,Copper Ln & Vine Ave,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0038,DAT,Lakeside Loop Central,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0276,DAT,Ledger Rd & Concourse Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0077,DAT,Cedar Blvd & Turnpike Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0142,DAT,Beacon St & Turnpike Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0010,DAT,Northbank Terminal,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0273,DAT,Concourse Ave & Montrose Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0296,DAT,Vine Ave & Beacon St,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0154,DAT,Beacon St & Montrose Ave,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0063,DAT,Prospect St & Vine Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0062,DAT,Montrose Ave & Beacon St,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0169,DAT,Montrose Ave & Ledger Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0139,DAT,Ledger Rd & Ashton Blvd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0116,DAT,Concourse Ave & Foundry Ln,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0159,DAT,Vine Ave & Hollow Ln,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0033,DAT,Union Flats Interchange,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0207,DAT,Prospect St & Ferry St,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0264,DAT,Wharton Rd & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0291,DAT,Foundry Ln & Ledger Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0014,DAT,Bellwood Terminal,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0183,DAT,Cedar Blvd & Beacon St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0073,DAT,Copper Ln & Elm St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0089,DAT,Elm St & Ferry St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0026,DAT,Milltown Station,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0097,DAT,Sable St & Concourse Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0261,DAT,Montrose Ave & Ferry St,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0187,DAT,Turnpike Ave & Beacon St,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0248,DAT,Delancy Ave & Cedar Blvd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0243,DAT,Delancy Ave & Cedar Blvd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0292,DAT,Baldwin Ave & Foundry Ln,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0044,DAT,Bellwood Interchange,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0086,DAT,Baldwin Ave & Elm St,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0105,DAT,Cedar Blvd & Ashton Blvd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0072,DAT,Cedar Blvd & Concourse Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0013,DAT,Union Flats Interchange,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0122,DAT,Baldwin Ave & Sable St,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0300,DAT,Concourse Ave & Elm St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0190,DAT,Grant Rd & Beacon St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0246,DAT,Wharton Rd & Prospect St,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0108,DAT,Prospect St & Copper Ln,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0263,DAT,Baldwin Ave & Cedar Blvd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0179,DAT,Hollow Ln & Baldwin Ave,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0226,DAT,Kingsley Rd & Montrose Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0224,DAT,Cedar Blvd & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0247,DAT,Copper Ln & Baldwin Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0280,DAT,Foundry Ln & Wharton Rd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0059,DAT,Founders Square Central,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0032,DAT,Ashford Row Interchange,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0211,DAT,Turnpike Ave & Copper Ln,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0228,DAT,Vine Ave & Montrose Ave,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0285,DAT,Prospect St & Vine Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0267,DAT,Delancy Ave & Baldwin Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0112,DAT,Sable St & Beacon St,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0060,DAT,Northbank Terminal,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0155,DAT,Delancy Ave & Hollow Ln,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0208,DAT,Hollow Ln & Baldwin Ave,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0160,DAT,Hollow Ln & Vine Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0162,DAT,Foundry Ln & Beacon St,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0017,DAT,Kestrel Heights Interchange,Kestrel Heights,DAT-ZONE-007,metro_station
+DAT-LOC-0068,DAT,Ledger Rd & Ashton Blvd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0051,DAT,Central Yard Central,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0277,DAT,Wharton Rd & Sable St,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0229,DAT,Turnpike Ave & Ferry St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0161,DAT,Cedar Blvd & Wharton Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0127,DAT,Ledger Rd & Vine Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0256,DAT,Cedar Blvd & Foundry Ln,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0113,DAT,Grant Rd & Baldwin Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0124,DAT,Cedar Blvd & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0213,DAT,Copper Ln & Delancy Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0088,DAT,Turnpike Ave & Delancy Ave,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0011,DAT,Central Yard Terminal,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0196,DAT,Turnpike Ave & Kingsley Rd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0106,DAT,Copper Ln & Baldwin Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0257,DAT,Sable St & Ashton Blvd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0049,DAT,Founders Square Station,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0225,DAT,Copper Ln & Sable St,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0054,DAT,Bellwood Terminal,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0111,DAT,Wharton Rd & Montrose Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0094,DAT,Foundry Ln & Ashton Blvd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0222,DAT,Vine Ave & Cedar Blvd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0151,DAT,Baldwin Ave & Elm St,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0018,DAT,Lakeside Loop Interchange,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0218,DAT,Turnpike Ave & Vine Ave,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0238,DAT,Sable St & Hollow Ln,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0271,DAT,Foundry Ln & Vine Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0037,DAT,Kestrel Heights Terminal,Kestrel Heights,DAT-ZONE-007,metro_station
+DAT-LOC-0269,DAT,Baldwin Ave & Ferry St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0288,DAT,Sable St & Grant Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0125,DAT,Beacon St & Grant Rd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0163,DAT,Montrose Ave & Foundry Ln,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0199,DAT,Delancy Ave & Concourse Ave,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0008,DAT,Lakeside Loop Central,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0070,DAT,Prospect St & Ferry St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0009,DAT,Founders Square Terminal,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0278,DAT,Ferry St & Kingsley Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0239,DAT,Ashton Blvd & Kingsley Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0109,DAT,Ledger Rd & Delancy Ave,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0012,DAT,Ashford Row Interchange,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0275,DAT,Foundry Ln & Concourse Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0227,DAT,Turnpike Ave & Ledger Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0001,DAT,Central Yard Central,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0251,DAT,Kingsley Rd & Baldwin Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0102,DAT,Kingsley Rd & Foundry Ln,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0006,DAT,Milltown Interchange,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0198,DAT,Kingsley Rd & Wharton Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0281,DAT,Kingsley Rd & Ledger Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0144,DAT,Elm St & Wharton Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0143,DAT,Copper Ln & Ledger Rd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0191,DAT,Elm St & Ashton Blvd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0231,DAT,Sable St & Baldwin Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0034,DAT,Bellwood Central,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0180,DAT,Kingsley Rd & Turnpike Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0015,DAT,Harrow Point Interchange,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0167,DAT,Beacon St & Grant Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0131,DAT,Ashton Blvd & Foundry Ln,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0024,DAT,Bellwood Central,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0126,DAT,Ashton Blvd & Baldwin Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0053,DAT,Union Flats Station,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0030,DAT,Northbank Station,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0114,DAT,Ledger Rd & Ferry St,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0134,DAT,Ashton Blvd & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0235,DAT,Hollow Ln & Vine Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0043,DAT,Union Flats Central,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0039,DAT,Founders Square Station,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0174,DAT,Wharton Rd & Ferry St,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0290,DAT,Hollow Ln & Wharton Rd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0295,DAT,Elm St & Foundry Ln,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0130,DAT,Grant Rd & Foundry Ln,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0195,DAT,Concourse Ave & Foundry Ln,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0202,DAT,Grant Rd & Ledger Rd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0029,DAT,Founders Square Interchange,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0145,DAT,Elm St & Ferry St,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0270,DAT,Hollow Ln & Ferry St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0205,DAT,Baldwin Ave & Prospect St,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0136,DAT,Ferry St & Baldwin Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0216,DAT,Montrose Ave & Foundry Ln,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0135,DAT,Turnpike Ave & Sable St,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0021,DAT,Central Yard Station,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0268,DAT,Copper Ln & Kingsley Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0221,DAT,Foundry Ln & Montrose Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0056,DAT,Milltown Central,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0201,DAT,Cedar Blvd & Ledger Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0138,DAT,Grant Rd & Kingsley Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0121,DAT,Prospect St & Kingsley Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0141,DAT,Turnpike Ave & Concourse Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0107,DAT,Cedar Blvd & Hollow Ln,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0272,DAT,Beacon St & Ashton Blvd,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0156,DAT,Ashton Blvd & Wharton Rd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0117,DAT,Delancy Ave & Montrose Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0040,DAT,Northbank Interchange,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0223,DAT,Ashton Blvd & Wharton Rd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0035,DAT,Harrow Point Interchange,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0185,DAT,Elm St & Montrose Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0057,DAT,Kestrel Heights Central,Kestrel Heights,DAT-ZONE-007,metro_station
+DAT-LOC-0158,DAT,Copper Ln & Cedar Blvd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0095,DAT,Sable St & Copper Ln,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0289,DAT,Wharton Rd & Cedar Blvd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0236,DAT,Concourse Ave & Montrose Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0200,DAT,Delancy Ave & Hollow Ln,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0177,DAT,Grant Rd & Elm St,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0080,DAT,Delancy Ave & Baldwin Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0181,DAT,Concourse Ave & Ledger Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0129,DAT,Ledger Rd & Delancy Ave,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0176,DAT,Wharton Rd & Ashton Blvd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0234,DAT,Cedar Blvd & Ledger Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0041,DAT,Central Yard Terminal,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0079,DAT,Ferry St & Prospect St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0120,DAT,Beacon St & Delancy Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0283,DAT,Hollow Ln & Concourse Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0171,DAT,Concourse Ave & Beacon St,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0016,DAT,Milltown Central,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0217,DAT,Wharton Rd & Prospect St,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0178,DAT,Montrose Ave & Beacon St,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0093,DAT,Cedar Blvd & Sable St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0168,DAT,Wharton Rd & Copper Ln,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0219,DAT,Ashton Blvd & Ledger Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0293,DAT,Cedar Blvd & Prospect St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0284,DAT,Copper Ln & Baldwin Ave,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0186,DAT,Cedar Blvd & Ashton Blvd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0150,DAT,Kingsley Rd & Cedar Blvd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0078,DAT,Ferry St & Copper Ln,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0085,DAT,Grant Rd & Elm St,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0262,DAT,Concourse Ave & Baldwin Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0193,DAT,Ashton Blvd & Cedar Blvd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0115,DAT,Beacon St & Montrose Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0061,DAT,Beacon St & Grant Rd,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0258,DAT,Elm St & Kingsley Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0067,DAT,Grant Rd & Kingsley Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0002,DAT,Ashford Row Station,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0064,DAT,Ashton Blvd & Ferry St,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0083,DAT,Baldwin Ave & Turnpike Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0123,DAT,Cedar Blvd & Grant Rd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0036,DAT,Milltown Station,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0249,DAT,Turnpike Ave & Baldwin Ave,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0025,DAT,Harrow Point Interchange,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0266,DAT,Sable St & Vine Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0287,DAT,Ledger Rd & Grant Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0023,DAT,Union Flats Terminal,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0084,DAT,Prospect St & Hollow Ln,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0132,DAT,Vine Ave & Delancy Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0110,DAT,Kingsley Rd & Ledger Rd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0298,DAT,Concourse Ave & Beacon St,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0104,DAT,Foundry Ln & Cedar Blvd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0230,DAT,Delancy Ave & Sable St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0164,DAT,Beacon St & Prospect St,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0220,DAT,Cedar Blvd & Delancy Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0157,DAT,Delancy Ave & Copper Ln,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0045,DAT,Harrow Point Central,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0050,DAT,Northbank Interchange,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0194,DAT,Beacon St & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0173,DAT,Elm St & Concourse Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0265,DAT,Sable St & Turnpike Ave,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0076,DAT,Turnpike Ave & Ferry St,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0203,DAT,Sable St & Ferry St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0087,DAT,Ashton Blvd & Concourse Ave,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0189,DAT,Beacon St & Wharton Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0004,DAT,Bellwood Terminal,Bellwood,DAT-ZONE-004,metro_station
+DAT-LOC-0048,DAT,Lakeside Loop Station,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0184,DAT,Vine Ave & Foundry Ln,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0066,DAT,Concourse Ave & Kingsley Rd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0166,DAT,Grant Rd & Kingsley Rd,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0118,DAT,Kingsley Rd & Foundry Ln,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0188,DAT,Turnpike Ave & Kingsley Rd,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0042,DAT,Ashford Row Station,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0297,DAT,Sable St & Ashton Blvd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0058,DAT,Lakeside Loop Interchange,Lakeside Loop,DAT-ZONE-008,metro_station
+DAT-LOC-0099,DAT,Sable St & Wharton Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0140,DAT,Grant Rd & Wharton Rd,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0240,DAT,Wharton Rd & Beacon St,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0259,DAT,Wharton Rd & Hollow Ln,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0069,DAT,Vine Ave & Beacon St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0253,DAT,Wharton Rd & Turnpike Ave,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0233,DAT,Grant Rd & Ashton Blvd,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0146,DAT,Prospect St & Delancy Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0172,DAT,Copper Ln & Vine Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0055,DAT,Harrow Point Terminal,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0153,DAT,Ferry St & Beacon St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0005,DAT,Harrow Point Station,Harrow Point,DAT-ZONE-005,metro_station
+DAT-LOC-0279,DAT,Turnpike Ave & Foundry Ln,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0149,DAT,Baldwin Ave & Copper Ln,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0096,DAT,Grant Rd & Montrose Ave,Milltown,DAT-ZONE-006,bus_stop
+DAT-LOC-0254,DAT,Kingsley Rd & Delancy Ave,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0204,DAT,Ashton Blvd & Kingsley Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0019,DAT,Founders Square Station,Founders Square,DAT-ZONE-009,metro_station
+DAT-LOC-0091,DAT,Baldwin Ave & Foundry Ln,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0214,DAT,Delancy Ave & Baldwin Ave,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0090,DAT,Prospect St & Vine Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0020,DAT,Northbank Central,Northbank,DAT-ZONE-010,metro_station
+DAT-LOC-0274,DAT,Copper Ln & Wharton Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0119,DAT,Grant Rd & Ashton Blvd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0046,DAT,Milltown Station,Milltown,DAT-ZONE-006,metro_station
+DAT-LOC-0031,DAT,Central Yard Central,Central Yard,DAT-ZONE-001,metro_station
+DAT-LOC-0147,DAT,Delancy Ave & Kingsley Rd,Kestrel Heights,DAT-ZONE-007,bus_stop
+DAT-LOC-0165,DAT,Ferry St & Ledger Rd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0148,DAT,Elm St & Ferry St,Lakeside Loop,DAT-ZONE-008,bus_stop
+DAT-LOC-0103,DAT,Grant Rd & Sable St,Union Flats,DAT-ZONE-003,bus_stop
+DAT-LOC-0245,DAT,Ledger Rd & Kingsley Rd,Harrow Point,DAT-ZONE-005,bus_stop
+DAT-LOC-0244,DAT,Delancy Ave & Grant Rd,Bellwood,DAT-ZONE-004,bus_stop
+DAT-LOC-0209,DAT,Cedar Blvd & Ferry St,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0081,DAT,Copper Ln & Elm St,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0282,DAT,Sable St & Beacon St,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0003,DAT,Union Flats Interchange,Union Flats,DAT-ZONE-003,metro_station
+DAT-LOC-0071,DAT,Grant Rd & Montrose Ave,Central Yard,DAT-ZONE-001,bus_stop
+DAT-LOC-0299,DAT,Cedar Blvd & Kingsley Rd,Founders Square,DAT-ZONE-009,bus_stop
+DAT-LOC-0242,DAT,Copper Ln & Vine Ave,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0170,DAT,Wharton Rd & Vine Ave,Northbank,DAT-ZONE-010,bus_stop
+DAT-LOC-0212,DAT,Foundry Ln & Copper Ln,Ashford Row,DAT-ZONE-002,bus_stop
+DAT-LOC-0052,DAT,Ashford Row Station,Ashford Row,DAT-ZONE-002,metro_station
+DAT-LOC-0027,DAT,Kestrel Heights Central,Kestrel Heights,DAT-ZONE-007,metro_station

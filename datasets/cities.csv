@@ -1,0 +1,4 @@
+city_id,city_name,population,transit_density,market_tier,timezone
+LH,Las Hackland,3200000,dense,premium,America/New_York
+ACS,Accordionshire,850000,sprawling,value,America/Chicago
+DAT,DA Town,1450000,mixed,standard,America/Denver

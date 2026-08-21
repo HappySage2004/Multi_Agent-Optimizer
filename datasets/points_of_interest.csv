@@ -1,0 +1,1376 @@
+poi_id,city_id,city_zone,name,poi_type,scale,est_daily_footfall,anchor_location_id,distance_to_location_km,distance_to_location_mi,is_network_hub,side_of_road,peak_daypart
+LH-POI-0001,LH,Financial Row,Financial Row Heritage Museum,museum,flagship,29380,LH-LOC-0120,0.384,0.239,False,far_side,afternoon
+LH-POI-0002,LH,East Commons,East Commons Mall,shopping_mall,flagship,8525,LH-LOC-0135,0.782,0.486,False,far_side,evening
+LH-POI-0003,LH,Cathedral Heights,Cathedral Heights Hotel & Conference Center,hotel_convention,neighborhood,521,LH-LOC-0311,0.409,0.254,False,far_side,midday
+LH-POI-0004,LH,North Terminus,Ivy North Mall,shopping_mall,major,3414,LH-LOC-0078,0.082,0.051,True,near_side,midday
+LH-POI-0005,LH,North Terminus,Riverside North Residences,residential_tower,neighborhood,1724,LH-LOC-0078,0.312,0.194,True,near_side,morning
+LH-POI-0006,LH,North Terminus,Crescent North Grocery & Provisions,grocery_anchor,neighborhood,1134,LH-LOC-0078,0.044,0.027,True,near_side,morning
+LH-POI-0007,LH,Financial Row,Riverside Financial Galleria,shopping_mall,major,12418,LH-LOC-0210,0.569,0.354,False,far_side,evening
+LH-POI-0008,LH,East Commons,Cedar Mall,shopping_mall,major,3868,LH-LOC-0050,0.793,0.493,False,far_side,afternoon
+LH-POI-0009,LH,East Commons,Cedar East Business Park,office_park,minor,531,LH-LOC-0050,0.132,0.082,False,near_side,evening
+LH-POI-0010,LH,Harborfront,Ivy Towers,residential_tower,flagship,25748,LH-LOC-0042,0.494,0.307,True,far_side,midday
+LH-POI-0011,LH,Harborfront,Union Civic Center,government_building,minor,364,LH-LOC-0042,0.11,0.068,True,far_side,evening
+LH-POI-0012,LH,Harborfront,Founders Harborfront Medical Center,hospital,minor,645,LH-LOC-0042,0.025,0.016,True,near_side,night
+LH-POI-0013,LH,Harborfront,Harborfront Galleria,shopping_mall,minor,239,LH-LOC-0042,0.155,0.096,True,far_side,afternoon
+LH-POI-0014,LH,Old Mill District,Founders Old Market,grocery_anchor,major,7376,LH-LOC-0338,0.768,0.477,False,far_side,midday
+LH-POI-0015,LH,Market Quarter,Founders Market City Hall,government_building,neighborhood,3444,LH-LOC-0059,0.069,0.043,True,far_side,midday
+LH-POI-0016,LH,Market Quarter,Harbor Residences,residential_tower,neighborhood,1356,LH-LOC-0059,0.326,0.203,True,far_side,evening
+LH-POI-0017,LH,Market Quarter,Union Market Mall,shopping_mall,neighborhood,3297,LH-LOC-0059,0.044,0.027,True,far_side,evening
+LH-POI-0018,LH,Financial Row,Harbor Financial Tech Campus,corporate_campus,major,10553,LH-LOC-0005,0.33,0.205,True,far_side,morning
+LH-POI-0019,LH,Financial Row,Cedar Financial Museum,museum,minor,1130,LH-LOC-0005,0.114,0.071,True,near_side,midday
+LH-POI-0020,LH,Financial Row,Financial Row Business Park,office_park,neighborhood,5445,LH-LOC-0005,0.02,0.012,True,far_side,morning
+LH-POI-0021,LH,Financial Row,Financial Row Market,grocery_anchor,major,10894,LH-LOC-0005,0.394,0.245,True,near_side,morning
+LH-POI-0022,LH,Old Mill District,Central Old Theater Row,entertainment_district,major,4878,LH-LOC-0108,0.402,0.25,False,near_side,evening
+LH-POI-0023,LH,Harborfront,Harborfront Institute of Technology,university,flagship,19503,LH-LOC-0237,0.506,0.314,False,far_side,morning
+LH-POI-0024,LH,Harborfront,Metro Harborfront Mall,shopping_mall,major,8075,LH-LOC-0297,0.712,0.442,False,near_side,evening
+LH-POI-0025,LH,Market Quarter,Landmark Municipal Building,government_building,neighborhood,4720,LH-LOC-0144,0.465,0.289,False,far_side,morning
+LH-POI-0026,LH,Harborfront,Harborfront Plaza,tourist_landmark,minor,390,LH-LOC-0127,0.021,0.013,False,near_side,evening
+LH-POI-0027,LH,Old Mill District,Summit Old City Hall,government_building,neighborhood,3532,LH-LOC-0208,0.341,0.212,False,near_side,morning
+LH-POI-0028,LH,North Terminus,Founders Business Park,office_park,flagship,9292,LH-LOC-0223,0.203,0.126,False,near_side,evening
+LH-POI-0029,LH,Cathedral Heights,Metro Fresh Market,grocery_anchor,flagship,6547,LH-LOC-0251,0.775,0.482,False,far_side,midday
+LH-POI-0030,LH,East Commons,Crescent East Residences,residential_tower,flagship,7097,LH-LOC-0245,0.84,0.522,False,far_side,morning
+LH-POI-0031,LH,East Commons,East Commons General Hospital,hospital,major,3933,LH-LOC-0305,0.57,0.354,False,near_side,midday
+LH-POI-0032,LH,Downtown Core,Downtown Core Museum,museum,flagship,37574,LH-LOC-0106,0.469,0.291,True,near_side,midday
+LH-POI-0033,LH,Downtown Core,Founders Downtown Hotel & Conference Center,hotel_convention,neighborhood,4586,LH-LOC-0106,0.198,0.123,True,near_side,night
+LH-POI-0034,LH,Harborfront,Metro Harborfront Corporate Center,office_park,major,9601,LH-LOC-0277,0.757,0.47,False,near_side,morning
+LH-POI-0035,LH,Uptown Crescent,Central Uptown University,university,major,10428,LH-LOC-0014,0.486,0.302,True,near_side,morning
+LH-POI-0036,LH,Uptown Crescent,Crescent Uptown Entertainment District,entertainment_district,neighborhood,2282,LH-LOC-0014,0.019,0.012,True,far_side,evening
+LH-POI-0037,LH,Uptown Crescent,Union Fresh Market,grocery_anchor,neighborhood,3810,LH-LOC-0014,0.204,0.127,True,near_side,evening
+LH-POI-0038,LH,North Terminus,Summit Historic District,tourist_landmark,major,5920,LH-LOC-0028,0.458,0.285,True,far_side,evening
+LH-POI-0039,LH,North Terminus,Union Residences,residential_tower,minor,300,LH-LOC-0028,0.123,0.076,True,far_side,night
+LH-POI-0040,LH,North Terminus,Cedar North Shopping Center,shopping_mall,minor,534,LH-LOC-0028,0.187,0.116,True,near_side,evening
+LH-POI-0041,LH,North Terminus,Central Nightlife Quarter,entertainment_district,minor,534,LH-LOC-0028,0.065,0.04,True,far_side,afternoon
+LH-POI-0042,LH,Downtown Core,Downtown Core Office Commons,office_park,major,18466,LH-LOC-0326,0.496,0.308,True,near_side,evening
+LH-POI-0043,LH,Downtown Core,Cedar Market,grocery_anchor,minor,2024,LH-LOC-0326,0.067,0.042,True,far_side,afternoon
+LH-POI-0044,LH,Uptown Crescent,Uptown Crescent Galleria,shopping_mall,major,9562,LH-LOC-0149,0.788,0.49,False,near_side,afternoon
+LH-POI-0045,LH,Financial Row,North Financial Corporate Campus,corporate_campus,minor,585,LH-LOC-0160,0.272,0.169,False,near_side,morning
+LH-POI-0046,LH,East Commons,East Commons Civic Center,government_building,neighborhood,1882,LH-LOC-0325,0.379,0.235,False,far_side,midday
+LH-POI-0047,LH,Riverside Junction,Cedar Riverside Towers,residential_tower,neighborhood,1278,LH-LOC-0322,0.453,0.281,False,near_side,evening
+LH-POI-0048,LH,Cathedral Heights,Harbor Cathedral Tech Campus,corporate_campus,flagship,8349,LH-LOC-0231,1.137,0.706,False,far_side,evening
+LH-POI-0049,LH,Downtown Core,Downtown Core Galleria,shopping_mall,major,18014,LH-LOC-0236,0.363,0.226,True,near_side,afternoon
+LH-POI-0050,LH,Downtown Core,Cedar Business Park,office_park,minor,2012,LH-LOC-0236,0.158,0.098,True,far_side,morning
+LH-POI-0051,LH,Uptown Crescent,Uptown Crescent Grocery & Provisions,grocery_anchor,major,6472,LH-LOC-0299,0.117,0.073,False,near_side,afternoon
+LH-POI-0052,LH,Harborfront,Harborfront Landmark Tower,tourist_landmark,neighborhood,3618,LH-LOC-0247,0.21,0.13,False,near_side,morning
+LH-POI-0053,LH,Harborfront,Union Harborfront Nightlife Quarter,entertainment_district,neighborhood,2769,LH-LOC-0002,0.292,0.181,False,far_side,afternoon
+LH-POI-0054,LH,Harborfront,Founders Harborfront Plaza,tourist_landmark,neighborhood,3085,LH-LOC-0002,0.179,0.111,False,far_side,midday
+LH-POI-0055,LH,Harborfront,Harborfront Fresh Market,grocery_anchor,major,11107,LH-LOC-0337,0.415,0.258,False,far_side,evening
+LH-POI-0056,LH,Downtown Core,Parkview Downtown Gallery,museum,major,11332,LH-LOC-0101,0.22,0.137,True,near_side,midday
+LH-POI-0057,LH,Downtown Core,Downtown Core Business Park,office_park,major,10581,LH-LOC-0101,0.267,0.166,True,near_side,midday
+LH-POI-0058,LH,Downtown Core,Ivy Tech Campus,corporate_campus,neighborhood,6483,LH-LOC-0101,0.332,0.206,True,near_side,evening
+LH-POI-0059,LH,Harborfront,Parkview Municipal Building,government_building,major,7523,LH-LOC-0167,0.724,0.45,False,far_side,midday
+LH-POI-0060,LH,Riverside Junction,South Riverside Entertainment District,entertainment_district,major,5883,LH-LOC-0182,0.568,0.353,False,far_side,night
+LH-POI-0061,LH,Downtown Core,Downtown Core Hotel & Conference Center,hotel_convention,neighborhood,5872,LH-LOC-0346,0.046,0.029,True,near_side,night
+LH-POI-0062,LH,Downtown Core,North Shopping Center,shopping_mall,neighborhood,3290,LH-LOC-0346,0.127,0.079,True,far_side,afternoon
+LH-POI-0063,LH,Cathedral Heights,Central Corporate Campus,corporate_campus,neighborhood,585,LH-LOC-0121,0.477,0.296,False,near_side,morning
+LH-POI-0064,LH,North Terminus,Summit North Nightlife Quarter,entertainment_district,flagship,7764,LH-LOC-0323,0.283,0.176,False,far_side,evening
+LH-POI-0065,LH,North Terminus,Heritage Nightlife Quarter,entertainment_district,major,4763,LH-LOC-0173,0.775,0.482,False,far_side,night
+LH-POI-0066,LH,Old Mill District,Summit Old General Hospital,hospital,minor,733,LH-LOC-0278,0.274,0.17,False,near_side,night
+LH-POI-0067,LH,Market Quarter,Metro Theater Row,entertainment_district,neighborhood,1648,LH-LOC-0134,0.393,0.244,False,far_side,evening
+LH-POI-0068,LH,Market Quarter,South Fresh Market,grocery_anchor,major,11669,LH-LOC-0089,0.471,0.293,True,near_side,night
+LH-POI-0069,LH,Market Quarter,Market Quarter Nightlife Quarter,entertainment_district,neighborhood,3887,LH-LOC-0089,0.339,0.211,True,near_side,night
+LH-POI-0070,LH,Market Quarter,Crescent Shopping Center,shopping_mall,minor,861,LH-LOC-0089,0.076,0.047,True,near_side,evening
+LH-POI-0071,LH,Market Quarter,Market Quarter City Hall,government_building,minor,837,LH-LOC-0089,0.144,0.089,True,near_side,midday
+LH-POI-0072,LH,Old Mill District,Grand Fresh Market,grocery_anchor,neighborhood,2168,LH-LOC-0118,0.444,0.276,False,far_side,midday
+LH-POI-0073,LH,North Terminus,Parkview North Shopping Center,shopping_mall,neighborhood,1754,LH-LOC-0088,0.181,0.112,True,far_side,midday
+LH-POI-0074,LH,North Terminus,Cedar North Office Commons,office_park,neighborhood,1785,LH-LOC-0088,0.141,0.088,True,far_side,morning
+LH-POI-0075,LH,North Terminus,Heritage Residences,residential_tower,neighborhood,1164,LH-LOC-0088,0.095,0.059,True,far_side,morning
+LH-POI-0076,LH,North Terminus,North Terminus Landmark Tower,tourist_landmark,minor,260,LH-LOC-0088,0.129,0.08,True,far_side,afternoon
+LH-POI-0077,LH,Cathedral Heights,Harbor Corporate Center,office_park,major,1965,LH-LOC-0291,0.474,0.295,False,near_side,night
+LH-POI-0078,LH,Riverside Junction,Cedar General Hospital,hospital,neighborhood,1220,LH-LOC-0202,0.036,0.022,False,near_side,midday
+LH-POI-0079,LH,Downtown Core,Union Downtown Business Park,office_park,flagship,22838,LH-LOC-0286,0.459,0.285,True,far_side,evening
+LH-POI-0080,LH,Downtown Core,Downtown Core Galleria,shopping_mall,minor,533,LH-LOC-0286,0.061,0.038,True,far_side,afternoon
+LH-POI-0081,LH,East Commons,Summit Fresh Market,grocery_anchor,minor,275,LH-LOC-0080,0.135,0.084,True,far_side,evening
+LH-POI-0082,LH,East Commons,North East Towers,residential_tower,neighborhood,773,LH-LOC-0080,0.098,0.061,True,far_side,morning
+LH-POI-0083,LH,East Commons,South East City Hall,government_building,neighborhood,1138,LH-LOC-0080,0.095,0.059,True,far_side,afternoon
+LH-POI-0084,LH,Financial Row,Metro Corporate Center,office_park,major,18086,LH-LOC-0310,0.513,0.319,False,far_side,morning
+LH-POI-0085,LH,Old Mill District,Metro Old Municipal Building,government_building,major,6353,LH-LOC-0073,0.434,0.27,True,far_side,morning
+LH-POI-0086,LH,Old Mill District,Central Old Shopping Center,shopping_mall,neighborhood,2359,LH-LOC-0073,0.108,0.067,True,near_side,afternoon
+LH-POI-0087,LH,Old Mill District,Old Mill District Health Pavilion,hospital,neighborhood,1891,LH-LOC-0073,0.048,0.03,True,far_side,evening
+LH-POI-0088,LH,Old Mill District,Crescent Old Market,grocery_anchor,neighborhood,3470,LH-LOC-0073,0.076,0.047,True,near_side,afternoon
+LH-POI-0089,LH,Cathedral Heights,Cathedral Heights Headquarters Campus,corporate_campus,major,3226,LH-LOC-0006,0.221,0.137,True,near_side,morning
+LH-POI-0090,LH,Cathedral Heights,Cathedral Heights Shopping Center,shopping_mall,neighborhood,1842,LH-LOC-0006,0.288,0.179,True,far_side,afternoon
+LH-POI-0091,LH,Cathedral Heights,South Grocery & Provisions,grocery_anchor,major,4392,LH-LOC-0006,0.492,0.306,True,far_side,morning
+LH-POI-0092,LH,Uptown Crescent,Uptown Crescent College,university,major,10987,LH-LOC-0139,0.538,0.334,False,far_side,morning
+LH-POI-0093,LH,East Commons,Harbor Historic District,tourist_landmark,major,2484,LH-LOC-0145,0.541,0.336,False,far_side,afternoon
+LH-POI-0094,LH,Uptown Crescent,Uptown Crescent Fresh Market,grocery_anchor,major,5811,LH-LOC-0034,0.476,0.296,True,near_side,evening
+LH-POI-0095,LH,Uptown Crescent,Summit Uptown Institute of Technology,university,neighborhood,3015,LH-LOC-0034,0.175,0.109,True,near_side,morning
+LH-POI-0096,LH,Uptown Crescent,Uptown Crescent Galleria,shopping_mall,minor,386,LH-LOC-0034,0.026,0.016,True,far_side,evening
+LH-POI-0097,LH,Uptown Crescent,Uptown Crescent Residences,residential_tower,minor,540,LH-LOC-0034,0.071,0.044,True,far_side,night
+LH-POI-0098,LH,Downtown Core,Downtown Core Grand Hotel,hotel_convention,neighborhood,5188,LH-LOC-0266,0.169,0.105,True,near_side,midday
+LH-POI-0099,LH,Downtown Core,Ivy Downtown Tech Campus,corporate_campus,neighborhood,6516,LH-LOC-0266,0.032,0.02,True,far_side,evening
+LH-POI-0100,LH,Old Mill District,Old Mill District Entertainment District,entertainment_district,neighborhood,1588,LH-LOC-0188,0.483,0.3,False,near_side,night
+LH-POI-0101,LH,Cathedral Heights,Crescent Cathedral Office Commons,office_park,flagship,11808,LH-LOC-0046,0.817,0.508,True,near_side,evening
+LH-POI-0102,LH,Cathedral Heights,Ivy Cathedral Grocery & Provisions,grocery_anchor,minor,366,LH-LOC-0046,0.181,0.112,True,far_side,evening
+LH-POI-0103,LH,Cathedral Heights,Harbor Cathedral Corporate Campus,corporate_campus,minor,411,LH-LOC-0046,0.185,0.115,True,near_side,morning
+LH-POI-0104,LH,Riverside Junction,Harbor Mall,shopping_mall,minor,766,LH-LOC-0332,0.217,0.135,False,near_side,midday
+LH-POI-0105,LH,Harborfront,Heritage Entertainment District,entertainment_district,flagship,18698,LH-LOC-0117,0.602,0.374,False,near_side,evening
+LH-POI-0106,LH,East Commons,East Commons Galleria,shopping_mall,minor,436,LH-LOC-0195,0.087,0.054,False,far_side,midday
+LH-POI-0107,LH,Old Mill District,Old Mill District Medical Center,hospital,neighborhood,3888,LH-LOC-0248,0.249,0.155,False,near_side,afternoon
+LH-POI-0108,LH,Uptown Crescent,Ivy Shopping Center,shopping_mall,major,12652,LH-LOC-0119,0.583,0.362,False,near_side,afternoon
+LH-POI-0109,LH,East Commons,Ivy Nightlife Quarter,entertainment_district,neighborhood,1631,LH-LOC-0285,0.497,0.309,False,near_side,night
+LH-POI-0110,LH,Harborfront,Harbor Harborfront Residences,residential_tower,neighborhood,3706,LH-LOC-0107,0.053,0.033,False,far_side,afternoon
+LH-POI-0111,LH,Uptown Crescent,Union Apartments,residential_tower,major,6400,LH-LOC-0179,0.275,0.171,False,far_side,evening
+LH-POI-0112,LH,East Commons,East Commons Municipal Building,government_building,neighborhood,1168,LH-LOC-0255,0.237,0.147,False,far_side,afternoon
+LH-POI-0113,LH,Cathedral Heights,Landmark Cathedral Municipal Building,government_building,minor,316,LH-LOC-0056,0.193,0.12,True,far_side,morning
+LH-POI-0114,LH,Cathedral Heights,Parkview Cathedral Corporate Center,office_park,minor,430,LH-LOC-0056,0.105,0.065,True,near_side,evening
+LH-POI-0115,LH,Cathedral Heights,Cathedral Heights Corporate Campus,corporate_campus,minor,261,LH-LOC-0056,0.179,0.111,True,far_side,morning
+LH-POI-0116,LH,Cathedral Heights,Stone Cathedral Museum,museum,neighborhood,1152,LH-LOC-0056,0.241,0.15,True,far_side,afternoon
+LH-POI-0117,LH,Financial Row,Financial Row Corporate Center,office_park,flagship,48388,LH-LOC-0320,0.739,0.459,False,far_side,morning
+LH-POI-0118,LH,Uptown Crescent,Uptown Crescent Shopping Center,shopping_mall,minor,563,LH-LOC-0024,0.11,0.068,True,near_side,evening
+LH-POI-0119,LH,Uptown Crescent,Union Uptown College,university,neighborhood,4679,LH-LOC-0024,0.249,0.155,True,near_side,afternoon
+LH-POI-0120,LH,Uptown Crescent,Uptown Crescent Market,grocery_anchor,major,8823,LH-LOC-0024,0.264,0.164,True,far_side,morning
+LH-POI-0121,LH,Uptown Crescent,Uptown Crescent Entertainment District,entertainment_district,neighborhood,2137,LH-LOC-0024,0.138,0.086,True,far_side,evening
+LH-POI-0122,LH,Market Quarter,Market Quarter Mall,shopping_mall,minor,1234,LH-LOC-0154,0.251,0.156,False,near_side,midday
+LH-POI-0123,LH,Riverside Junction,Riverside Junction Entertainment District,entertainment_district,flagship,17582,LH-LOC-0152,0.222,0.138,False,far_side,afternoon
+LH-POI-0124,LH,Harborfront,Crescent Business Park,office_park,neighborhood,3208,LH-LOC-0137,0.16,0.099,False,far_side,night
+LH-POI-0125,LH,Cathedral Heights,Heritage Gallery,museum,flagship,5234,LH-LOC-0141,0.979,0.608,False,near_side,midday
+LH-POI-0126,LH,Cathedral Heights,Metro Cathedral Office Commons,office_park,major,2283,LH-LOC-0161,0.144,0.089,False,near_side,morning
+LH-POI-0127,LH,North Terminus,North Terminus Nightlife Quarter,entertainment_district,minor,456,LH-LOC-0058,0.072,0.045,True,far_side,midday
+LH-POI-0128,LH,North Terminus,Union General Hospital,hospital,minor,370,LH-LOC-0058,0.192,0.119,True,near_side,morning
+LH-POI-0129,LH,North Terminus,North Terminus Office Commons,office_park,neighborhood,1732,LH-LOC-0058,0.2,0.124,True,near_side,night
+LH-POI-0130,LH,East Commons,East Commons Towers,residential_tower,major,5502,LH-LOC-0175,0.18,0.112,False,far_side,evening
+LH-POI-0131,LH,Financial Row,Financial Row Galleria,shopping_mall,major,18556,LH-LOC-0180,0.379,0.235,False,far_side,afternoon
+LH-POI-0132,LH,Market Quarter,Metro Market Fresh Market,grocery_anchor,major,12260,LH-LOC-0244,0.147,0.091,False,far_side,morning
+LH-POI-0133,LH,Market Quarter,North Market Grocery & Provisions,grocery_anchor,flagship,14038,LH-LOC-0254,1.154,0.717,False,far_side,evening
+LH-POI-0134,LH,Riverside Junction,Riverside Junction Civic Center,government_building,flagship,13627,LH-LOC-0097,0.324,0.201,True,near_side,midday
+LH-POI-0135,LH,Riverside Junction,Parkview Riverside Grocery & Provisions,grocery_anchor,neighborhood,1235,LH-LOC-0097,0.299,0.186,True,near_side,evening
+LH-POI-0136,LH,Riverside Junction,Crescent Landmark Tower,tourist_landmark,minor,811,LH-LOC-0097,0.133,0.083,True,far_side,morning
+LH-POI-0137,LH,East Commons,Ivy Entertainment District,entertainment_district,neighborhood,2233,LH-LOC-0315,0.195,0.121,False,near_side,afternoon
+LH-POI-0138,LH,Old Mill District,Cedar Old Civic Center,government_building,neighborhood,2278,LH-LOC-0053,0.169,0.105,True,near_side,morning
+LH-POI-0139,LH,Old Mill District,Crescent Old Shopping Center,shopping_mall,major,4568,LH-LOC-0053,0.139,0.086,True,far_side,evening
+LH-POI-0140,LH,Old Mill District,Stone Grocery & Provisions,grocery_anchor,neighborhood,2989,LH-LOC-0053,0.156,0.097,True,near_side,afternoon
+LH-POI-0141,LH,Riverside Junction,Central Entertainment District,entertainment_district,neighborhood,2226,LH-LOC-0142,0.344,0.214,False,near_side,evening
+LH-POI-0142,LH,Harborfront,Parkview Harborfront Theater Row,entertainment_district,major,4618,LH-LOC-0062,0.434,0.27,True,near_side,evening
+LH-POI-0143,LH,Harborfront,Grand Shopping Center,shopping_mall,minor,1024,LH-LOC-0062,0.026,0.016,True,far_side,morning
+LH-POI-0144,LH,Harborfront,Metro Grocery & Provisions,grocery_anchor,minor,796,LH-LOC-0062,0.126,0.078,True,far_side,afternoon
+LH-POI-0145,LH,Harborfront,Harborfront Residences,residential_tower,minor,397,LH-LOC-0062,0.2,0.124,True,near_side,evening
+LH-POI-0146,LH,Uptown Crescent,Uptown Crescent Residences,residential_tower,major,9629,LH-LOC-0349,0.467,0.29,False,near_side,morning
+LH-POI-0147,LH,North Terminus,Stone North Corporate Center,office_park,flagship,12322,LH-LOC-0163,0.707,0.439,False,near_side,evening
+LH-POI-0148,LH,Market Quarter,Riverside Market Residences,residential_tower,major,6008,LH-LOC-0294,0.238,0.148,False,far_side,evening
+LH-POI-0149,LH,Harborfront,Harborfront Apartments,residential_tower,neighborhood,2717,LH-LOC-0012,0.464,0.288,False,far_side,evening
+LH-POI-0150,LH,Harborfront,Central Harborfront Office Commons,office_park,major,5078,LH-LOC-0012,0.41,0.255,False,near_side,morning
+LH-POI-0151,LH,East Commons,Riverside East Galleria,shopping_mall,major,2518,LH-LOC-0225,0.358,0.222,False,near_side,evening
+LH-POI-0152,LH,Riverside Junction,Landmark Apartments,residential_tower,minor,526,LH-LOC-0017,0.172,0.107,True,far_side,morning
+LH-POI-0153,LH,Riverside Junction,Riverside Riverside Fresh Market,grocery_anchor,minor,526,LH-LOC-0017,0.173,0.107,True,far_side,night
+LH-POI-0154,LH,Riverside Junction,Riverside Junction Medical Center,hospital,major,5044,LH-LOC-0017,0.279,0.173,True,near_side,afternoon
+LH-POI-0155,LH,Riverside Junction,Riverside Junction Landmark Tower,tourist_landmark,minor,478,LH-LOC-0017,0.165,0.103,True,far_side,morning
+LH-POI-0156,LH,North Terminus,North Terminus Shopping Center,shopping_mall,neighborhood,1773,LH-LOC-0098,0.319,0.198,True,far_side,afternoon
+LH-POI-0157,LH,North Terminus,North Terminus Corporate Center,office_park,minor,477,LH-LOC-0098,0.09,0.056,True,far_side,evening
+LH-POI-0158,LH,North Terminus,Founders North Market,grocery_anchor,minor,287,LH-LOC-0098,0.037,0.023,True,far_side,evening
+LH-POI-0159,LH,East Commons,Summit General Hospital,hospital,flagship,9248,LH-LOC-0060,1.149,0.714,False,near_side,evening
+LH-POI-0160,LH,East Commons,Founders East Market,grocery_anchor,major,3538,LH-LOC-0060,0.652,0.405,False,near_side,afternoon
+LH-POI-0161,LH,Harborfront,Harborfront Fresh Market,grocery_anchor,neighborhood,1654,LH-LOC-0157,0.207,0.129,False,near_side,evening
+LH-POI-0162,LH,Old Mill District,South Old Market,grocery_anchor,major,9237,LH-LOC-0138,0.779,0.484,False,far_side,evening
+LH-POI-0163,LH,Cathedral Heights,Cathedral Heights Office Commons,office_park,minor,422,LH-LOC-0321,0.273,0.17,False,near_side,evening
+LH-POI-0164,LH,Cathedral Heights,Crescent Cathedral City Hall,government_building,neighborhood,1101,LH-LOC-0201,0.106,0.066,False,near_side,midday
+LH-POI-0165,LH,Uptown Crescent,Uptown Crescent Entertainment District,entertainment_district,neighborhood,1740,LH-LOC-0004,0.046,0.029,True,near_side,evening
+LH-POI-0166,LH,Uptown Crescent,Uptown Crescent University,university,major,12235,LH-LOC-0004,0.468,0.291,True,far_side,evening
+LH-POI-0167,LH,Uptown Crescent,Metro Uptown Galleria,shopping_mall,neighborhood,2136,LH-LOC-0004,0.348,0.216,True,near_side,morning
+LH-POI-0168,LH,Uptown Crescent,Uptown Crescent Apartments,residential_tower,neighborhood,1816,LH-LOC-0004,0.031,0.019,True,far_side,afternoon
+LH-POI-0169,LH,Harborfront,Founders Grocery & Provisions,grocery_anchor,flagship,13605,LH-LOC-0307,0.419,0.26,False,far_side,afternoon
+LH-POI-0170,LH,Financial Row,Landmark Financial Civic Center,government_building,flagship,28239,LH-LOC-0105,0.821,0.51,False,far_side,morning
+LH-POI-0171,LH,Financial Row,Stone Financial Business Park,office_park,flagship,36879,LH-LOC-0105,0.404,0.251,False,near_side,midday
+LH-POI-0172,LH,North Terminus,Founders North Fresh Market,grocery_anchor,neighborhood,780,LH-LOC-0143,0.488,0.303,False,near_side,afternoon
+LH-POI-0173,LH,Downtown Core,Riverside Office Commons,office_park,flagship,32870,LH-LOC-0186,0.37,0.23,True,far_side,morning
+LH-POI-0174,LH,Downtown Core,Central Downtown Shopping Center,shopping_mall,minor,1451,LH-LOC-0186,0.165,0.103,True,far_side,afternoon
+LH-POI-0175,LH,Old Mill District,Heritage Residences,residential_tower,neighborhood,3677,LH-LOC-0328,0.352,0.219,False,far_side,afternoon
+LH-POI-0176,LH,Cathedral Heights,Cathedral Heights Heritage Museum,museum,major,4451,LH-LOC-0026,0.503,0.313,True,near_side,midday
+LH-POI-0177,LH,Cathedral Heights,Cedar Grocery & Provisions,grocery_anchor,neighborhood,1572,LH-LOC-0026,0.081,0.05,True,near_side,evening
+LH-POI-0178,LH,Cathedral Heights,Cathedral Heights Business Park,office_park,minor,277,LH-LOC-0026,0.091,0.057,True,near_side,night
+LH-POI-0179,LH,Cathedral Heights,Harbor Gallery,museum,flagship,8380,LH-LOC-0016,0.413,0.257,True,far_side,midday
+LH-POI-0180,LH,Cathedral Heights,Cathedral Heights Tech Campus,corporate_campus,major,4034,LH-LOC-0016,0.213,0.132,True,far_side,midday
+LH-POI-0181,LH,Cathedral Heights,Central Cathedral Mall,shopping_mall,major,4704,LH-LOC-0016,0.236,0.147,True,far_side,afternoon
+LH-POI-0182,LH,Cathedral Heights,Union Cathedral Corporate Center,office_park,minor,247,LH-LOC-0016,0.171,0.106,True,far_side,night
+LH-POI-0183,LH,Market Quarter,Market Quarter Apartments,residential_tower,flagship,27920,LH-LOC-0029,0.535,0.332,False,near_side,evening
+LH-POI-0184,LH,Market Quarter,Ivy Market Shopping Center,shopping_mall,minor,630,LH-LOC-0029,0.234,0.145,False,far_side,afternoon
+LH-POI-0185,LH,Cathedral Heights,Cathedral Heights Corporate Center,office_park,neighborhood,1798,LH-LOC-0066,0.057,0.035,True,far_side,evening
+LH-POI-0186,LH,Cathedral Heights,Cathedral Heights Fresh Market,grocery_anchor,minor,511,LH-LOC-0066,0.052,0.032,True,near_side,morning
+LH-POI-0187,LH,Cathedral Heights,Riverside Cathedral Headquarters Campus,corporate_campus,minor,433,LH-LOC-0066,0.204,0.127,True,far_side,evening
+LH-POI-0188,LH,Cathedral Heights,Heritage Cathedral Convention Center,hotel_convention,neighborhood,934,LH-LOC-0066,0.07,0.043,True,far_side,evening
+LH-POI-0189,LH,Cathedral Heights,Stone Cathedral Office Commons,office_park,minor,425,LH-LOC-0301,0.086,0.053,False,near_side,morning
+LH-POI-0190,LH,North Terminus,North North Shopping Center,shopping_mall,minor,152,LH-LOC-0153,0.131,0.081,False,far_side,afternoon
+LH-POI-0191,LH,Uptown Crescent,Uptown Crescent University,university,minor,919,LH-LOC-0129,0.146,0.091,False,far_side,midday
+LH-POI-0192,LH,Harborfront,Parkview Harborfront Towers,residential_tower,minor,1049,LH-LOC-0207,0.165,0.103,False,near_side,morning
+LH-POI-0193,LH,Harborfront,Harbor Harborfront Historic District,tourist_landmark,neighborhood,2054,LH-LOC-0197,0.328,0.204,False,far_side,morning
+LH-POI-0194,LH,East Commons,Cedar Galleria,shopping_mall,neighborhood,1660,LH-LOC-0125,0.303,0.188,False,near_side,evening
+LH-POI-0195,LH,Uptown Crescent,North Uptown Apartments,residential_tower,flagship,13843,LH-LOC-0249,0.824,0.512,False,far_side,evening
+LH-POI-0196,LH,Uptown Crescent,Uptown Crescent College,university,minor,817,LH-LOC-0209,0.2,0.124,False,near_side,morning
+LH-POI-0197,LH,Uptown Crescent,Uptown Crescent Institute of Technology,university,flagship,21505,LH-LOC-0219,0.658,0.409,False,near_side,afternoon
+LH-POI-0198,LH,Market Quarter,Crescent Towers,residential_tower,flagship,20038,LH-LOC-0039,0.511,0.318,True,near_side,afternoon
+LH-POI-0199,LH,Market Quarter,Heritage Market Municipal Building,government_building,major,5237,LH-LOC-0039,0.533,0.331,True,far_side,midday
+LH-POI-0200,LH,Market Quarter,Harbor Nightlife Quarter,entertainment_district,minor,440,LH-LOC-0039,0.044,0.027,True,far_side,evening
+LH-POI-0201,LH,North Terminus,Harbor North Shopping Center,shopping_mall,major,4176,LH-LOC-0213,0.269,0.167,False,far_side,morning
+LH-POI-0202,LH,North Terminus,North Terminus Plaza,tourist_landmark,major,4489,LH-LOC-0038,0.693,0.431,False,near_side,evening
+LH-POI-0203,LH,North Terminus,North Terminus Apartments,residential_tower,major,2572,LH-LOC-0038,0.493,0.306,False,near_side,morning
+LH-POI-0204,LH,Riverside Junction,Riverside Junction Office Commons,office_park,major,9455,LH-LOC-0342,0.576,0.358,False,near_side,night
+LH-POI-0205,LH,Financial Row,Central Financial Hotel & Conference Center,hotel_convention,major,9675,LH-LOC-0190,0.522,0.324,False,near_side,morning
+LH-POI-0206,LH,East Commons,East Commons Market,grocery_anchor,major,4175,LH-LOC-0165,0.524,0.326,False,near_side,midday
+LH-POI-0207,LH,North Terminus,Harbor College,university,neighborhood,1152,LH-LOC-0253,0.188,0.117,False,far_side,midday
+LH-POI-0208,LH,Cathedral Heights,Cathedral Heights Headquarters Campus,corporate_campus,neighborhood,1891,LH-LOC-0131,0.304,0.189,False,far_side,evening
+LH-POI-0209,LH,Cathedral Heights,Ivy Cathedral Business Park,office_park,major,2084,LH-LOC-0086,0.3,0.186,True,near_side,evening
+LH-POI-0210,LH,Cathedral Heights,Cathedral Heights City Hall,government_building,neighborhood,1318,LH-LOC-0086,0.251,0.156,True,near_side,midday
+LH-POI-0211,LH,Cathedral Heights,Central Fresh Market,grocery_anchor,minor,266,LH-LOC-0086,0.165,0.103,True,far_side,evening
+LH-POI-0212,LH,Cathedral Heights,Heritage Cathedral Convention Center,hotel_convention,neighborhood,1301,LH-LOC-0086,0.349,0.217,True,near_side,afternoon
+LH-POI-0213,LH,Harborfront,Harborfront Market,grocery_anchor,neighborhood,3534,LH-LOC-0082,0.221,0.137,True,near_side,midday
+LH-POI-0214,LH,Harborfront,Crescent Nightlife Quarter,entertainment_district,minor,924,LH-LOC-0082,0.149,0.093,True,near_side,evening
+LH-POI-0215,LH,Harborfront,Union Plaza,tourist_landmark,neighborhood,3032,LH-LOC-0082,0.315,0.196,True,near_side,midday
+LH-POI-0216,LH,Harborfront,Landmark Business Park,office_park,neighborhood,3604,LH-LOC-0082,0.133,0.083,True,near_side,morning
+LH-POI-0217,LH,Riverside Junction,Parkview Business Park,office_park,major,6914,LH-LOC-0262,0.29,0.18,False,near_side,evening
+LH-POI-0218,LH,Old Mill District,Metro Civic Center,government_building,neighborhood,3084,LH-LOC-0258,0.055,0.034,False,near_side,afternoon
+LH-POI-0219,LH,Financial Row,Financial Row Office Commons,office_park,minor,1077,LH-LOC-0045,0.282,0.175,False,far_side,midday
+LH-POI-0220,LH,Financial Row,Financial Row Museum,museum,neighborhood,2418,LH-LOC-0045,0.391,0.243,False,far_side,midday
+LH-POI-0221,LH,Uptown Crescent,Harbor Mall,shopping_mall,major,12309,LH-LOC-0259,0.798,0.496,False,near_side,afternoon
+LH-POI-0222,LH,East Commons,Founders Nightlife Quarter,entertainment_district,neighborhood,2245,LH-LOC-0265,0.187,0.116,False,near_side,evening
+LH-POI-0223,LH,Cathedral Heights,Crescent Galleria,shopping_mall,major,2536,LH-LOC-0331,0.179,0.111,False,near_side,afternoon
+LH-POI-0224,LH,Old Mill District,Ivy Old Grocery & Provisions,grocery_anchor,major,6265,LH-LOC-0288,0.572,0.355,False,near_side,afternoon
+LH-POI-0225,LH,Harborfront,Harborfront Nightlife Quarter,entertainment_district,major,11672,LH-LOC-0052,0.063,0.039,True,near_side,evening
+LH-POI-0226,LH,Harborfront,Harborfront Towers,residential_tower,neighborhood,3131,LH-LOC-0052,0.105,0.065,True,near_side,morning
+LH-POI-0227,LH,Harborfront,Harborfront Galleria,shopping_mall,major,9774,LH-LOC-0052,0.522,0.324,True,far_side,evening
+LH-POI-0228,LH,Harborfront,Stone Harborfront College,university,neighborhood,1954,LH-LOC-0052,0.336,0.209,True,near_side,midday
+LH-POI-0229,LH,Downtown Core,Downtown Core Grand Hotel,hotel_convention,neighborhood,5878,LH-LOC-0126,0.091,0.057,True,near_side,evening
+LH-POI-0230,LH,Downtown Core,Founders Downtown Corporate Campus,corporate_campus,neighborhood,4149,LH-LOC-0126,0.323,0.201,True,near_side,evening
+LH-POI-0231,LH,Financial Row,Landmark Financial Hotel & Conference Center,hotel_convention,major,18908,LH-LOC-0250,0.409,0.254,False,far_side,evening
+LH-POI-0232,LH,Financial Row,Crescent Financial Corporate Campus,corporate_campus,neighborhood,5276,LH-LOC-0055,0.241,0.15,True,near_side,morning
+LH-POI-0233,LH,Financial Row,Financial Row Business Park,office_park,neighborhood,2497,LH-LOC-0055,0.159,0.099,True,far_side,midday
+LH-POI-0234,LH,Financial Row,Financial Row Convention Center,hotel_convention,major,13115,LH-LOC-0055,0.444,0.276,True,far_side,night
+LH-POI-0235,LH,Financial Row,Financial Row Civic Center,government_building,neighborhood,7325,LH-LOC-0055,0.143,0.089,True,near_side,night
+LH-POI-0236,LH,Downtown Core,Harbor Downtown Office Commons,office_park,major,9455,LH-LOC-0196,0.549,0.341,True,far_side,evening
+LH-POI-0237,LH,Downtown Core,Union Grocery & Provisions,grocery_anchor,minor,1106,LH-LOC-0196,0.087,0.054,True,near_side,afternoon
+LH-POI-0238,LH,Riverside Junction,Summit City Hall,government_building,neighborhood,2049,LH-LOC-0067,0.272,0.169,True,far_side,morning
+LH-POI-0239,LH,Riverside Junction,Riverside Junction Medical Center,hospital,neighborhood,2120,LH-LOC-0067,0.241,0.15,True,far_side,midday
+LH-POI-0240,LH,Riverside Junction,Harbor Riverside Mall,shopping_mall,neighborhood,1520,LH-LOC-0067,0.305,0.19,True,near_side,afternoon
+LH-POI-0241,LH,North Terminus,Crescent North Residences,residential_tower,major,5831,LH-LOC-0068,0.553,0.344,True,near_side,midday
+LH-POI-0242,LH,North Terminus,North Terminus General Hospital,hospital,minor,570,LH-LOC-0068,0.192,0.119,True,far_side,midday
+LH-POI-0243,LH,North Terminus,North Terminus Office Commons,office_park,minor,463,LH-LOC-0068,0.168,0.104,True,near_side,midday
+LH-POI-0244,LH,North Terminus,Union Plaza,tourist_landmark,neighborhood,1566,LH-LOC-0068,0.098,0.061,True,near_side,evening
+LH-POI-0245,LH,Downtown Core,Riverside Downtown Grand Hotel,hotel_convention,major,10443,LH-LOC-0031,0.383,0.238,True,far_side,evening
+LH-POI-0246,LH,Downtown Core,Riverside Downtown Market,grocery_anchor,minor,477,LH-LOC-0031,0.087,0.054,True,far_side,morning
+LH-POI-0247,LH,Downtown Core,Grand Corporate Campus,corporate_campus,minor,1334,LH-LOC-0031,0.107,0.066,True,far_side,morning
+LH-POI-0248,LH,Downtown Core,Summit Office Commons,office_park,minor,588,LH-LOC-0031,0.21,0.13,True,near_side,morning
+LH-POI-0249,LH,East Commons,East Commons Apartments,residential_tower,neighborhood,1256,LH-LOC-0100,0.105,0.065,True,near_side,afternoon
+LH-POI-0250,LH,East Commons,Parkview Corporate Center,office_park,minor,282,LH-LOC-0100,0.052,0.032,True,near_side,morning
+LH-POI-0251,LH,East Commons,Summit Nightlife Quarter,entertainment_district,flagship,11565,LH-LOC-0100,0.528,0.328,True,far_side,afternoon
+LH-POI-0252,LH,Market Quarter,Landmark Market Fresh Market,grocery_anchor,neighborhood,3056,LH-LOC-0224,0.338,0.21,False,far_side,midday
+LH-POI-0253,LH,Harborfront,Heritage Harborfront Corporate Center,office_park,major,10129,LH-LOC-0227,0.347,0.216,False,near_side,midday
+LH-POI-0254,LH,North Terminus,Grand College,university,neighborhood,2090,LH-LOC-0233,0.065,0.04,False,far_side,morning
+LH-POI-0255,LH,Riverside Junction,Riverside Junction Historic District,tourist_landmark,neighborhood,975,LH-LOC-0007,0.268,0.167,False,near_side,afternoon
+LH-POI-0256,LH,Riverside Junction,Harbor Riverside Entertainment District,entertainment_district,flagship,17119,LH-LOC-0007,0.582,0.362,False,near_side,night
+LH-POI-0257,LH,East Commons,Summit East Corporate Center,office_park,neighborhood,2213,LH-LOC-0030,0.08,0.05,False,near_side,morning
+LH-POI-0258,LH,East Commons,South Apartments,residential_tower,neighborhood,1248,LH-LOC-0030,0.404,0.251,False,near_side,night
+LH-POI-0259,LH,Uptown Crescent,Ivy Uptown Shopping Center,shopping_mall,neighborhood,3625,LH-LOC-0064,0.303,0.188,True,far_side,midday
+LH-POI-0260,LH,Uptown Crescent,Cedar Institute of Technology,university,neighborhood,3565,LH-LOC-0064,0.251,0.156,True,near_side,afternoon
+LH-POI-0261,LH,Uptown Crescent,Landmark Grocery & Provisions,grocery_anchor,minor,1210,LH-LOC-0064,0.057,0.035,True,far_side,evening
+LH-POI-0262,LH,Cathedral Heights,Cedar Market,grocery_anchor,neighborhood,906,LH-LOC-0341,0.285,0.177,False,far_side,midday
+LH-POI-0263,LH,Downtown Core,Ivy Downtown Grand Hotel,hotel_convention,major,8800,LH-LOC-0081,0.141,0.088,True,near_side,evening
+LH-POI-0264,LH,Downtown Core,Downtown Core Civic Center,government_building,neighborhood,6402,LH-LOC-0081,0.064,0.04,True,far_side,afternoon
+LH-POI-0265,LH,Downtown Core,Ivy Gallery,museum,major,13482,LH-LOC-0081,0.479,0.298,True,near_side,afternoon
+LH-POI-0266,LH,Harborfront,Ivy Harborfront General Hospital,hospital,major,8763,LH-LOC-0102,0.248,0.154,True,near_side,afternoon
+LH-POI-0267,LH,Harborfront,Harborfront Corporate Center,office_park,neighborhood,2040,LH-LOC-0102,0.042,0.026,True,near_side,morning
+LH-POI-0268,LH,Harborfront,Crescent Market,grocery_anchor,neighborhood,1572,LH-LOC-0102,0.02,0.012,True,near_side,afternoon
+LH-POI-0269,LH,Uptown Crescent,Riverside Uptown Institute of Technology,university,major,9371,LH-LOC-0169,0.459,0.285,False,near_side,morning
+LH-POI-0270,LH,Downtown Core,Parkview Downtown Civic Center,government_building,flagship,33710,LH-LOC-0136,0.674,0.419,True,far_side,midday
+LH-POI-0271,LH,Downtown Core,Downtown Core Mall,shopping_mall,major,12749,LH-LOC-0136,0.129,0.08,True,near_side,afternoon
+LH-POI-0272,LH,Cathedral Heights,Summit Office Commons,office_park,neighborhood,1020,LH-LOC-0036,0.474,0.295,False,far_side,midday
+LH-POI-0273,LH,Cathedral Heights,Cathedral Heights Convention Center,hotel_convention,major,1941,LH-LOC-0036,0.377,0.234,False,far_side,afternoon
+LH-POI-0274,LH,North Terminus,North Terminus Grocery & Provisions,grocery_anchor,neighborhood,1763,LH-LOC-0343,0.309,0.192,False,near_side,afternoon
+LH-POI-0275,LH,Market Quarter,Market Quarter Shopping Center,shopping_mall,major,7399,LH-LOC-0194,0.614,0.382,False,far_side,night
+LH-POI-0276,LH,Old Mill District,Heritage Old Apartments,residential_tower,neighborhood,2244,LH-LOC-0198,0.468,0.291,False,near_side,night
+LH-POI-0277,LH,Financial Row,Riverside Financial Office Commons,office_park,neighborhood,7473,LH-LOC-0300,0.129,0.08,False,far_side,evening
+LH-POI-0278,LH,Downtown Core,Downtown Core Grand Hotel,hotel_convention,major,16362,LH-LOC-0226,0.418,0.26,True,far_side,morning
+LH-POI-0279,LH,Downtown Core,Stone Downtown Heritage Museum,museum,neighborhood,7362,LH-LOC-0226,0.307,0.191,True,near_side,morning
+LH-POI-0280,LH,Downtown Core,Downtown Core Convention Center,hotel_convention,flagship,28544,LH-LOC-0116,0.589,0.366,True,near_side,evening
+LH-POI-0281,LH,Downtown Core,Downtown Core Grocery & Provisions,grocery_anchor,major,9081,LH-LOC-0116,0.171,0.106,True,far_side,afternoon
+LH-POI-0282,LH,East Commons,North Market,grocery_anchor,neighborhood,1501,LH-LOC-0040,0.192,0.119,False,near_side,morning
+LH-POI-0283,LH,East Commons,East Commons Office Commons,office_park,minor,493,LH-LOC-0040,0.118,0.073,False,near_side,evening
+LH-POI-0284,LH,North Terminus,North Terminus Market,grocery_anchor,major,5122,LH-LOC-0203,0.323,0.201,False,near_side,evening
+LH-POI-0285,LH,Downtown Core,North Gallery,museum,major,20590,LH-LOC-0176,0.182,0.113,True,near_side,midday
+LH-POI-0286,LH,Downtown Core,Summit Downtown Convention Center,hotel_convention,minor,1454,LH-LOC-0176,0.049,0.03,True,far_side,afternoon
+LH-POI-0287,LH,Downtown Core,Downtown Core Tech Campus,corporate_campus,major,11418,LH-LOC-0146,0.412,0.256,True,far_side,afternoon
+LH-POI-0288,LH,Downtown Core,Downtown Core Corporate Center,office_park,neighborhood,2731,LH-LOC-0146,0.241,0.15,True,near_side,night
+LH-POI-0289,LH,Riverside Junction,Harbor Riverside Apartments,residential_tower,neighborhood,1862,LH-LOC-0232,0.427,0.265,False,far_side,evening
+LH-POI-0290,LH,Old Mill District,North Fresh Market,grocery_anchor,flagship,16330,LH-LOC-0093,0.342,0.213,False,far_side,afternoon
+LH-POI-0291,LH,Old Mill District,Heritage Apartments,residential_tower,neighborhood,2422,LH-LOC-0093,0.259,0.161,False,near_side,night
+LH-POI-0292,LH,Riverside Junction,Grand Towers,residential_tower,flagship,14012,LH-LOC-0282,0.624,0.388,False,near_side,midday
+LH-POI-0293,LH,Riverside Junction,South Nightlife Quarter,entertainment_district,major,6911,LH-LOC-0252,0.557,0.346,False,near_side,evening
+LH-POI-0294,LH,Downtown Core,Landmark Downtown Corporate Center,office_park,major,11373,LH-LOC-0061,0.329,0.204,True,near_side,midday
+LH-POI-0295,LH,Downtown Core,Downtown Core Headquarters Campus,corporate_campus,major,9284,LH-LOC-0061,0.448,0.278,True,far_side,morning
+LH-POI-0296,LH,Downtown Core,Downtown Core Mall,shopping_mall,neighborhood,7741,LH-LOC-0061,0.052,0.032,True,far_side,evening
+LH-POI-0297,LH,North Terminus,North North Entertainment District,entertainment_district,flagship,14016,LH-LOC-0018,0.247,0.153,True,far_side,evening
+LH-POI-0298,LH,North Terminus,Crescent North Historic District,tourist_landmark,major,3186,LH-LOC-0018,0.163,0.101,True,near_side,midday
+LH-POI-0299,LH,North Terminus,Founders Galleria,shopping_mall,major,6237,LH-LOC-0018,0.206,0.128,True,far_side,night
+LH-POI-0300,LH,North Terminus,Union Civic Center,government_building,major,5332,LH-LOC-0018,0.266,0.165,True,near_side,morning
+LH-POI-0301,LH,Harborfront,Harborfront Theater Row,entertainment_district,neighborhood,3986,LH-LOC-0267,0.388,0.241,False,far_side,evening
+LH-POI-0302,LH,North Terminus,North Terminus Grocery & Provisions,grocery_anchor,flagship,13852,LH-LOC-0283,0.957,0.595,False,near_side,evening
+LH-POI-0303,LH,Market Quarter,Stone Market Market,grocery_anchor,flagship,27836,LH-LOC-0234,0.919,0.571,False,far_side,afternoon
+LH-POI-0304,LH,Market Quarter,Market Quarter Fresh Market,grocery_anchor,minor,1104,LH-LOC-0274,0.159,0.099,False,near_side,midday
+LH-POI-0305,LH,Downtown Core,Downtown Core Municipal Building,government_building,neighborhood,2342,LH-LOC-0156,0.226,0.14,True,far_side,morning
+LH-POI-0306,LH,Downtown Core,Downtown Core Mall,shopping_mall,flagship,50690,LH-LOC-0156,0.242,0.15,True,far_side,midday
+LH-POI-0307,LH,Riverside Junction,North Galleria,shopping_mall,neighborhood,1087,LH-LOC-0037,0.226,0.14,True,far_side,evening
+LH-POI-0308,LH,Riverside Junction,South Market,grocery_anchor,minor,179,LH-LOC-0037,0.106,0.066,True,near_side,midday
+LH-POI-0309,LH,Riverside Junction,Riverside Junction Entertainment District,entertainment_district,minor,810,LH-LOC-0037,0.208,0.129,True,near_side,afternoon
+LH-POI-0310,LH,Riverside Junction,Ivy Riverside Business Park,office_park,major,8365,LH-LOC-0037,0.112,0.07,True,near_side,morning
+LH-POI-0311,LH,North Terminus,Union North College,university,neighborhood,646,LH-LOC-0008,0.336,0.209,False,near_side,afternoon
+LH-POI-0312,LH,North Terminus,North Terminus Shopping Center,shopping_mall,minor,560,LH-LOC-0008,0.044,0.027,False,near_side,evening
+LH-POI-0313,LH,Downtown Core,Downtown Core Headquarters Campus,corporate_campus,major,8895,LH-LOC-0336,0.337,0.209,True,far_side,afternoon
+LH-POI-0314,LH,Downtown Core,Downtown Core Office Commons,office_park,neighborhood,5551,LH-LOC-0336,0.081,0.05,True,near_side,afternoon
+LH-POI-0315,LH,North Terminus,North Terminus Mall,shopping_mall,major,4716,LH-LOC-0273,0.47,0.292,False,far_side,night
+LH-POI-0316,LH,Market Quarter,Riverside Market City Hall,government_building,neighborhood,2582,LH-LOC-0334,0.351,0.218,False,far_side,night
+LH-POI-0317,LH,Old Mill District,Old Mill District Grocery & Provisions,grocery_anchor,major,4478,LH-LOC-0298,0.142,0.088,False,far_side,afternoon
+LH-POI-0318,LH,North Terminus,Founders General Hospital,hospital,flagship,11406,LH-LOC-0263,0.797,0.495,False,near_side,midday
+LH-POI-0319,LH,Uptown Crescent,North Theater Row,entertainment_district,major,9997,LH-LOC-0189,0.684,0.425,False,far_side,midday
+LH-POI-0320,LH,Harborfront,Heritage Mall,shopping_mall,flagship,20084,LH-LOC-0347,0.626,0.389,False,far_side,afternoon
+LH-POI-0321,LH,Market Quarter,Market Quarter Residences,residential_tower,neighborhood,1868,LH-LOC-0344,0.478,0.297,False,near_side,evening
+LH-POI-0322,LH,Financial Row,Crescent Corporate Center,office_park,major,19323,LH-LOC-0015,0.64,0.398,False,near_side,evening
+LH-POI-0323,LH,Financial Row,Central Financial Shopping Center,shopping_mall,neighborhood,7657,LH-LOC-0015,0.325,0.202,False,near_side,afternoon
+LH-POI-0324,LH,Financial Row,Founders Business Park,office_park,major,17853,LH-LOC-0350,0.726,0.451,False,far_side,morning
+LH-POI-0325,LH,East Commons,Central East Historic District,tourist_landmark,flagship,6755,LH-LOC-0345,0.532,0.331,False,far_side,midday
+LH-POI-0326,LH,Uptown Crescent,Uptown Crescent Apartments,residential_tower,major,7466,LH-LOC-0329,0.391,0.243,False,far_side,morning
+LH-POI-0327,LH,Old Mill District,Old Mill District Market,grocery_anchor,neighborhood,1282,LH-LOC-0158,0.135,0.084,False,near_side,morning
+LH-POI-0328,LH,Downtown Core,Downtown Core Shopping Center,shopping_mall,flagship,35050,LH-LOC-0091,0.367,0.228,True,near_side,evening
+LH-POI-0329,LH,Downtown Core,Parkview Museum,museum,neighborhood,4902,LH-LOC-0091,0.275,0.171,True,near_side,evening
+LH-POI-0330,LH,Downtown Core,Grand Office Commons,office_park,minor,430,LH-LOC-0091,0.119,0.074,True,far_side,evening
+LH-POI-0331,LH,Market Quarter,North Towers,residential_tower,major,10771,LH-LOC-0314,0.315,0.196,False,near_side,night
+LH-POI-0332,LH,Financial Row,Financial Row Fresh Market,grocery_anchor,flagship,29530,LH-LOC-0290,0.196,0.122,False,near_side,evening
+LH-POI-0333,LH,Harborfront,Central Harborfront Grocery & Provisions,grocery_anchor,neighborhood,3158,LH-LOC-0257,0.268,0.167,False,far_side,afternoon
+LH-POI-0334,LH,Riverside Junction,Riverside Junction College,university,major,5122,LH-LOC-0272,0.321,0.199,False,far_side,afternoon
+LH-POI-0335,LH,Market Quarter,Market Quarter Shopping Center,shopping_mall,flagship,16796,LH-LOC-0114,0.969,0.602,False,far_side,midday
+LH-POI-0336,LH,Financial Row,Metro Corporate Campus,corporate_campus,flagship,31978,LH-LOC-0280,0.959,0.596,False,near_side,midday
+LH-POI-0337,LH,Old Mill District,Ivy Theater Row,entertainment_district,major,10196,LH-LOC-0043,0.134,0.083,True,far_side,night
+LH-POI-0338,LH,Old Mill District,South Old Apartments,residential_tower,minor,446,LH-LOC-0043,0.208,0.129,True,near_side,midday
+LH-POI-0339,LH,Old Mill District,Central City Hall,government_building,neighborhood,1411,LH-LOC-0043,0.052,0.032,True,far_side,morning
+LH-POI-0340,LH,Old Mill District,Crescent General Hospital,hospital,neighborhood,2353,LH-LOC-0043,0.246,0.153,True,far_side,morning
+LH-POI-0341,LH,Financial Row,Cedar Market,grocery_anchor,major,16197,LH-LOC-0110,0.667,0.414,False,near_side,evening
+LH-POI-0342,LH,Market Quarter,Market Quarter Civic Center,government_building,flagship,30734,LH-LOC-0184,0.605,0.376,False,far_side,midday
+LH-POI-0343,LH,Downtown Core,Downtown Core Corporate Center,office_park,major,11438,LH-LOC-0216,0.502,0.312,True,near_side,afternoon
+LH-POI-0344,LH,Downtown Core,North Downtown Corporate Campus,corporate_campus,neighborhood,7129,LH-LOC-0216,0.177,0.11,True,near_side,morning
+LH-POI-0345,LH,East Commons,Stone East Plaza,tourist_landmark,neighborhood,1728,LH-LOC-0115,0.407,0.253,False,far_side,night
+LH-POI-0346,LH,Market Quarter,Market Quarter Residences,residential_tower,major,7007,LH-LOC-0079,0.073,0.045,True,far_side,morning
+LH-POI-0347,LH,Market Quarter,Parkview Market Shopping Center,shopping_mall,neighborhood,4004,LH-LOC-0079,0.35,0.217,True,far_side,midday
+LH-POI-0348,LH,Market Quarter,Ivy Nightlife Quarter,entertainment_district,minor,1201,LH-LOC-0079,0.023,0.014,True,far_side,afternoon
+LH-POI-0349,LH,Riverside Junction,Stone Riverside Galleria,shopping_mall,neighborhood,3062,LH-LOC-0212,0.358,0.222,False,far_side,morning
+LH-POI-0350,LH,Financial Row,Heritage Office Commons,office_park,minor,1804,LH-LOC-0170,0.247,0.153,False,far_side,midday
+LH-POI-0351,LH,Uptown Crescent,Cedar University,university,flagship,30803,LH-LOC-0084,0.241,0.15,True,near_side,afternoon
+LH-POI-0352,LH,Uptown Crescent,Uptown Crescent Entertainment District,entertainment_district,major,10568,LH-LOC-0084,0.131,0.081,True,near_side,evening
+LH-POI-0353,LH,Uptown Crescent,Uptown Crescent Fresh Market,grocery_anchor,minor,940,LH-LOC-0084,0.128,0.08,True,near_side,midday
+LH-POI-0354,LH,Uptown Crescent,Stone Uptown Mall,shopping_mall,minor,1254,LH-LOC-0084,0.141,0.088,True,near_side,night
+LH-POI-0355,LH,Old Mill District,Ivy Health Pavilion,hospital,major,6347,LH-LOC-0218,0.582,0.362,False,near_side,afternoon
+LH-POI-0356,LH,Riverside Junction,Stone Nightlife Quarter,entertainment_district,neighborhood,1224,LH-LOC-0027,0.183,0.114,True,near_side,midday
+LH-POI-0357,LH,Riverside Junction,Cedar Grocery & Provisions,grocery_anchor,minor,923,LH-LOC-0027,0.175,0.109,True,far_side,evening
+LH-POI-0358,LH,Riverside Junction,Riverside Junction Landmark Tower,tourist_landmark,neighborhood,1605,LH-LOC-0027,0.041,0.025,True,near_side,morning
+LH-POI-0359,LH,Riverside Junction,Riverside Junction Health Pavilion,hospital,neighborhood,2050,LH-LOC-0027,0.073,0.045,True,near_side,evening
+LH-POI-0360,LH,Old Mill District,Old Mill District Market,grocery_anchor,neighborhood,3236,LH-LOC-0083,0.072,0.045,True,near_side,evening
+LH-POI-0361,LH,Old Mill District,Riverside Civic Center,government_building,neighborhood,1442,LH-LOC-0083,0.131,0.081,True,far_side,morning
+LH-POI-0362,LH,Old Mill District,Old Mill District Galleria,shopping_mall,neighborhood,4154,LH-LOC-0083,0.315,0.196,True,far_side,afternoon
+LH-POI-0363,LH,Cathedral Heights,Harbor Office Commons,office_park,major,4151,LH-LOC-0076,0.421,0.262,True,far_side,morning
+LH-POI-0364,LH,Cathedral Heights,Grand Tech Campus,corporate_campus,major,3177,LH-LOC-0076,0.335,0.208,True,near_side,morning
+LH-POI-0365,LH,Cathedral Heights,Cathedral Heights Grand Hotel,hotel_convention,neighborhood,1444,LH-LOC-0076,0.217,0.135,True,near_side,morning
+LH-POI-0366,LH,Financial Row,Crescent Financial Market,grocery_anchor,major,9301,LH-LOC-0140,0.649,0.403,False,near_side,evening
+LH-POI-0367,LH,Riverside Junction,Crescent Apartments,residential_tower,major,6222,LH-LOC-0047,0.192,0.119,True,near_side,morning
+LH-POI-0368,LH,Riverside Junction,North Galleria,shopping_mall,major,7714,LH-LOC-0047,0.108,0.067,True,far_side,evening
+LH-POI-0369,LH,Riverside Junction,Landmark Civic Center,government_building,neighborhood,3153,LH-LOC-0047,0.29,0.18,True,near_side,midday
+LH-POI-0370,LH,Cathedral Heights,Cathedral Heights Corporate Campus,corporate_campus,flagship,12053,LH-LOC-0211,0.9,0.559,False,near_side,evening
+LH-POI-0371,LH,Market Quarter,North Market Mall,shopping_mall,minor,1258,LH-LOC-0324,0.246,0.153,False,near_side,afternoon
+LH-POI-0372,LH,Old Mill District,Old Mill District Fresh Market,grocery_anchor,neighborhood,2104,LH-LOC-0348,0.372,0.231,False,far_side,morning
+LH-POI-0373,LH,Downtown Core,Metro Shopping Center,shopping_mall,minor,410,LH-LOC-0021,0.216,0.134,False,far_side,evening
+LH-POI-0374,LH,Downtown Core,Metro Downtown Tech Campus,corporate_campus,major,15443,LH-LOC-0021,0.631,0.392,False,far_side,evening
+LH-POI-0375,LH,Uptown Crescent,Uptown Crescent Shopping Center,shopping_mall,minor,521,LH-LOC-0109,0.203,0.126,False,far_side,afternoon
+LH-POI-0376,LH,Harborfront,Parkview Harborfront Mall,shopping_mall,neighborhood,3535,LH-LOC-0187,0.048,0.03,False,far_side,afternoon
+LH-POI-0377,LH,Riverside Junction,Landmark Riverside Fresh Market,grocery_anchor,major,5786,LH-LOC-0292,0.337,0.209,False,far_side,midday
+LH-POI-0378,LH,Downtown Core,North Downtown Corporate Center,office_park,flagship,51195,LH-LOC-0206,0.422,0.262,True,far_side,morning
+LH-POI-0379,LH,Downtown Core,Founders Shopping Center,shopping_mall,major,13542,LH-LOC-0206,0.517,0.321,True,near_side,afternoon
+LH-POI-0380,LH,Downtown Core,Grand Hotel & Conference Center,hotel_convention,major,14388,LH-LOC-0276,0.128,0.08,True,far_side,night
+LH-POI-0381,LH,Downtown Core,Stone Corporate Center,office_park,minor,729,LH-LOC-0276,0.023,0.014,True,near_side,morning
+LH-POI-0382,LH,North Terminus,Stone North Nightlife Quarter,entertainment_district,neighborhood,1509,LH-LOC-0133,0.329,0.204,False,near_side,midday
+LH-POI-0383,LH,Financial Row,Crescent Financial Headquarters Campus,corporate_campus,minor,1192,LH-LOC-0240,0.174,0.108,False,near_side,evening
+LH-POI-0384,LH,Uptown Crescent,Parkview Institute of Technology,university,flagship,13925,LH-LOC-0239,1.047,0.651,False,far_side,morning
+LH-POI-0385,LH,Uptown Crescent,Grand Grocery & Provisions,grocery_anchor,major,8177,LH-LOC-0229,0.114,0.071,False,far_side,evening
+LH-POI-0386,LH,Old Mill District,Old Mill District Municipal Building,government_building,neighborhood,1146,LH-LOC-0178,0.149,0.093,False,far_side,morning
+LH-POI-0387,LH,Old Mill District,Metro Old Mall,shopping_mall,major,5727,LH-LOC-0128,0.312,0.194,False,near_side,evening
+LH-POI-0388,LH,North Terminus,North Terminus University,university,neighborhood,1607,LH-LOC-0048,0.309,0.192,False,near_side,afternoon
+LH-POI-0389,LH,North Terminus,Harbor City Hall,government_building,minor,447,LH-LOC-0048,0.261,0.162,False,near_side,afternoon
+LH-POI-0390,LH,Riverside Junction,Riverside Junction Apartments,residential_tower,minor,805,LH-LOC-0087,0.092,0.057,True,near_side,morning
+LH-POI-0391,LH,Riverside Junction,Summit Riverside Nightlife Quarter,entertainment_district,minor,379,LH-LOC-0087,0.095,0.059,True,near_side,midday
+LH-POI-0392,LH,Riverside Junction,Riverside Junction Galleria,shopping_mall,minor,709,LH-LOC-0087,0.138,0.086,True,near_side,evening
+LH-POI-0393,LH,Market Quarter,Market Quarter Apartments,residential_tower,minor,431,LH-LOC-0099,0.047,0.029,False,near_side,morning
+LH-POI-0394,LH,Market Quarter,Market Quarter Municipal Building,government_building,minor,474,LH-LOC-0099,0.083,0.052,False,far_side,midday
+LH-POI-0395,LH,Uptown Crescent,Riverside Grocery & Provisions,grocery_anchor,major,5814,LH-LOC-0339,0.138,0.086,False,far_side,afternoon
+LH-POI-0396,LH,North Terminus,North Terminus Residences,residential_tower,minor,314,LH-LOC-0113,0.104,0.065,False,near_side,evening
+LH-POI-0397,LH,Cathedral Heights,Cathedral Heights Tech Campus,corporate_campus,neighborhood,1788,LH-LOC-0191,0.245,0.152,False,near_side,evening
+LH-POI-0398,LH,Cathedral Heights,Heritage Heritage Museum,museum,major,3950,LH-LOC-0261,0.103,0.064,False,near_side,afternoon
+LH-POI-0399,LH,Old Mill District,Landmark Medical Center,hospital,neighborhood,1391,LH-LOC-0228,0.319,0.198,False,far_side,midday
+LH-POI-0400,LH,Riverside Junction,Summit Riverside Mall,shopping_mall,major,5789,LH-LOC-0112,0.11,0.068,False,near_side,evening
+LH-POI-0401,LH,Financial Row,Harbor Business Park,office_park,major,19200,LH-LOC-0095,0.318,0.198,False,near_side,midday
+LH-POI-0402,LH,Financial Row,Cedar Financial Municipal Building,government_building,minor,893,LH-LOC-0095,0.101,0.063,False,far_side,midday
+LH-POI-0403,LH,East Commons,Ivy University,university,major,5930,LH-LOC-0205,0.351,0.218,False,near_side,evening
+LH-POI-0404,LH,Harborfront,Central Harborfront Nightlife Quarter,entertainment_district,major,4726,LH-LOC-0032,0.453,0.281,False,near_side,night
+LH-POI-0405,LH,Harborfront,Grand Harborfront University,university,neighborhood,3004,LH-LOC-0032,0.053,0.033,False,far_side,afternoon
+LH-POI-0406,LH,Old Mill District,Old Mill District Grocery & Provisions,grocery_anchor,major,5065,LH-LOC-0268,0.277,0.172,False,far_side,midday
+LH-POI-0407,LH,Financial Row,Financial Row Museum,museum,flagship,46716,LH-LOC-0085,0.169,0.105,True,far_side,midday
+LH-POI-0408,LH,Financial Row,North Convention Center,hotel_convention,neighborhood,3222,LH-LOC-0085,0.105,0.065,True,near_side,midday
+LH-POI-0409,LH,Financial Row,Grand Financial Business Park,office_park,major,14252,LH-LOC-0085,0.164,0.102,True,far_side,morning
+LH-POI-0410,LH,Financial Row,Founders Financial City Hall,government_building,major,9235,LH-LOC-0085,0.347,0.216,True,near_side,evening
+LH-POI-0411,LH,Old Mill District,Central City Hall,government_building,minor,796,LH-LOC-0168,0.148,0.092,False,far_side,morning
+LH-POI-0412,LH,Riverside Junction,Central Landmark Tower,tourist_landmark,minor,457,LH-LOC-0222,0.209,0.13,False,near_side,morning
+LH-POI-0413,LH,Old Mill District,Old Mill District Municipal Building,government_building,neighborhood,3825,LH-LOC-0013,0.049,0.03,True,far_side,morning
+LH-POI-0414,LH,Old Mill District,Heritage Market,grocery_anchor,neighborhood,2308,LH-LOC-0013,0.3,0.186,True,far_side,afternoon
+LH-POI-0415,LH,Old Mill District,Landmark Old Health Pavilion,hospital,minor,263,LH-LOC-0013,0.199,0.124,True,near_side,midday
+LH-POI-0416,LH,Old Mill District,Old Mill District Towers,residential_tower,neighborhood,3002,LH-LOC-0013,0.277,0.172,True,far_side,evening
+LH-POI-0417,LH,Uptown Crescent,Founders Uptown Institute of Technology,university,major,5232,LH-LOC-0289,0.283,0.176,False,near_side,afternoon
+LH-POI-0418,LH,Cathedral Heights,Metro Cathedral Municipal Building,government_building,major,4978,LH-LOC-0221,0.711,0.442,False,near_side,afternoon
+LH-POI-0419,LH,Harborfront,Harborfront Health Pavilion,hospital,flagship,27234,LH-LOC-0092,0.759,0.472,True,far_side,morning
+LH-POI-0420,LH,Harborfront,Crescent Harborfront Market,grocery_anchor,minor,1086,LH-LOC-0092,0.027,0.017,True,near_side,midday
+LH-POI-0421,LH,Harborfront,Harborfront Business Park,office_park,neighborhood,3367,LH-LOC-0092,0.152,0.094,True,near_side,midday
+LH-POI-0422,LH,Harborfront,North Harborfront Residences,residential_tower,neighborhood,1612,LH-LOC-0092,0.183,0.114,True,far_side,morning
+LH-POI-0423,LH,Old Mill District,Summit Old Health Pavilion,hospital,neighborhood,3558,LH-LOC-0308,0.483,0.3,False,far_side,evening
+LH-POI-0424,LH,Market Quarter,Market Quarter Fresh Market,grocery_anchor,neighborhood,4278,LH-LOC-0049,0.128,0.08,True,far_side,afternoon
+LH-POI-0425,LH,Market Quarter,Harbor Market Galleria,shopping_mall,major,10942,LH-LOC-0049,0.171,0.106,True,near_side,evening
+LH-POI-0426,LH,Market Quarter,Market Quarter City Hall,government_building,neighborhood,1664,LH-LOC-0049,0.316,0.196,True,near_side,afternoon
+LH-POI-0427,LH,Downtown Core,Metro Convention Center,hotel_convention,minor,1053,LH-LOC-0166,0.102,0.063,True,far_side,evening
+LH-POI-0428,LH,Downtown Core,Downtown Core Business Park,office_park,minor,1805,LH-LOC-0166,0.129,0.08,True,far_side,midday
+LH-POI-0429,LH,North Terminus,Heritage North Galleria,shopping_mall,neighborhood,1593,LH-LOC-0193,0.233,0.145,False,far_side,evening
+LH-POI-0430,LH,East Commons,Ivy East Shopping Center,shopping_mall,neighborhood,811,LH-LOC-0335,0.339,0.211,False,far_side,afternoon
+LH-POI-0431,LH,Financial Row,Founders Financial Shopping Center,shopping_mall,minor,2030,LH-LOC-0065,0.102,0.063,True,near_side,afternoon
+LH-POI-0432,LH,Financial Row,Summit Financial Heritage Museum,museum,neighborhood,3875,LH-LOC-0065,0.263,0.163,True,far_side,midday
+LH-POI-0433,LH,Financial Row,Heritage Financial Corporate Center,office_park,neighborhood,4055,LH-LOC-0065,0.241,0.15,True,far_side,evening
+LH-POI-0434,LH,North Terminus,North North Health Pavilion,hospital,major,2825,LH-LOC-0243,0.347,0.216,False,near_side,afternoon
+LH-POI-0435,LH,Market Quarter,Ivy City Hall,government_building,neighborhood,4396,LH-LOC-0204,0.229,0.142,False,near_side,morning
+LH-POI-0436,LH,Uptown Crescent,Uptown Crescent Fresh Market,grocery_anchor,major,10936,LH-LOC-0159,0.213,0.132,False,near_side,midday
+LH-POI-0437,LH,Riverside Junction,Parkview Riverside Theater Row,entertainment_district,neighborhood,1891,LH-LOC-0162,0.243,0.151,False,far_side,evening
+LH-POI-0438,LH,Harborfront,Cedar Apartments,residential_tower,neighborhood,2177,LH-LOC-0022,0.239,0.149,True,far_side,midday
+LH-POI-0439,LH,Harborfront,Parkview Harborfront Theater Row,entertainment_district,flagship,16744,LH-LOC-0022,0.555,0.345,True,far_side,night
+LH-POI-0440,LH,Harborfront,Harborfront Plaza,tourist_landmark,minor,591,LH-LOC-0022,0.129,0.08,True,far_side,midday
+LH-POI-0441,LH,Old Mill District,Union Old Market,grocery_anchor,major,7796,LH-LOC-0103,0.249,0.155,True,near_side,afternoon
+LH-POI-0442,LH,Old Mill District,Cedar Theater Row,entertainment_district,minor,215,LH-LOC-0103,0.104,0.065,True,far_side,midday
+LH-POI-0443,LH,Old Mill District,Stone Old Residences,residential_tower,minor,779,LH-LOC-0103,0.179,0.111,True,near_side,evening
+LH-POI-0444,LH,North Terminus,North Terminus Entertainment District,entertainment_district,major,3096,LH-LOC-0313,0.148,0.092,False,near_side,evening
+LH-POI-0445,LH,Uptown Crescent,Grand Uptown University,university,major,7782,LH-LOC-0104,0.253,0.157,False,far_side,midday
+LH-POI-0446,LH,Uptown Crescent,Uptown Crescent Theater Row,entertainment_district,neighborhood,2152,LH-LOC-0104,0.332,0.206,False,far_side,afternoon
+LH-POI-0447,LH,Cathedral Heights,Founders Cathedral Tech Campus,corporate_campus,neighborhood,671,LH-LOC-0151,0.151,0.094,False,far_side,morning
+LH-POI-0448,LH,Market Quarter,Grand Apartments,residential_tower,major,8966,LH-LOC-0019,0.534,0.332,True,near_side,night
+LH-POI-0449,LH,Market Quarter,Summit Market Fresh Market,grocery_anchor,neighborhood,3517,LH-LOC-0019,0.089,0.055,True,far_side,evening
+LH-POI-0450,LH,Market Quarter,Market Quarter Mall,shopping_mall,minor,1017,LH-LOC-0019,0.098,0.061,True,far_side,midday
+LH-POI-0451,LH,Market Quarter,Riverside Civic Center,government_building,minor,281,LH-LOC-0019,0.027,0.017,True,near_side,morning
+LH-POI-0452,LH,Old Mill District,Metro Galleria,shopping_mall,major,7357,LH-LOC-0318,0.383,0.238,False,near_side,afternoon
+LH-POI-0453,LH,Harborfront,Harborfront General Hospital,hospital,neighborhood,3743,LH-LOC-0317,0.305,0.19,False,far_side,morning
+LH-POI-0454,LH,East Commons,Parkview East Business Park,office_park,neighborhood,1392,LH-LOC-0070,0.149,0.093,True,far_side,midday
+LH-POI-0455,LH,East Commons,Stone East Entertainment District,entertainment_district,neighborhood,2018,LH-LOC-0070,0.199,0.124,True,far_side,afternoon
+LH-POI-0456,LH,East Commons,Riverside Shopping Center,shopping_mall,minor,191,LH-LOC-0070,0.02,0.012,True,far_side,afternoon
+LH-POI-0457,LH,Uptown Crescent,Uptown Crescent Apartments,residential_tower,major,8202,LH-LOC-0094,0.552,0.343,False,near_side,morning
+LH-POI-0458,LH,Uptown Crescent,South Uptown Galleria,shopping_mall,neighborhood,1942,LH-LOC-0094,0.406,0.252,False,far_side,evening
+LH-POI-0459,LH,Downtown Core,Downtown Core Business Park,office_park,major,10366,LH-LOC-0246,0.35,0.217,True,far_side,morning
+LH-POI-0460,LH,Downtown Core,Harbor Downtown Civic Center,government_building,minor,1911,LH-LOC-0246,0.075,0.047,True,near_side,midday
+LH-POI-0461,LH,Old Mill District,Parkview Old Fresh Market,grocery_anchor,neighborhood,3607,LH-LOC-0238,0.481,0.299,False,near_side,midday
+LH-POI-0462,LH,East Commons,Metro East General Hospital,hospital,major,4265,LH-LOC-0090,0.283,0.176,True,far_side,midday
+LH-POI-0463,LH,East Commons,Crescent East Theater Row,entertainment_district,minor,550,LH-LOC-0090,0.182,0.113,True,near_side,evening
+LH-POI-0464,LH,East Commons,Ivy Fresh Market,grocery_anchor,major,2667,LH-LOC-0090,0.069,0.043,True,near_side,morning
+LH-POI-0465,LH,East Commons,East Commons Office Commons,office_park,minor,401,LH-LOC-0090,0.12,0.075,True,far_side,midday
+LH-POI-0466,LH,Market Quarter,Ivy Market Shopping Center,shopping_mall,neighborhood,3885,LH-LOC-0174,0.167,0.104,False,near_side,afternoon
+LH-POI-0467,LH,Market Quarter,Union Shopping Center,shopping_mall,major,12590,LH-LOC-0304,0.787,0.489,False,far_side,evening
+LH-POI-0468,LH,Harborfront,Stone Mall,shopping_mall,minor,879,LH-LOC-0287,0.291,0.181,False,far_side,afternoon
+LH-POI-0469,LH,Market Quarter,Market Quarter Towers,residential_tower,major,6713,LH-LOC-0069,0.568,0.353,False,near_side,evening
+LH-POI-0470,LH,Market Quarter,Market Quarter Galleria,shopping_mall,minor,283,LH-LOC-0069,0.202,0.126,False,near_side,night
+LH-POI-0471,LH,Cathedral Heights,Cathedral Heights Grand Hotel,hotel_convention,neighborhood,1042,LH-LOC-0171,0.208,0.129,False,far_side,night
+LH-POI-0472,LH,Uptown Crescent,Uptown Crescent Entertainment District,entertainment_district,major,11888,LH-LOC-0054,0.303,0.188,True,near_side,evening
+LH-POI-0473,LH,Uptown Crescent,Stone Uptown Galleria,shopping_mall,major,5484,LH-LOC-0054,0.382,0.237,True,near_side,midday
+LH-POI-0474,LH,Uptown Crescent,Landmark College,university,minor,939,LH-LOC-0054,0.094,0.058,True,near_side,morning
+LH-POI-0475,LH,North Terminus,Union North Apartments,residential_tower,neighborhood,1346,LH-LOC-0303,0.145,0.09,False,near_side,evening
+LH-POI-0476,LH,Harborfront,Grand Harborfront Galleria,shopping_mall,neighborhood,1402,LH-LOC-0177,0.151,0.094,False,near_side,night
+LH-POI-0477,LH,Downtown Core,North Heritage Museum,museum,flagship,34815,LH-LOC-0296,0.835,0.519,True,far_side,midday
+LH-POI-0478,LH,Downtown Core,Cedar Downtown Office Commons,office_park,minor,1776,LH-LOC-0296,0.048,0.03,True,far_side,morning
+LH-POI-0479,LH,North Terminus,North Terminus Apartments,residential_tower,major,3892,LH-LOC-0183,0.176,0.109,False,near_side,evening
+LH-POI-0480,LH,Financial Row,Founders Mall,shopping_mall,neighborhood,3094,LH-LOC-0330,0.454,0.282,False,far_side,evening
+LH-POI-0481,LH,Financial Row,Financial Row Grand Hotel,hotel_convention,flagship,39628,LH-LOC-0130,1.019,0.633,False,far_side,evening
+LH-POI-0482,LH,Riverside Junction,Ivy Riverside Grocery & Provisions,grocery_anchor,flagship,17085,LH-LOC-0192,0.391,0.243,False,far_side,evening
+LH-POI-0483,LH,Uptown Crescent,Uptown Crescent Residences,residential_tower,minor,1124,LH-LOC-0199,0.181,0.112,False,near_side,morning
+LH-POI-0484,LH,Old Mill District,Old Mill District Health Pavilion,hospital,neighborhood,1141,LH-LOC-0023,0.191,0.119,True,near_side,midday
+LH-POI-0485,LH,Old Mill District,Old Mill District Civic Center,government_building,neighborhood,1448,LH-LOC-0023,0.159,0.099,True,far_side,morning
+LH-POI-0486,LH,Old Mill District,Old Mill District Market,grocery_anchor,minor,1112,LH-LOC-0023,0.091,0.057,True,near_side,afternoon
+LH-POI-0487,LH,Old Mill District,Ivy Apartments,residential_tower,neighborhood,2609,LH-LOC-0023,0.346,0.215,True,far_side,evening
+LH-POI-0488,LH,Financial Row,Financial Row Galleria,shopping_mall,neighborhood,6357,LH-LOC-0340,0.24,0.149,False,far_side,midday
+LH-POI-0489,LH,Financial Row,Grand City Hall,government_building,neighborhood,5592,LH-LOC-0200,0.352,0.219,False,near_side,midday
+LH-POI-0490,LH,Downtown Core,Ivy Downtown Headquarters Campus,corporate_campus,flagship,29008,LH-LOC-0011,0.539,0.335,False,far_side,evening
+LH-POI-0491,LH,Downtown Core,Landmark Gallery,museum,neighborhood,6150,LH-LOC-0011,0.311,0.193,False,far_side,afternoon
+LH-POI-0492,LH,Market Quarter,Founders Galleria,shopping_mall,neighborhood,4135,LH-LOC-0284,0.164,0.102,False,near_side,afternoon
+LH-POI-0493,LH,Riverside Junction,Riverside Junction Towers,residential_tower,neighborhood,1893,LH-LOC-0302,0.338,0.21,False,far_side,morning
+LH-POI-0494,LH,Financial Row,Harbor Financial Heritage Museum,museum,major,10404,LH-LOC-0260,0.111,0.069,False,far_side,evening
+LH-POI-0495,LH,Uptown Crescent,Ivy Galleria,shopping_mall,major,12662,LH-LOC-0279,0.294,0.183,False,far_side,midday
+LH-POI-0496,LH,Financial Row,Founders Financial Office Commons,office_park,major,9184,LH-LOC-0270,0.151,0.094,False,near_side,evening
+LH-POI-0497,LH,Financial Row,Financial Row Civic Center,government_building,minor,1341,LH-LOC-0035,0.164,0.102,True,far_side,night
+LH-POI-0498,LH,Financial Row,Parkview Financial Grand Hotel,hotel_convention,minor,1846,LH-LOC-0035,0.107,0.066,True,near_side,afternoon
+LH-POI-0499,LH,Financial Row,Financial Row Museum,museum,neighborhood,3885,LH-LOC-0035,0.335,0.208,True,near_side,morning
+LH-POI-0500,LH,East Commons,Stone East Mall,shopping_mall,neighborhood,2059,LH-LOC-0185,0.066,0.041,False,far_side,afternoon
+LH-POI-0501,LH,Uptown Crescent,Parkview College,university,minor,962,LH-LOC-0269,0.275,0.171,False,near_side,morning
+LH-POI-0502,LH,Uptown Crescent,Landmark Institute of Technology,university,neighborhood,2564,LH-LOC-0044,0.396,0.246,False,near_side,morning
+LH-POI-0503,LH,Uptown Crescent,Uptown Crescent Galleria,shopping_mall,minor,813,LH-LOC-0044,0.032,0.02,False,near_side,evening
+LH-POI-0504,LH,Cathedral Heights,Landmark Grand Hotel,hotel_convention,major,2630,LH-LOC-0096,0.348,0.216,True,near_side,evening
+LH-POI-0505,LH,Cathedral Heights,Cathedral Heights Grocery & Provisions,grocery_anchor,neighborhood,1066,LH-LOC-0096,0.246,0.153,True,near_side,night
+LH-POI-0506,LH,Cathedral Heights,Crescent Cathedral Mall,shopping_mall,minor,100,LH-LOC-0096,0.054,0.034,True,far_side,afternoon
+LH-POI-0507,LH,Market Quarter,Market Quarter Galleria,shopping_mall,major,12546,LH-LOC-0214,0.34,0.211,False,near_side,afternoon
+LH-POI-0508,LH,North Terminus,North Terminus Fresh Market,grocery_anchor,major,4150,LH-LOC-0293,0.5,0.311,False,far_side,evening
+LH-POI-0509,LH,Uptown Crescent,Landmark Residences,residential_tower,neighborhood,4347,LH-LOC-0309,0.122,0.076,False,far_side,evening
+LH-POI-0510,LH,Cathedral Heights,Cathedral Heights Tech Campus,corporate_campus,flagship,11980,LH-LOC-0181,0.812,0.505,False,near_side,morning
+LH-POI-0511,LH,Downtown Core,Metro Downtown Convention Center,hotel_convention,major,16777,LH-LOC-0001,0.142,0.088,False,far_side,afternoon
+LH-POI-0512,LH,Downtown Core,Grand Gallery,museum,neighborhood,4144,LH-LOC-0001,0.293,0.182,False,far_side,midday
+LH-POI-0513,LH,Financial Row,Financial Row Tech Campus,corporate_campus,neighborhood,5543,LH-LOC-0220,0.301,0.187,False,far_side,midday
+LH-POI-0514,LH,Financial Row,Union Financial Museum,museum,major,17374,LH-LOC-0150,0.723,0.449,False,near_side,midday
+LH-POI-0515,LH,Uptown Crescent,Uptown Crescent Apartments,residential_tower,neighborhood,4321,LH-LOC-0074,0.042,0.026,True,near_side,morning
+LH-POI-0516,LH,Uptown Crescent,Stone Uptown Institute of Technology,university,minor,880,LH-LOC-0074,0.09,0.056,True,far_side,afternoon
+LH-POI-0517,LH,Uptown Crescent,Uptown Crescent Fresh Market,grocery_anchor,neighborhood,2900,LH-LOC-0074,0.074,0.046,True,far_side,morning
+LH-POI-0518,LH,Market Quarter,Landmark Civic Center,government_building,neighborhood,1571,LH-LOC-0124,0.108,0.067,False,near_side,morning
+LH-POI-0519,LH,East Commons,Ivy Shopping Center,shopping_mall,major,5391,LH-LOC-0295,0.158,0.098,False,near_side,midday
+LH-POI-0520,LH,Market Quarter,Market Quarter Shopping Center,shopping_mall,major,9873,LH-LOC-0264,0.192,0.119,False,far_side,morning
+LH-POI-0521,LH,Market Quarter,South Market Fresh Market,grocery_anchor,neighborhood,1766,LH-LOC-0009,0.333,0.207,True,near_side,afternoon
+LH-POI-0522,LH,Market Quarter,Stone Market Municipal Building,government_building,minor,831,LH-LOC-0009,0.116,0.072,True,far_side,morning
+LH-POI-0523,LH,Market Quarter,Grand Market Residences,residential_tower,neighborhood,1605,LH-LOC-0009,0.12,0.075,True,near_side,morning
+LH-POI-0524,LH,East Commons,Landmark Office Commons,office_park,neighborhood,1229,LH-LOC-0275,0.251,0.156,False,near_side,evening
+LH-POI-0525,LH,Downtown Core,North Municipal Building,government_building,neighborhood,6637,LH-LOC-0306,0.2,0.124,True,near_side,evening
+LH-POI-0526,LH,Downtown Core,North Heritage Museum,museum,major,17382,LH-LOC-0306,0.255,0.158,True,near_side,midday
+LH-POI-0527,LH,Downtown Core,Crescent Convention Center,hotel_convention,neighborhood,6049,LH-LOC-0256,0.108,0.067,True,far_side,afternoon
+LH-POI-0528,LH,Downtown Core,Crescent Downtown Galleria,shopping_mall,minor,698,LH-LOC-0256,0.069,0.043,True,far_side,evening
+LH-POI-0529,LH,Harborfront,Harbor Towers,residential_tower,major,5716,LH-LOC-0327,0.779,0.484,False,near_side,night
+LH-POI-0530,LH,Old Mill District,Stone Old Municipal Building,government_building,major,7655,LH-LOC-0033,0.231,0.144,True,near_side,afternoon
+LH-POI-0531,LH,Old Mill District,Ivy Old Entertainment District,entertainment_district,minor,510,LH-LOC-0033,0.179,0.111,True,far_side,midday
+LH-POI-0532,LH,Old Mill District,Metro Fresh Market,grocery_anchor,neighborhood,1711,LH-LOC-0033,0.297,0.185,True,far_side,evening
+LH-POI-0533,LH,East Commons,Metro East Fresh Market,grocery_anchor,minor,245,LH-LOC-0235,0.298,0.185,False,near_side,evening
+LH-POI-0534,LH,Uptown Crescent,Central Uptown Galleria,shopping_mall,major,10379,LH-LOC-0319,0.318,0.198,False,near_side,evening
+LH-POI-0535,LH,East Commons,Summit Residences,residential_tower,major,4892,LH-LOC-0215,0.239,0.149,False,far_side,evening
+LH-POI-0536,LH,North Terminus,Grand North General Hospital,hospital,major,3031,LH-LOC-0123,0.293,0.182,False,near_side,evening
+LH-POI-0537,LH,Financial Row,Financial Row City Hall,government_building,major,8963,LH-LOC-0025,0.139,0.086,True,near_side,midday
+LH-POI-0538,LH,Financial Row,Stone Financial Tech Campus,corporate_campus,minor,1575,LH-LOC-0025,0.169,0.105,True,near_side,morning
+LH-POI-0539,LH,Financial Row,Financial Row Grand Hotel,hotel_convention,neighborhood,6022,LH-LOC-0025,0.137,0.085,True,near_side,night
+LH-POI-0540,LH,Old Mill District,Heritage Old General Hospital,hospital,neighborhood,2794,LH-LOC-0063,0.125,0.078,True,near_side,evening
+LH-POI-0541,LH,Old Mill District,Founders Old Municipal Building,government_building,major,6269,LH-LOC-0063,0.192,0.119,True,near_side,morning
+LH-POI-0542,LH,Old Mill District,Riverside Old Apartments,residential_tower,neighborhood,1177,LH-LOC-0063,0.302,0.188,True,far_side,morning
+LH-POI-0543,LH,East Commons,East Commons Corporate Center,office_park,major,5068,LH-LOC-0155,0.636,0.395,False,near_side,morning
+LH-POI-0544,LH,Riverside Junction,Riverside Junction Mall,shopping_mall,neighborhood,1126,LH-LOC-0122,0.423,0.263,False,near_side,evening
+LH-POI-0545,LH,Old Mill District,Old Mill District Market,grocery_anchor,flagship,21981,LH-LOC-0148,0.558,0.347,False,near_side,afternoon
+LH-POI-0546,LH,Riverside Junction,Central Riverside Nightlife Quarter,entertainment_district,minor,685,LH-LOC-0057,0.196,0.122,True,far_side,evening
+LH-POI-0547,LH,Riverside Junction,Crescent Corporate Center,office_park,minor,867,LH-LOC-0057,0.175,0.109,True,far_side,morning
+LH-POI-0548,LH,Riverside Junction,Metro Galleria,shopping_mall,minor,823,LH-LOC-0057,0.027,0.017,True,near_side,afternoon
+LH-POI-0549,LH,Harborfront,North Apartments,residential_tower,major,8559,LH-LOC-0217,0.274,0.17,False,far_side,morning
+LH-POI-0550,LH,Cathedral Heights,Cathedral Heights Civic Center,government_building,neighborhood,1461,LH-LOC-0271,0.36,0.224,False,near_side,morning
+LH-POI-0551,LH,Riverside Junction,Riverside Junction Towers,residential_tower,neighborhood,2349,LH-LOC-0312,0.312,0.194,False,far_side,night
+LH-POI-0552,LH,Cathedral Heights,Cathedral Heights Municipal Building,government_building,major,4242,LH-LOC-0281,0.526,0.327,False,far_side,morning
+LH-POI-0553,LH,Riverside Junction,Harbor Market,grocery_anchor,minor,639,LH-LOC-0077,0.114,0.071,True,far_side,midday
+LH-POI-0554,LH,Riverside Junction,Founders Riverside Apartments,residential_tower,minor,195,LH-LOC-0077,0.175,0.109,True,far_side,morning
+LH-POI-0555,LH,Riverside Junction,Stone Corporate Center,office_park,minor,298,LH-LOC-0077,0.019,0.012,True,near_side,morning
+LH-POI-0556,LH,Cathedral Heights,Cedar Office Commons,office_park,neighborhood,641,LH-LOC-0111,0.218,0.135,False,far_side,evening
+LH-POI-0557,LH,Riverside Junction,Central Riverside Apartments,residential_tower,minor,722,LH-LOC-0132,0.249,0.155,False,near_side,evening
+LH-POI-0558,LH,East Commons,Metro East Market,grocery_anchor,minor,290,LH-LOC-0010,0.266,0.165,False,near_side,evening
+LH-POI-0559,LH,East Commons,Harbor Corporate Center,office_park,minor,427,LH-LOC-0010,0.023,0.014,False,far_side,morning
+LH-POI-0560,LH,Downtown Core,Founders Corporate Campus,corporate_campus,major,16557,LH-LOC-0041,0.559,0.347,True,far_side,evening
+LH-POI-0561,LH,Downtown Core,Downtown Core Heritage Museum,museum,neighborhood,6578,LH-LOC-0041,0.067,0.042,True,near_side,afternoon
+LH-POI-0562,LH,Downtown Core,Landmark Corporate Center,office_park,neighborhood,4359,LH-LOC-0041,0.162,0.101,True,far_side,evening
+LH-POI-0563,LH,Downtown Core,Parkview Mall,shopping_mall,neighborhood,5810,LH-LOC-0041,0.083,0.052,True,far_side,evening
+LH-POI-0564,LH,Old Mill District,Stone Old Apartments,residential_tower,neighborhood,1466,LH-LOC-0003,0.155,0.096,True,near_side,morning
+LH-POI-0565,LH,Old Mill District,South Health Pavilion,hospital,flagship,16320,LH-LOC-0003,0.831,0.516,True,far_side,night
+LH-POI-0566,LH,Old Mill District,Riverside Old Entertainment District,entertainment_district,neighborhood,3966,LH-LOC-0003,0.096,0.06,True,far_side,afternoon
+LH-POI-0567,LH,Downtown Core,Downtown Core Office Commons,office_park,minor,1858,LH-LOC-0316,0.174,0.108,True,near_side,evening
+LH-POI-0568,LH,Downtown Core,Downtown Core Fresh Market,grocery_anchor,neighborhood,3978,LH-LOC-0316,0.264,0.164,True,near_side,afternoon
+LH-POI-0569,LH,Financial Row,Financial Row Museum,museum,minor,1564,LH-LOC-0230,0.207,0.129,False,near_side,evening
+LH-POI-0570,LH,Cathedral Heights,Cathedral Heights Business Park,office_park,major,4445,LH-LOC-0241,0.533,0.331,False,near_side,evening
+LH-POI-0571,LH,Harborfront,Founders Health Pavilion,hospital,flagship,17495,LH-LOC-0072,0.753,0.468,True,near_side,night
+LH-POI-0572,LH,Harborfront,South Harborfront Apartments,residential_tower,minor,706,LH-LOC-0072,0.13,0.081,True,near_side,morning
+LH-POI-0573,LH,Harborfront,Harborfront City Hall,government_building,flagship,16672,LH-LOC-0072,0.487,0.303,True,near_side,midday
+LH-POI-0574,LH,Harborfront,Crescent Harborfront Entertainment District,entertainment_district,minor,579,LH-LOC-0072,0.072,0.045,True,far_side,night
+LH-POI-0575,LH,Riverside Junction,Riverside Junction Entertainment District,entertainment_district,major,9519,LH-LOC-0242,0.793,0.493,False,far_side,night
+LH-POI-0576,LH,Harborfront,Parkview Plaza,tourist_landmark,neighborhood,1509,LH-LOC-0147,0.21,0.13,False,far_side,afternoon
+LH-POI-0577,LH,East Commons,East Commons Residences,residential_tower,neighborhood,1412,LH-LOC-0020,0.062,0.039,True,far_side,evening
+LH-POI-0578,LH,East Commons,Union East Fresh Market,grocery_anchor,minor,579,LH-LOC-0020,0.192,0.119,True,near_side,evening
+LH-POI-0579,LH,East Commons,Cedar East Entertainment District,entertainment_district,minor,281,LH-LOC-0020,0.122,0.076,True,far_side,afternoon
+LH-POI-0580,LH,Downtown Core,Crescent Business Park,office_park,minor,2014,LH-LOC-0071,0.105,0.065,False,far_side,evening
+LH-POI-0581,LH,Downtown Core,Parkview Grand Hotel,hotel_convention,major,10201,LH-LOC-0071,0.634,0.394,False,far_side,midday
+LH-POI-0582,LH,Financial Row,Financial Row Business Park,office_park,flagship,45130,LH-LOC-0075,0.291,0.181,False,far_side,midday
+LH-POI-0583,LH,Financial Row,Financial Row Tech Campus,corporate_campus,neighborhood,2866,LH-LOC-0075,0.121,0.075,False,near_side,evening
+LH-POI-0584,LH,Riverside Junction,Riverside Junction Theater Row,entertainment_district,neighborhood,1483,LH-LOC-0172,0.126,0.078,False,near_side,night
+LH-POI-0585,LH,North Terminus,North Terminus Health Pavilion,hospital,minor,574,LH-LOC-0333,0.14,0.087,False,far_side,afternoon
+LH-POI-0586,LH,Downtown Core,South Corporate Campus,corporate_campus,neighborhood,5748,LH-LOC-0051,0.252,0.157,True,near_side,morning
+LH-POI-0587,LH,Downtown Core,Downtown Core Market,grocery_anchor,neighborhood,4342,LH-LOC-0051,0.262,0.163,True,far_side,afternoon
+LH-POI-0588,LH,Downtown Core,Harbor Grand Hotel,hotel_convention,neighborhood,7138,LH-LOC-0051,0.275,0.171,True,near_side,midday
+LH-POI-0589,LH,Market Quarter,Heritage Market Theater Row,entertainment_district,minor,726,LH-LOC-0164,0.201,0.125,False,near_side,evening
+LH-POI-0590,LH,Financial Row,Summit Stadium,stadium_arena,flagship,21906,LH-LOC-0005,0.185,0.115,True,near_side,evening
+LH-POI-0591,LH,Financial Row,Metro Landmark Tower,tourist_landmark,flagship,18591,LH-LOC-0005,0.258,0.16,True,far_side,afternoon
+ACS-POI-0001,ACS,Sunridge Acres,Heritage Sunridge Gallery,museum,minor,68,ACS-LOC-0179,0.218,0.135,False,far_side,night
+ACS-POI-0002,ACS,Southgate Commons,Union Southgate Market,grocery_anchor,minor,312,ACS-LOC-0055,0.178,0.111,False,far_side,midday
+ACS-POI-0003,ACS,Greenhollow,Union Mall,shopping_mall,neighborhood,1971,ACS-LOC-0152,0.482,0.3,False,near_side,midday
+ACS-POI-0004,ACS,Maple Grove,Parkview Maple Museum,museum,neighborhood,4022,ACS-LOC-0107,0.198,0.123,True,near_side,evening
+ACS-POI-0005,ACS,Maple Grove,Crescent Maple Corporate Center,office_park,minor,667,ACS-LOC-0107,0.099,0.062,True,far_side,morning
+ACS-POI-0006,ACS,Windmere Park,Central Windmere Health Pavilion,hospital,minor,127,ACS-LOC-0198,0.062,0.039,False,far_side,morning
+ACS-POI-0007,ACS,Fallowfield,Harbor Fallowfield Apartments,residential_tower,neighborhood,2249,ACS-LOC-0210,0.053,0.033,False,near_side,morning
+ACS-POI-0008,ACS,Maple Grove,Maple Grove Gallery,museum,major,7915,ACS-LOC-0001,0.349,0.217,True,far_side,morning
+ACS-POI-0009,ACS,Maple Grove,Landmark Hotel & Conference Center,hotel_convention,minor,1024,ACS-LOC-0001,0.162,0.101,True,far_side,morning
+ACS-POI-0010,ACS,Maple Grove,Central Maple Mall,shopping_mall,minor,492,ACS-LOC-0001,0.116,0.072,True,near_side,evening
+ACS-POI-0011,ACS,Brookview,Harbor Brookview Medical Center,hospital,minor,278,ACS-LOC-0066,0.155,0.096,False,far_side,night
+ACS-POI-0012,ACS,Old Orchard,Landmark Old Historic District,tourist_landmark,neighborhood,738,ACS-LOC-0194,0.323,0.201,False,far_side,afternoon
+ACS-POI-0013,ACS,Sunridge Acres,Grand Museum,museum,neighborhood,400,ACS-LOC-0029,0.316,0.196,False,far_side,night
+ACS-POI-0014,ACS,Old Orchard,Old Orchard Grocery & Provisions,grocery_anchor,minor,225,ACS-LOC-0224,0.078,0.048,False,far_side,afternoon
+ACS-POI-0015,ACS,Fallowfield,Harbor Fallowfield Grocery & Provisions,grocery_anchor,minor,125,ACS-LOC-0190,0.076,0.047,False,near_side,evening
+ACS-POI-0016,ACS,Old Orchard,Grand Residences,residential_tower,minor,80,ACS-LOC-0134,0.113,0.07,False,near_side,evening
+ACS-POI-0017,ACS,Sunridge Acres,Landmark Sunridge Corporate Campus,corporate_campus,neighborhood,762,ACS-LOC-0229,0.461,0.286,False,far_side,afternoon
+ACS-POI-0018,ACS,Windmere Park,Windmere Park Health Pavilion,hospital,minor,515,ACS-LOC-0058,0.149,0.093,False,far_side,night
+ACS-POI-0019,ACS,Maple Grove,Stone Hotel & Conference Center,hotel_convention,neighborhood,1261,ACS-LOC-0227,0.21,0.13,True,near_side,night
+ACS-POI-0020,ACS,Maple Grove,Ivy Maple City Hall,government_building,neighborhood,1302,ACS-LOC-0227,0.345,0.214,True,far_side,afternoon
+ACS-POI-0021,ACS,Windmere Park,Riverside Grocery & Provisions,grocery_anchor,minor,246,ACS-LOC-0038,0.26,0.162,False,far_side,midday
+ACS-POI-0022,ACS,Sunridge Acres,Central Corporate Campus,corporate_campus,minor,116,ACS-LOC-0259,0.167,0.104,False,near_side,morning
+ACS-POI-0023,ACS,Maple Grove,Maple Grove Tech Campus,corporate_campus,neighborhood,2850,ACS-LOC-0167,0.081,0.05,True,far_side,evening
+ACS-POI-0024,ACS,Maple Grove,Union Maple Business Park,office_park,major,11038,ACS-LOC-0167,0.471,0.293,True,far_side,evening
+ACS-POI-0025,ACS,Southgate Commons,Southgate Commons Shopping Center,shopping_mall,minor,94,ACS-LOC-0009,0.107,0.066,False,near_side,evening
+ACS-POI-0026,ACS,Southgate Commons,Harbor Apartments,residential_tower,minor,91,ACS-LOC-0009,0.235,0.146,False,far_side,morning
+ACS-POI-0027,ACS,Fallowfield,Fallowfield University,university,major,3489,ACS-LOC-0060,0.323,0.201,False,near_side,morning
+ACS-POI-0028,ACS,Cobblestone Village,Crescent Cobblestone Mall,shopping_mall,minor,494,ACS-LOC-0151,0.049,0.03,False,near_side,afternoon
+ACS-POI-0029,ACS,Maple Grove,Grand Maple Municipal Building,government_building,major,6835,ACS-LOC-0197,0.506,0.314,True,near_side,morning
+ACS-POI-0030,ACS,Maple Grove,Maple Grove Grand Hotel,hotel_convention,major,7376,ACS-LOC-0197,0.103,0.064,True,near_side,evening
+ACS-POI-0031,ACS,Pine Hatch,South Theater Row,entertainment_district,minor,406,ACS-LOC-0043,0.208,0.129,False,near_side,night
+ACS-POI-0032,ACS,Greenhollow,South Shopping Center,shopping_mall,minor,494,ACS-LOC-0092,0.047,0.029,False,near_side,evening
+ACS-POI-0033,ACS,Windmere Park,Windmere Park Shopping Center,shopping_mall,neighborhood,846,ACS-LOC-0002,0.323,0.201,True,near_side,evening
+ACS-POI-0034,ACS,Windmere Park,Stone Windmere Fresh Market,grocery_anchor,major,3784,ACS-LOC-0002,0.236,0.147,True,near_side,midday
+ACS-POI-0035,ACS,Windmere Park,Riverside Windmere Nightlife Quarter,entertainment_district,major,2473,ACS-LOC-0002,0.469,0.291,True,far_side,evening
+ACS-POI-0036,ACS,Windmere Park,Landmark Towers,residential_tower,neighborhood,1477,ACS-LOC-0002,0.097,0.06,True,near_side,morning
+ACS-POI-0037,ACS,Pine Hatch,Parkview Pine Market,grocery_anchor,minor,354,ACS-LOC-0203,0.24,0.149,False,near_side,evening
+ACS-POI-0038,ACS,Maple Grove,Metro Gallery,museum,minor,1040,ACS-LOC-0247,0.035,0.022,True,far_side,midday
+ACS-POI-0039,ACS,Maple Grove,Maple Grove Municipal Building,government_building,neighborhood,2539,ACS-LOC-0247,0.217,0.135,True,far_side,midday
+ACS-POI-0040,ACS,Southgate Commons,Grand Southgate General Hospital,hospital,major,1721,ACS-LOC-0165,0.197,0.122,False,far_side,evening
+ACS-POI-0041,ACS,Pine Hatch,Cedar Pine Shopping Center,shopping_mall,neighborhood,1099,ACS-LOC-0113,0.302,0.188,False,near_side,evening
+ACS-POI-0042,ACS,Fallowfield,Riverside Apartments,residential_tower,minor,594,ACS-LOC-0070,0.282,0.175,False,far_side,night
+ACS-POI-0043,ACS,Cobblestone Village,Central Cobblestone Entertainment District,entertainment_district,neighborhood,2567,ACS-LOC-0211,0.431,0.268,False,near_side,night
+ACS-POI-0044,ACS,Greenhollow,Greenhollow Towers,residential_tower,flagship,10797,ACS-LOC-0026,0.533,0.331,True,far_side,evening
+ACS-POI-0045,ACS,Greenhollow,Stone College,university,neighborhood,1849,ACS-LOC-0026,0.176,0.109,True,near_side,midday
+ACS-POI-0046,ACS,Greenhollow,Greenhollow Galleria,shopping_mall,neighborhood,2228,ACS-LOC-0026,0.06,0.037,True,near_side,evening
+ACS-POI-0047,ACS,Greenhollow,South Greenhollow Fresh Market,grocery_anchor,minor,642,ACS-LOC-0026,0.039,0.024,True,near_side,evening
+ACS-POI-0048,ACS,Brookview,Brookview City Hall,government_building,minor,156,ACS-LOC-0206,0.139,0.086,False,far_side,midday
+ACS-POI-0049,ACS,Greenhollow,Stone Residences,residential_tower,neighborhood,2181,ACS-LOC-0252,0.141,0.088,False,near_side,midday
+ACS-POI-0050,ACS,Southgate Commons,Southgate Commons Towers,residential_tower,minor,94,ACS-LOC-0115,0.155,0.096,False,far_side,morning
+ACS-POI-0051,ACS,Windmere Park,Riverside Windmere Health Pavilion,hospital,neighborhood,1507,ACS-LOC-0078,0.145,0.09,False,far_side,afternoon
+ACS-POI-0052,ACS,Cobblestone Village,Cobblestone Village Fresh Market,grocery_anchor,neighborhood,2070,ACS-LOC-0071,0.455,0.283,False,near_side,morning
+ACS-POI-0053,ACS,Fallowfield,Harbor Fallowfield Fresh Market,grocery_anchor,neighborhood,1255,ACS-LOC-0260,0.49,0.304,False,near_side,midday
+ACS-POI-0054,ACS,Cobblestone Village,Cobblestone Village Shopping Center,shopping_mall,minor,506,ACS-LOC-0251,0.18,0.112,False,far_side,afternoon
+ACS-POI-0055,ACS,Fallowfield,Crescent Fallowfield University,university,neighborhood,2128,ACS-LOC-0110,0.161,0.1,False,near_side,morning
+ACS-POI-0056,ACS,Maple Grove,Landmark Maple Business Park,office_park,major,7849,ACS-LOC-0021,0.464,0.288,True,near_side,evening
+ACS-POI-0057,ACS,Maple Grove,Maple Grove Tech Campus,corporate_campus,minor,559,ACS-LOC-0021,0.029,0.018,True,near_side,evening
+ACS-POI-0058,ACS,Maple Grove,Stone Maple City Hall,government_building,minor,456,ACS-LOC-0021,0.099,0.062,True,far_side,morning
+ACS-POI-0059,ACS,Sunridge Acres,Parkview Sunridge Office Commons,office_park,minor,61,ACS-LOC-0159,0.15,0.093,False,near_side,midday
+ACS-POI-0060,ACS,Cobblestone Village,South Cobblestone Towers,residential_tower,neighborhood,1078,ACS-LOC-0181,0.439,0.273,False,near_side,night
+ACS-POI-0061,ACS,Greenhollow,North Greenhollow Theater Row,entertainment_district,neighborhood,2378,ACS-LOC-0162,0.076,0.047,False,near_side,evening
+ACS-POI-0062,ACS,Windmere Park,Parkview Windmere Galleria,shopping_mall,neighborhood,976,ACS-LOC-0048,0.076,0.047,False,far_side,afternoon
+ACS-POI-0063,ACS,Greenhollow,Grand Residences,residential_tower,major,3839,ACS-LOC-0202,0.583,0.362,False,near_side,afternoon
+ACS-POI-0064,ACS,Sunridge Acres,Central Sunridge Corporate Campus,corporate_campus,neighborhood,772,ACS-LOC-0119,0.195,0.121,False,far_side,morning
+ACS-POI-0065,ACS,Brookview,Metro Brookview Mall,shopping_mall,minor,202,ACS-LOC-0176,0.254,0.158,False,far_side,evening
+ACS-POI-0066,ACS,Brookview,Brookview Shopping Center,shopping_mall,minor,258,ACS-LOC-0076,0.178,0.111,False,far_side,evening
+ACS-POI-0067,ACS,Greenhollow,Cedar Grocery & Provisions,grocery_anchor,minor,614,ACS-LOC-0016,0.097,0.06,False,near_side,evening
+ACS-POI-0068,ACS,Greenhollow,Crescent Municipal Building,government_building,minor,270,ACS-LOC-0016,0.037,0.023,False,near_side,night
+ACS-POI-0069,ACS,Fallowfield,Fallowfield Theater Row,entertainment_district,neighborhood,2263,ACS-LOC-0200,0.317,0.197,False,near_side,evening
+ACS-POI-0070,ACS,Brookview,Crescent Nightlife Quarter,entertainment_district,minor,261,ACS-LOC-0166,0.22,0.137,False,near_side,midday
+ACS-POI-0071,ACS,Pine Hatch,Cedar Pine Plaza,tourist_landmark,major,4114,ACS-LOC-0123,0.753,0.468,False,far_side,midday
+ACS-POI-0072,ACS,Pine Hatch,Riverside Galleria,shopping_mall,minor,305,ACS-LOC-0017,0.133,0.083,False,far_side,evening
+ACS-POI-0073,ACS,Pine Hatch,Stone Pine Office Commons,office_park,flagship,12904,ACS-LOC-0017,1.009,0.627,False,near_side,afternoon
+ACS-POI-0074,ACS,Southgate Commons,Southgate Commons Entertainment District,entertainment_district,major,3362,ACS-LOC-0045,0.553,0.344,False,near_side,night
+ACS-POI-0075,ACS,Greenhollow,Greenhollow Corporate Center,office_park,neighborhood,1021,ACS-LOC-0052,0.291,0.181,False,far_side,evening
+ACS-POI-0076,ACS,Sunridge Acres,Union Mall,shopping_mall,minor,128,ACS-LOC-0199,0.044,0.027,False,far_side,evening
+ACS-POI-0077,ACS,Pine Hatch,Pine Hatch Galleria,shopping_mall,minor,202,ACS-LOC-0063,0.129,0.08,False,far_side,evening
+ACS-POI-0078,ACS,Maple Grove,Founders Maple Grocery & Provisions,grocery_anchor,neighborhood,2314,ACS-LOC-0047,0.257,0.16,True,near_side,midday
+ACS-POI-0079,ACS,Maple Grove,Union Maple Office Commons,office_park,minor,748,ACS-LOC-0047,0.159,0.099,True,near_side,morning
+ACS-POI-0080,ACS,Old Orchard,Central Shopping Center,shopping_mall,minor,197,ACS-LOC-0204,0.088,0.055,False,far_side,morning
+ACS-POI-0081,ACS,Windmere Park,Parkview General Hospital,hospital,major,4191,ACS-LOC-0178,0.672,0.418,False,near_side,midday
+ACS-POI-0082,ACS,Windmere Park,Union Towers,residential_tower,minor,554,ACS-LOC-0098,0.21,0.13,False,near_side,night
+ACS-POI-0083,ACS,Brookview,Stone Corporate Center,office_park,neighborhood,541,ACS-LOC-0046,0.087,0.054,False,near_side,midday
+ACS-POI-0084,ACS,Old Orchard,Old Orchard Market,grocery_anchor,minor,63,ACS-LOC-0044,0.048,0.03,False,far_side,afternoon
+ACS-POI-0085,ACS,Sunridge Acres,Landmark Corporate Center,office_park,flagship,6395,ACS-LOC-0059,0.892,0.554,False,far_side,morning
+ACS-POI-0086,ACS,Sunridge Acres,Landmark Corporate Center,office_park,neighborhood,958,ACS-LOC-0023,0.221,0.137,True,near_side,morning
+ACS-POI-0087,ACS,Sunridge Acres,Metro Civic Center,government_building,minor,220,ACS-LOC-0023,0.081,0.05,True,near_side,morning
+ACS-POI-0088,ACS,Sunridge Acres,Summit Convention Center,hotel_convention,minor,237,ACS-LOC-0023,0.207,0.129,True,near_side,afternoon
+ACS-POI-0089,ACS,Brookview,Central Brookview Entertainment District,entertainment_district,minor,209,ACS-LOC-0226,0.291,0.181,False,near_side,afternoon
+ACS-POI-0090,ACS,Maple Grove,Central Headquarters Campus,corporate_campus,neighborhood,3235,ACS-LOC-0097,0.314,0.195,True,near_side,morning
+ACS-POI-0091,ACS,Maple Grove,South Maple Corporate Center,office_park,major,4717,ACS-LOC-0097,0.317,0.197,True,near_side,morning
+ACS-POI-0092,ACS,Sunridge Acres,Metro Sunridge Corporate Campus,corporate_campus,major,2136,ACS-LOC-0189,0.328,0.204,False,far_side,morning
+ACS-POI-0093,ACS,Old Orchard,North Market,grocery_anchor,major,2667,ACS-LOC-0154,0.151,0.094,False,far_side,morning
+ACS-POI-0094,ACS,Sunridge Acres,Sunridge Acres Market,grocery_anchor,neighborhood,552,ACS-LOC-0139,0.094,0.058,False,far_side,afternoon
+ACS-POI-0095,ACS,Sunridge Acres,Heritage Office Commons,office_park,minor,63,ACS-LOC-0169,0.058,0.036,False,far_side,midday
+ACS-POI-0096,ACS,Fallowfield,Fallowfield Mall,shopping_mall,minor,528,ACS-LOC-0140,0.199,0.124,False,far_side,midday
+ACS-POI-0097,ACS,Maple Grove,Maple Grove Mall,shopping_mall,minor,801,ACS-LOC-0067,0.178,0.111,True,near_side,evening
+ACS-POI-0098,ACS,Maple Grove,Grand Tech Campus,corporate_campus,neighborhood,1933,ACS-LOC-0067,0.326,0.203,True,far_side,evening
+ACS-POI-0099,ACS,Old Orchard,Parkview Old Mall,shopping_mall,neighborhood,663,ACS-LOC-0018,0.283,0.176,True,far_side,afternoon
+ACS-POI-0100,ACS,Old Orchard,Parkview Apartments,residential_tower,minor,214,ACS-LOC-0018,0.093,0.058,True,near_side,midday
+ACS-POI-0101,ACS,Old Orchard,Old Orchard Plaza,tourist_landmark,flagship,5733,ACS-LOC-0018,0.211,0.131,True,near_side,afternoon
+ACS-POI-0102,ACS,Old Orchard,South Old Theater Row,entertainment_district,minor,256,ACS-LOC-0018,0.092,0.057,True,far_side,evening
+ACS-POI-0103,ACS,Old Orchard,Summit Galleria,shopping_mall,minor,177,ACS-LOC-0008,0.071,0.044,True,far_side,evening
+ACS-POI-0104,ACS,Old Orchard,Stone General Hospital,hospital,minor,131,ACS-LOC-0008,0.197,0.122,True,near_side,night
+ACS-POI-0105,ACS,Old Orchard,Riverside Old Fresh Market,grocery_anchor,neighborhood,652,ACS-LOC-0008,0.032,0.02,True,near_side,afternoon
+ACS-POI-0106,ACS,Old Orchard,Summit Corporate Center,office_park,major,1672,ACS-LOC-0114,0.478,0.297,False,far_side,evening
+ACS-POI-0107,ACS,Greenhollow,South Greenhollow Nightlife Quarter,entertainment_district,minor,391,ACS-LOC-0212,0.138,0.086,False,near_side,evening
+ACS-POI-0108,ACS,Southgate Commons,Stone Southgate Apartments,residential_tower,major,2758,ACS-LOC-0065,0.575,0.357,False,near_side,morning
+ACS-POI-0109,ACS,Pine Hatch,Heritage Office Commons,office_park,minor,127,ACS-LOC-0083,0.27,0.168,False,near_side,morning
+ACS-POI-0110,ACS,Maple Grove,Harbor Maple Office Commons,office_park,minor,708,ACS-LOC-0027,0.185,0.115,True,near_side,afternoon
+ACS-POI-0111,ACS,Maple Grove,Harbor Corporate Campus,corporate_campus,neighborhood,1635,ACS-LOC-0027,0.133,0.083,True,near_side,afternoon
+ACS-POI-0112,ACS,Pine Hatch,Cedar Pine Shopping Center,shopping_mall,minor,459,ACS-LOC-0053,0.165,0.103,False,near_side,afternoon
+ACS-POI-0113,ACS,Brookview,Brookview General Hospital,hospital,neighborhood,636,ACS-LOC-0020,0.297,0.185,False,far_side,midday
+ACS-POI-0114,ACS,Brookview,Heritage Fresh Market,grocery_anchor,neighborhood,504,ACS-LOC-0020,0.427,0.265,False,near_side,midday
+ACS-POI-0115,ACS,Southgate Commons,Union General Hospital,hospital,neighborhood,1238,ACS-LOC-0125,0.424,0.263,False,far_side,afternoon
+ACS-POI-0116,ACS,Maple Grove,Cedar Office Commons,office_park,neighborhood,2654,ACS-LOC-0217,0.141,0.088,True,near_side,evening
+ACS-POI-0117,ACS,Maple Grove,Ivy Grocery & Provisions,grocery_anchor,neighborhood,2981,ACS-LOC-0217,0.072,0.045,True,near_side,evening
+ACS-POI-0118,ACS,Maple Grove,Maple Grove Grocery & Provisions,grocery_anchor,major,11776,ACS-LOC-0057,0.333,0.207,True,near_side,afternoon
+ACS-POI-0119,ACS,Maple Grove,South Maple Shopping Center,shopping_mall,minor,960,ACS-LOC-0057,0.209,0.13,True,far_side,evening
+ACS-POI-0120,ACS,Cobblestone Village,Cobblestone Village Shopping Center,shopping_mall,neighborhood,855,ACS-LOC-0191,0.349,0.217,False,near_side,morning
+ACS-POI-0121,ACS,Old Orchard,Crescent Mall,shopping_mall,major,2220,ACS-LOC-0164,0.508,0.316,False,near_side,evening
+ACS-POI-0122,ACS,Fallowfield,Landmark Fallowfield College,university,minor,469,ACS-LOC-0180,0.288,0.179,False,far_side,midday
+ACS-POI-0123,ACS,Fallowfield,Fallowfield Grocery & Provisions,grocery_anchor,minor,589,ACS-LOC-0090,0.121,0.075,False,near_side,evening
+ACS-POI-0124,ACS,Windmere Park,Windmere Park Fresh Market,grocery_anchor,neighborhood,1040,ACS-LOC-0228,0.239,0.149,False,far_side,midday
+ACS-POI-0125,ACS,Southgate Commons,Union Southgate Corporate Center,office_park,neighborhood,1083,ACS-LOC-0135,0.486,0.302,False,near_side,evening
+ACS-POI-0126,ACS,Sunridge Acres,Ivy Business Park,office_park,major,1797,ACS-LOC-0239,0.707,0.439,False,far_side,morning
+ACS-POI-0127,ACS,Windmere Park,Union Residences,residential_tower,minor,295,ACS-LOC-0088,0.176,0.109,False,far_side,evening
+ACS-POI-0128,ACS,Old Orchard,Landmark Old Historic District,tourist_landmark,neighborhood,672,ACS-LOC-0174,0.417,0.259,False,near_side,afternoon
+ACS-POI-0129,ACS,Sunridge Acres,Landmark Sunridge Corporate Campus,corporate_campus,flagship,2686,ACS-LOC-0219,0.426,0.265,False,far_side,evening
+ACS-POI-0130,ACS,Fallowfield,Crescent Grocery & Provisions,grocery_anchor,neighborhood,951,ACS-LOC-0080,0.456,0.283,False,far_side,morning
+ACS-POI-0131,ACS,Brookview,Metro Brookview Towers,residential_tower,neighborhood,653,ACS-LOC-0106,0.235,0.146,False,near_side,evening
+ACS-POI-0132,ACS,Southgate Commons,Union Office Commons,office_park,flagship,4680,ACS-LOC-0145,0.761,0.473,False,near_side,midday
+ACS-POI-0133,ACS,Maple Grove,Riverside Corporate Center,office_park,minor,1156,ACS-LOC-0187,0.022,0.014,True,near_side,afternoon
+ACS-POI-0134,ACS,Maple Grove,Maple Grove Grand Hotel,hotel_convention,minor,403,ACS-LOC-0187,0.031,0.019,True,far_side,afternoon
+ACS-POI-0135,ACS,Windmere Park,Windmere Park Towers,residential_tower,neighborhood,1107,ACS-LOC-0022,0.066,0.041,True,near_side,morning
+ACS-POI-0136,ACS,Windmere Park,Founders Windmere Theater Row,entertainment_district,minor,180,ACS-LOC-0022,0.055,0.034,True,near_side,night
+ACS-POI-0137,ACS,Windmere Park,Windmere Park General Hospital,hospital,neighborhood,1734,ACS-LOC-0022,0.056,0.035,True,near_side,morning
+ACS-POI-0138,ACS,Southgate Commons,Cedar Southgate Market,grocery_anchor,minor,101,ACS-LOC-0205,0.144,0.089,False,far_side,afternoon
+ACS-POI-0139,ACS,Sunridge Acres,Harbor Corporate Campus,corporate_campus,minor,75,ACS-LOC-0109,0.056,0.035,False,far_side,evening
+ACS-POI-0140,ACS,Pine Hatch,Metro Pine Mall,shopping_mall,minor,133,ACS-LOC-0007,0.165,0.103,True,far_side,morning
+ACS-POI-0141,ACS,Pine Hatch,Grand Entertainment District,entertainment_district,neighborhood,617,ACS-LOC-0007,0.057,0.035,True,near_side,midday
+ACS-POI-0142,ACS,Pine Hatch,Riverside Pine Business Park,office_park,minor,188,ACS-LOC-0007,0.19,0.118,True,near_side,morning
+ACS-POI-0143,ACS,Old Orchard,Parkview Old Civic Center,government_building,minor,134,ACS-LOC-0214,0.065,0.04,False,near_side,afternoon
+ACS-POI-0144,ACS,Fallowfield,Heritage Institute of Technology,university,minor,514,ACS-LOC-0030,0.168,0.104,False,far_side,night
+ACS-POI-0145,ACS,Windmere Park,Heritage Windmere Shopping Center,shopping_mall,major,2864,ACS-LOC-0258,0.453,0.281,False,far_side,afternoon
+ACS-POI-0146,ACS,Old Orchard,Metro College,university,major,1707,ACS-LOC-0124,0.366,0.227,False,near_side,morning
+ACS-POI-0147,ACS,Fallowfield,Fallowfield Nightlife Quarter,entertainment_district,neighborhood,1505,ACS-LOC-0100,0.2,0.124,False,near_side,night
+ACS-POI-0148,ACS,Greenhollow,Greenhollow Shopping Center,shopping_mall,neighborhood,1737,ACS-LOC-0192,0.177,0.11,False,far_side,afternoon
+ACS-POI-0149,ACS,Fallowfield,Landmark Institute of Technology,university,major,5736,ACS-LOC-0170,0.433,0.269,False,far_side,morning
+ACS-POI-0150,ACS,Windmere Park,Metro Apartments,residential_tower,neighborhood,1610,ACS-LOC-0248,0.086,0.053,False,near_side,evening
+ACS-POI-0151,ACS,Cobblestone Village,Cobblestone Village Galleria,shopping_mall,minor,356,ACS-LOC-0061,0.187,0.116,False,far_side,midday
+ACS-POI-0152,ACS,Windmere Park,Windmere Park Towers,residential_tower,minor,371,ACS-LOC-0218,0.096,0.06,False,far_side,evening
+ACS-POI-0153,ACS,Fallowfield,Union Market,grocery_anchor,major,4198,ACS-LOC-0004,0.121,0.075,True,near_side,midday
+ACS-POI-0154,ACS,Fallowfield,Fallowfield Mall,shopping_mall,minor,549,ACS-LOC-0004,0.111,0.069,True,near_side,midday
+ACS-POI-0155,ACS,Fallowfield,Fallowfield Residences,residential_tower,minor,169,ACS-LOC-0004,0.027,0.017,True,far_side,evening
+ACS-POI-0156,ACS,Fallowfield,Fallowfield University,university,minor,373,ACS-LOC-0004,0.064,0.04,True,near_side,evening
+ACS-POI-0157,ACS,Fallowfield,Heritage Fallowfield Galleria,shopping_mall,major,4180,ACS-LOC-0220,0.697,0.433,False,near_side,morning
+ACS-POI-0158,ACS,Fallowfield,Landmark Fallowfield Mall,shopping_mall,neighborhood,1873,ACS-LOC-0250,0.261,0.162,False,near_side,evening
+ACS-POI-0159,ACS,Greenhollow,Greenhollow General Hospital,hospital,minor,487,ACS-LOC-0112,0.18,0.112,False,near_side,evening
+ACS-POI-0160,ACS,Maple Grove,Maple Grove Business Park,office_park,neighborhood,3432,ACS-LOC-0177,0.272,0.169,True,near_side,morning
+ACS-POI-0161,ACS,Maple Grove,Maple Grove Gallery,museum,neighborhood,3648,ACS-LOC-0177,0.027,0.017,True,far_side,midday
+ACS-POI-0162,ACS,Cobblestone Village,Riverside Civic Center,government_building,neighborhood,890,ACS-LOC-0171,0.145,0.09,False,near_side,morning
+ACS-POI-0163,ACS,Greenhollow,North Greenhollow Historic District,tourist_landmark,major,3153,ACS-LOC-0102,0.477,0.296,False,near_side,afternoon
+ACS-POI-0164,ACS,Fallowfield,Ivy Fallowfield Shopping Center,shopping_mall,neighborhood,1855,ACS-LOC-0040,0.306,0.19,False,far_side,afternoon
+ACS-POI-0165,ACS,Greenhollow,Cedar Greenhollow Mall,shopping_mall,neighborhood,1900,ACS-LOC-0232,0.127,0.079,False,near_side,evening
+ACS-POI-0166,ACS,Old Orchard,Old Orchard Nightlife Quarter,entertainment_district,minor,100,ACS-LOC-0054,0.198,0.123,False,far_side,midday
+ACS-POI-0167,ACS,Cobblestone Village,Cobblestone Village Galleria,shopping_mall,neighborhood,1249,ACS-LOC-0015,0.379,0.235,False,near_side,evening
+ACS-POI-0168,ACS,Cobblestone Village,Cobblestone Village Civic Center,government_building,neighborhood,1971,ACS-LOC-0015,0.28,0.174,False,near_side,morning
+ACS-POI-0169,ACS,Brookview,Founders Brookview Towers,residential_tower,neighborhood,795,ACS-LOC-0136,0.177,0.11,False,near_side,morning
+ACS-POI-0170,ACS,Southgate Commons,Summit Southgate Corporate Center,office_park,major,1302,ACS-LOC-0085,0.592,0.368,False,far_side,afternoon
+ACS-POI-0171,ACS,Brookview,Central Civic Center,government_building,neighborhood,775,ACS-LOC-0246,0.41,0.255,False,far_side,evening
+ACS-POI-0172,ACS,Cobblestone Village,Riverside Fresh Market,grocery_anchor,minor,332,ACS-LOC-0005,0.098,0.061,True,near_side,evening
+ACS-POI-0173,ACS,Cobblestone Village,Parkview Shopping Center,shopping_mall,minor,311,ACS-LOC-0005,0.069,0.043,True,near_side,evening
+ACS-POI-0174,ACS,Cobblestone Village,North Cobblestone Nightlife Quarter,entertainment_district,major,3814,ACS-LOC-0005,0.183,0.114,True,far_side,evening
+ACS-POI-0175,ACS,Maple Grove,Maple Grove Galleria,shopping_mall,neighborhood,1296,ACS-LOC-0147,0.28,0.174,True,near_side,afternoon
+ACS-POI-0176,ACS,Maple Grove,Maple Grove Office Commons,office_park,minor,278,ACS-LOC-0147,0.19,0.118,True,near_side,morning
+ACS-POI-0177,ACS,Maple Grove,Founders Maple Museum,museum,neighborhood,3971,ACS-LOC-0137,0.298,0.185,True,near_side,afternoon
+ACS-POI-0178,ACS,Maple Grove,Riverside Maple Mall,shopping_mall,minor,790,ACS-LOC-0137,0.165,0.103,True,near_side,afternoon
+ACS-POI-0179,ACS,Brookview,Parkview Shopping Center,shopping_mall,minor,128,ACS-LOC-0126,0.184,0.114,False,near_side,evening
+ACS-POI-0180,ACS,Brookview,Brookview Galleria,shopping_mall,major,2762,ACS-LOC-0156,0.408,0.254,False,near_side,afternoon
+ACS-POI-0181,ACS,Greenhollow,Greenhollow Medical Center,hospital,major,4693,ACS-LOC-0172,0.432,0.268,False,near_side,midday
+ACS-POI-0182,ACS,Brookview,Central Brookview Health Pavilion,hospital,minor,57,ACS-LOC-0256,0.291,0.181,False,far_side,evening
+ACS-POI-0183,ACS,Maple Grove,Maple Grove Office Commons,office_park,neighborhood,4362,ACS-LOC-0077,0.138,0.086,True,far_side,morning
+ACS-POI-0184,ACS,Maple Grove,Parkview Gallery,museum,flagship,29293,ACS-LOC-0077,0.786,0.488,True,far_side,midday
+ACS-POI-0185,ACS,Pine Hatch,Central Plaza,tourist_landmark,major,3446,ACS-LOC-0163,0.322,0.2,False,far_side,afternoon
+ACS-POI-0186,ACS,Greenhollow,Metro Greenhollow Business Park,office_park,minor,373,ACS-LOC-0042,0.136,0.085,False,far_side,evening
+ACS-POI-0187,ACS,Greenhollow,Grand Greenhollow Entertainment District,entertainment_district,major,4181,ACS-LOC-0242,0.61,0.379,False,near_side,evening
+ACS-POI-0188,ACS,Pine Hatch,Cedar Health Pavilion,hospital,minor,440,ACS-LOC-0223,0.058,0.036,False,near_side,afternoon
+ACS-POI-0189,ACS,Sunridge Acres,Sunridge Acres Office Commons,office_park,neighborhood,792,ACS-LOC-0149,0.391,0.243,False,far_side,morning
+ACS-POI-0190,ACS,Southgate Commons,Southgate Commons Market,grocery_anchor,minor,134,ACS-LOC-0215,0.212,0.132,False,far_side,evening
+ACS-POI-0191,ACS,Sunridge Acres,Grand Sunridge Headquarters Campus,corporate_campus,neighborhood,545,ACS-LOC-0039,0.422,0.262,False,far_side,morning
+ACS-POI-0192,ACS,Maple Grove,Maple Grove Grand Hotel,hotel_convention,major,7968,ACS-LOC-0117,0.191,0.119,True,far_side,morning
+ACS-POI-0193,ACS,Maple Grove,Maple Grove Office Commons,office_park,major,11685,ACS-LOC-0117,0.145,0.09,True,far_side,morning
+ACS-POI-0194,ACS,Pine Hatch,Crescent Pine Office Commons,office_park,neighborhood,858,ACS-LOC-0133,0.125,0.078,False,far_side,evening
+ACS-POI-0195,ACS,Greenhollow,Summit Towers,residential_tower,major,5965,ACS-LOC-0122,0.52,0.323,False,far_side,morning
+ACS-POI-0196,ACS,Brookview,Stone Brookview Fresh Market,grocery_anchor,major,1566,ACS-LOC-0086,0.283,0.176,False,far_side,evening
+ACS-POI-0197,ACS,Brookview,Brookview Health Pavilion,hospital,major,1880,ACS-LOC-0036,0.71,0.441,False,far_side,midday
+ACS-POI-0198,ACS,Brookview,Brookview General Hospital,hospital,major,1159,ACS-LOC-0010,0.226,0.14,True,near_side,night
+ACS-POI-0199,ACS,Brookview,Central Corporate Center,office_park,neighborhood,576,ACS-LOC-0010,0.343,0.213,True,far_side,morning
+ACS-POI-0200,ACS,Brookview,Cedar Brookview Theater Row,entertainment_district,neighborhood,671,ACS-LOC-0010,0.327,0.203,True,far_side,afternoon
+ACS-POI-0201,ACS,Pine Hatch,Pine Hatch Fresh Market,grocery_anchor,neighborhood,988,ACS-LOC-0183,0.49,0.304,False,near_side,night
+ACS-POI-0202,ACS,Maple Grove,Heritage Maple Grocery & Provisions,grocery_anchor,minor,822,ACS-LOC-0011,0.233,0.145,False,near_side,midday
+ACS-POI-0203,ACS,Maple Grove,South Business Park,office_park,minor,969,ACS-LOC-0011,0.062,0.039,False,far_side,evening
+ACS-POI-0204,ACS,Sunridge Acres,Sunridge Acres Business Park,office_park,neighborhood,294,ACS-LOC-0129,0.152,0.094,False,far_side,midday
+ACS-POI-0205,ACS,Greenhollow,Metro Grocery & Provisions,grocery_anchor,minor,381,ACS-LOC-0182,0.158,0.098,False,far_side,evening
+ACS-POI-0206,ACS,Cobblestone Village,Summit Galleria,shopping_mall,neighborhood,2540,ACS-LOC-0131,0.382,0.237,False,far_side,afternoon
+ACS-POI-0207,ACS,Southgate Commons,Southgate Commons Residences,residential_tower,neighborhood,722,ACS-LOC-0155,0.066,0.041,False,far_side,evening
+ACS-POI-0208,ACS,Cobblestone Village,Union Entertainment District,entertainment_district,minor,391,ACS-LOC-0051,0.185,0.115,False,far_side,night
+ACS-POI-0209,ACS,Southgate Commons,Cedar Southgate Market,grocery_anchor,minor,194,ACS-LOC-0235,0.196,0.122,False,near_side,evening
+ACS-POI-0210,ACS,Old Orchard,Union Residences,residential_tower,neighborhood,1031,ACS-LOC-0254,0.5,0.311,False,far_side,evening
+ACS-POI-0211,ACS,Pine Hatch,Pine Hatch Office Commons,office_park,neighborhood,1695,ACS-LOC-0143,0.38,0.236,False,near_side,afternoon
+ACS-POI-0212,ACS,Maple Grove,Harbor Maple Corporate Center,office_park,minor,311,ACS-LOC-0087,0.181,0.112,True,near_side,evening
+ACS-POI-0213,ACS,Maple Grove,Union Maple Grocery & Provisions,grocery_anchor,major,6739,ACS-LOC-0087,0.461,0.286,True,far_side,evening
+ACS-POI-0214,ACS,Brookview,Brookview Mall,shopping_mall,neighborhood,436,ACS-LOC-0096,0.239,0.149,False,near_side,afternoon
+ACS-POI-0215,ACS,Windmere Park,South Theater Row,entertainment_district,minor,304,ACS-LOC-0208,0.139,0.086,False,near_side,evening
+ACS-POI-0216,ACS,Old Orchard,South Medical Center,hospital,minor,270,ACS-LOC-0234,0.168,0.104,False,far_side,morning
+ACS-POI-0217,ACS,Pine Hatch,Pine Hatch Municipal Building,government_building,neighborhood,747,ACS-LOC-0033,0.09,0.056,False,far_side,afternoon
+ACS-POI-0218,ACS,Cobblestone Village,South Cobblestone Theater Row,entertainment_district,neighborhood,2715,ACS-LOC-0031,0.271,0.168,False,near_side,evening
+ACS-POI-0219,ACS,Maple Grove,Maple Grove Hotel & Conference Center,hotel_convention,neighborhood,1469,ACS-LOC-0157,0.185,0.115,True,near_side,evening
+ACS-POI-0220,ACS,Maple Grove,Maple Grove Corporate Center,office_park,major,7621,ACS-LOC-0157,0.412,0.256,True,near_side,evening
+ACS-POI-0221,ACS,Fallowfield,Crescent Institute of Technology,university,minor,538,ACS-LOC-0160,0.079,0.049,False,near_side,night
+ACS-POI-0222,ACS,Greenhollow,Ivy Greenhollow Fresh Market,grocery_anchor,flagship,10436,ACS-LOC-0072,0.164,0.102,False,far_side,afternoon
+ACS-POI-0223,ACS,Cobblestone Village,Ivy Nightlife Quarter,entertainment_district,neighborhood,2081,ACS-LOC-0141,0.488,0.303,False,near_side,evening
+ACS-POI-0224,ACS,Maple Grove,Union Corporate Center,office_park,major,4619,ACS-LOC-0237,0.545,0.339,True,far_side,morning
+ACS-POI-0225,ACS,Maple Grove,Maple Grove Corporate Campus,corporate_campus,neighborhood,3265,ACS-LOC-0237,0.28,0.174,True,near_side,morning
+ACS-POI-0226,ACS,Maple Grove,South Headquarters Campus,corporate_campus,minor,945,ACS-LOC-0207,0.1,0.062,True,near_side,morning
+ACS-POI-0227,ACS,Maple Grove,Maple Grove Office Commons,office_park,neighborhood,3079,ACS-LOC-0207,0.295,0.183,True,near_side,morning
+ACS-POI-0228,ACS,Cobblestone Village,Landmark Cobblestone Residences,residential_tower,neighborhood,1945,ACS-LOC-0231,0.167,0.104,False,near_side,afternoon
+ACS-POI-0229,ACS,Southgate Commons,Stone Southgate Shopping Center,shopping_mall,neighborhood,585,ACS-LOC-0019,0.233,0.145,True,far_side,midday
+ACS-POI-0230,ACS,Southgate Commons,Founders Southgate Entertainment District,entertainment_district,neighborhood,486,ACS-LOC-0019,0.259,0.161,True,near_side,evening
+ACS-POI-0231,ACS,Southgate Commons,Union Southgate Medical Center,hospital,minor,156,ACS-LOC-0019,0.131,0.081,True,far_side,afternoon
+ACS-POI-0232,ACS,Pine Hatch,Heritage Health Pavilion,hospital,minor,458,ACS-LOC-0193,0.208,0.129,False,far_side,evening
+ACS-POI-0233,ACS,Greenhollow,Greenhollow Nightlife Quarter,entertainment_district,minor,478,ACS-LOC-0142,0.056,0.035,False,near_side,evening
+ACS-POI-0234,ACS,Pine Hatch,Heritage Pine Entertainment District,entertainment_district,major,2146,ACS-LOC-0093,0.113,0.07,False,far_side,evening
+ACS-POI-0235,ACS,Fallowfield,Fallowfield College,university,major,4102,ACS-LOC-0050,0.532,0.331,False,near_side,morning
+ACS-POI-0236,ACS,Old Orchard,Metro Corporate Center,office_park,minor,183,ACS-LOC-0244,0.271,0.168,False,far_side,evening
+ACS-POI-0237,ACS,Brookview,Metro Civic Center,government_building,neighborhood,635,ACS-LOC-0146,0.426,0.265,False,near_side,morning
+ACS-POI-0238,ACS,Fallowfield,Metro Fallowfield Entertainment District,entertainment_district,neighborhood,1912,ACS-LOC-0014,0.253,0.157,True,far_side,evening
+ACS-POI-0239,ACS,Fallowfield,Fallowfield University,university,neighborhood,2071,ACS-LOC-0014,0.059,0.037,True,near_side,night
+ACS-POI-0240,ACS,Fallowfield,Stone Fallowfield Fresh Market,grocery_anchor,neighborhood,1521,ACS-LOC-0014,0.046,0.029,True,near_side,evening
+ACS-POI-0241,ACS,Fallowfield,Fallowfield Towers,residential_tower,neighborhood,1956,ACS-LOC-0014,0.194,0.121,True,far_side,morning
+ACS-POI-0242,ACS,Sunridge Acres,Grand Sunridge Galleria,shopping_mall,minor,162,ACS-LOC-0249,0.211,0.131,False,far_side,afternoon
+ACS-POI-0243,ACS,Windmere Park,Union Galleria,shopping_mall,neighborhood,2083,ACS-LOC-0012,0.107,0.066,False,near_side,evening
+ACS-POI-0244,ACS,Windmere Park,North Windmere Grocery & Provisions,grocery_anchor,minor,553,ACS-LOC-0012,0.244,0.152,False,far_side,night
+ACS-POI-0245,ACS,Brookview,Founders Health Pavilion,hospital,minor,217,ACS-LOC-0186,0.108,0.067,False,near_side,evening
+ACS-POI-0246,ACS,Old Orchard,Old Orchard Health Pavilion,hospital,neighborhood,447,ACS-LOC-0104,0.286,0.178,False,far_side,afternoon
+ACS-POI-0247,ACS,Old Orchard,Union Old Corporate Center,office_park,minor,73,ACS-LOC-0094,0.17,0.106,False,near_side,evening
+ACS-POI-0248,ACS,Windmere Park,Grand Windmere Apartments,residential_tower,major,4053,ACS-LOC-0068,0.465,0.289,False,far_side,morning
+ACS-POI-0249,ACS,Southgate Commons,Stone Southgate Nightlife Quarter,entertainment_district,minor,146,ACS-LOC-0035,0.138,0.086,False,near_side,night
+ACS-POI-0250,ACS,Cobblestone Village,Cobblestone Village Grocery & Provisions,grocery_anchor,major,6534,ACS-LOC-0111,0.759,0.472,False,near_side,afternoon
+ACS-POI-0251,ACS,Pine Hatch,Pine Hatch College,university,minor,526,ACS-LOC-0243,0.178,0.111,False,far_side,afternoon
+ACS-POI-0252,ACS,Sunridge Acres,Stone Tech Campus,corporate_campus,minor,163,ACS-LOC-0003,0.061,0.038,True,near_side,afternoon
+ACS-POI-0253,ACS,Sunridge Acres,Union Shopping Center,shopping_mall,major,1716,ACS-LOC-0003,0.266,0.165,True,near_side,afternoon
+ACS-POI-0254,ACS,Sunridge Acres,Ivy Sunridge Gallery,museum,neighborhood,539,ACS-LOC-0003,0.193,0.12,True,far_side,afternoon
+ACS-POI-0255,ACS,Sunridge Acres,North Hotel & Conference Center,hotel_convention,neighborhood,579,ACS-LOC-0003,0.164,0.102,True,far_side,afternoon
+ACS-POI-0256,ACS,Windmere Park,Windmere Park Medical Center,hospital,neighborhood,1271,ACS-LOC-0138,0.485,0.301,False,near_side,afternoon
+ACS-POI-0257,ACS,Maple Grove,Maple Grove Corporate Center,office_park,neighborhood,4241,ACS-LOC-0257,0.057,0.035,True,far_side,morning
+ACS-POI-0258,ACS,Maple Grove,Landmark Corporate Campus,corporate_campus,major,5649,ACS-LOC-0257,0.246,0.153,True,far_side,morning
+ACS-POI-0259,ACS,Cobblestone Village,Landmark Mall,shopping_mall,neighborhood,873,ACS-LOC-0121,0.45,0.28,False,far_side,midday
+ACS-POI-0260,ACS,Pine Hatch,Pine Hatch Towers,residential_tower,major,2138,ACS-LOC-0173,0.437,0.272,False,near_side,afternoon
+ACS-POI-0261,ACS,Windmere Park,South Windmere Entertainment District,entertainment_district,minor,166,ACS-LOC-0168,0.059,0.037,False,far_side,night
+ACS-POI-0262,ACS,Pine Hatch,Pine Hatch Theater Row,entertainment_district,minor,386,ACS-LOC-0153,0.135,0.084,False,near_side,evening
+ACS-POI-0263,ACS,Maple Grove,Metro Maple Civic Center,government_building,minor,914,ACS-LOC-0127,0.125,0.078,True,far_side,afternoon
+ACS-POI-0264,ACS,Maple Grove,Maple Grove Hotel & Conference Center,hotel_convention,major,11663,ACS-LOC-0127,0.331,0.206,True,far_side,night
+ACS-POI-0265,ACS,Pine Hatch,Summit Pine Residences,residential_tower,flagship,10548,ACS-LOC-0073,0.708,0.44,False,far_side,morning
+ACS-POI-0266,ACS,Cobblestone Village,Cobblestone Village Residences,residential_tower,neighborhood,950,ACS-LOC-0201,0.281,0.175,False,near_side,evening
+ACS-POI-0267,ACS,Pine Hatch,Metro Fresh Market,grocery_anchor,neighborhood,1785,ACS-LOC-0233,0.179,0.111,False,near_side,morning
+ACS-POI-0268,ACS,Cobblestone Village,Cobblestone Village Galleria,shopping_mall,major,6591,ACS-LOC-0091,0.208,0.129,False,far_side,evening
+ACS-POI-0269,ACS,Fallowfield,Crescent College,university,minor,273,ACS-LOC-0150,0.048,0.03,False,near_side,evening
+ACS-POI-0270,ACS,Brookview,Metro Shopping Center,shopping_mall,neighborhood,743,ACS-LOC-0056,0.141,0.088,False,near_side,afternoon
+ACS-POI-0271,ACS,Cobblestone Village,Grand Cobblestone Grocery & Provisions,grocery_anchor,neighborhood,909,ACS-LOC-0241,0.044,0.027,False,far_side,evening
+ACS-POI-0272,ACS,Windmere Park,North Shopping Center,shopping_mall,minor,218,ACS-LOC-0118,0.175,0.109,False,far_side,afternoon
+ACS-POI-0273,ACS,Fallowfield,Fallowfield Apartments,residential_tower,neighborhood,2008,ACS-LOC-0130,0.097,0.06,False,near_side,morning
+ACS-POI-0274,ACS,Cobblestone Village,Heritage City Hall,government_building,neighborhood,859,ACS-LOC-0101,0.412,0.256,False,far_side,midday
+ACS-POI-0275,ACS,Fallowfield,Central Fallowfield Mall,shopping_mall,neighborhood,1252,ACS-LOC-0024,0.228,0.142,True,far_side,afternoon
+ACS-POI-0276,ACS,Fallowfield,Crescent Nightlife Quarter,entertainment_district,neighborhood,759,ACS-LOC-0024,0.048,0.03,True,far_side,night
+ACS-POI-0277,ACS,Fallowfield,Fallowfield Fresh Market,grocery_anchor,minor,614,ACS-LOC-0024,0.075,0.047,True,far_side,midday
+ACS-POI-0278,ACS,Fallowfield,Cedar Fallowfield Residences,residential_tower,neighborhood,1796,ACS-LOC-0024,0.125,0.078,True,near_side,night
+ACS-POI-0279,ACS,Greenhollow,Ivy Galleria,shopping_mall,flagship,8259,ACS-LOC-0006,0.507,0.315,True,far_side,afternoon
+ACS-POI-0280,ACS,Greenhollow,South Civic Center,government_building,minor,468,ACS-LOC-0006,0.027,0.017,True,near_side,afternoon
+ACS-POI-0281,ACS,Greenhollow,Greenhollow General Hospital,hospital,neighborhood,2120,ACS-LOC-0006,0.293,0.182,True,near_side,morning
+ACS-POI-0282,ACS,Greenhollow,Stone Entertainment District,entertainment_district,neighborhood,1003,ACS-LOC-0006,0.021,0.013,True,far_side,night
+ACS-POI-0283,ACS,Pine Hatch,Pine Hatch Office Commons,office_park,minor,448,ACS-LOC-0213,0.082,0.051,False,far_side,night
+ACS-POI-0284,ACS,Sunridge Acres,Crescent Sunridge Galleria,shopping_mall,minor,95,ACS-LOC-0079,0.075,0.047,False,far_side,afternoon
+ACS-POI-0285,ACS,Brookview,Riverside Apartments,residential_tower,neighborhood,792,ACS-LOC-0216,0.296,0.184,False,far_side,evening
+ACS-POI-0286,ACS,Fallowfield,Crescent Fallowfield Residences,residential_tower,major,6104,ACS-LOC-0240,0.699,0.434,False,far_side,evening
+ACS-POI-0287,ACS,Southgate Commons,Grand Southgate Shopping Center,shopping_mall,minor,248,ACS-LOC-0245,0.192,0.119,False,far_side,evening
+ACS-POI-0288,ACS,Windmere Park,Metro Windmere Civic Center,government_building,minor,496,ACS-LOC-0128,0.11,0.068,False,far_side,midday
+ACS-POI-0289,ACS,Southgate Commons,Southgate Commons Fresh Market,grocery_anchor,neighborhood,1040,ACS-LOC-0225,0.445,0.277,False,near_side,midday
+ACS-POI-0290,ACS,Brookview,Brookview Theater Row,entertainment_district,neighborhood,540,ACS-LOC-0196,0.444,0.276,False,far_side,night
+ACS-POI-0291,ACS,Sunridge Acres,Sunridge Acres Grocery & Provisions,grocery_anchor,minor,93,ACS-LOC-0049,0.112,0.07,False,near_side,afternoon
+ACS-POI-0292,ACS,Cobblestone Village,Parkview Towers,residential_tower,neighborhood,2098,ACS-LOC-0081,0.187,0.116,False,near_side,morning
+ACS-POI-0293,ACS,Southgate Commons,Southgate Commons Corporate Center,office_park,neighborhood,556,ACS-LOC-0185,0.064,0.04,False,far_side,midday
+ACS-POI-0294,ACS,Windmere Park,Riverside General Hospital,hospital,major,2325,ACS-LOC-0148,0.123,0.076,False,near_side,evening
+ACS-POI-0295,ACS,Old Orchard,Old Orchard Municipal Building,government_building,neighborhood,523,ACS-LOC-0084,0.324,0.201,False,near_side,afternoon
+ACS-POI-0296,ACS,Sunridge Acres,Sunridge Acres Tech Campus,corporate_campus,minor,139,ACS-LOC-0209,0.262,0.163,False,far_side,afternoon
+ACS-POI-0297,ACS,Cobblestone Village,Cobblestone Village Apartments,residential_tower,minor,532,ACS-LOC-0041,0.115,0.071,False,far_side,evening
+ACS-POI-0298,ACS,Fallowfield,Union Fallowfield Fresh Market,grocery_anchor,major,2437,ACS-LOC-0230,0.599,0.372,False,far_side,evening
+ACS-POI-0299,ACS,Brookview,Brookview Entertainment District,entertainment_district,neighborhood,842,ACS-LOC-0236,0.239,0.149,False,near_side,night
+ACS-POI-0300,ACS,Windmere Park,Windmere Park General Hospital,hospital,neighborhood,1572,ACS-LOC-0108,0.198,0.123,False,far_side,afternoon
+ACS-POI-0301,ACS,Windmere Park,Central Windmere Residences,residential_tower,neighborhood,1134,ACS-LOC-0158,0.034,0.021,False,far_side,evening
+ACS-POI-0302,ACS,Greenhollow,Greenhollow Business Park,office_park,neighborhood,753,ACS-LOC-0222,0.192,0.119,False,far_side,afternoon
+ACS-POI-0303,ACS,Sunridge Acres,Sunridge Acres Corporate Center,office_park,neighborhood,776,ACS-LOC-0099,0.25,0.155,False,far_side,evening
+ACS-POI-0304,ACS,Southgate Commons,Grand Fresh Market,grocery_anchor,major,2220,ACS-LOC-0075,0.652,0.405,False,near_side,midday
+ACS-POI-0305,ACS,Sunridge Acres,Ivy Museum,museum,neighborhood,833,ACS-LOC-0013,0.288,0.179,True,far_side,midday
+ACS-POI-0306,ACS,Sunridge Acres,Summit Sunridge Headquarters Campus,corporate_campus,neighborhood,321,ACS-LOC-0013,0.028,0.017,True,near_side,morning
+ACS-POI-0307,ACS,Sunridge Acres,Parkview Sunridge Office Commons,office_park,minor,128,ACS-LOC-0013,0.205,0.127,True,near_side,morning
+ACS-POI-0308,ACS,Cobblestone Village,Union Cobblestone Shopping Center,shopping_mall,neighborhood,1186,ACS-LOC-0025,0.113,0.07,False,near_side,midday
+ACS-POI-0309,ACS,Cobblestone Village,Stone Civic Center,government_building,minor,214,ACS-LOC-0025,0.282,0.175,False,near_side,morning
+ACS-POI-0310,ACS,Maple Grove,Union Market,grocery_anchor,minor,1084,ACS-LOC-0037,0.186,0.116,True,near_side,morning
+ACS-POI-0311,ACS,Maple Grove,Central Maple Galleria,shopping_mall,neighborhood,3491,ACS-LOC-0037,0.124,0.077,True,near_side,evening
+ACS-POI-0312,ACS,Old Orchard,Union Old Theater Row,entertainment_district,neighborhood,907,ACS-LOC-0064,0.184,0.114,False,near_side,night
+ACS-POI-0313,ACS,Brookview,Founders Brookview Plaza,tourist_landmark,major,1199,ACS-LOC-0116,0.429,0.267,False,far_side,morning
+ACS-POI-0314,ACS,Sunridge Acres,Sunridge Acres Civic Center,government_building,neighborhood,649,ACS-LOC-0069,0.114,0.071,False,far_side,midday
+ACS-POI-0315,ACS,Greenhollow,Summit Grocery & Provisions,grocery_anchor,neighborhood,1805,ACS-LOC-0032,0.402,0.25,False,far_side,midday
+ACS-POI-0316,ACS,Fallowfield,Riverside Entertainment District,entertainment_district,neighborhood,2193,ACS-LOC-0120,0.299,0.186,False,far_side,evening
+ACS-POI-0317,ACS,Greenhollow,Greenhollow Nightlife Quarter,entertainment_district,neighborhood,1070,ACS-LOC-0062,0.049,0.03,False,near_side,evening
+ACS-POI-0318,ACS,Pine Hatch,Riverside Grocery & Provisions,grocery_anchor,minor,236,ACS-LOC-0253,0.127,0.079,False,near_side,midday
+ACS-POI-0319,ACS,Windmere Park,Windmere Park Residences,residential_tower,neighborhood,1409,ACS-LOC-0028,0.067,0.042,False,near_side,morning
+ACS-POI-0320,ACS,Old Orchard,Crescent Old Mall,shopping_mall,major,1424,ACS-LOC-0144,0.33,0.205,False,near_side,evening
+ACS-POI-0321,ACS,Greenhollow,Greenhollow Towers,residential_tower,major,5959,ACS-LOC-0132,0.601,0.373,False,near_side,morning
+ACS-POI-0322,ACS,Southgate Commons,Southgate Commons Business Park,office_park,neighborhood,712,ACS-LOC-0095,0.303,0.188,False,far_side,midday
+ACS-POI-0323,ACS,Southgate Commons,Southgate Commons Theater Row,entertainment_district,minor,120,ACS-LOC-0195,0.085,0.053,False,far_side,evening
+ACS-POI-0324,ACS,Old Orchard,South Old Grocery & Provisions,grocery_anchor,major,2585,ACS-LOC-0034,0.4,0.249,False,far_side,afternoon
+ACS-POI-0325,ACS,Pine Hatch,Stone Shopping Center,shopping_mall,major,4888,ACS-LOC-0103,0.314,0.195,False,far_side,afternoon
+ACS-POI-0326,ACS,Sunridge Acres,Grand Headquarters Campus,corporate_campus,minor,137,ACS-LOC-0089,0.238,0.148,False,near_side,morning
+ACS-POI-0327,ACS,Southgate Commons,Ivy Municipal Building,government_building,major,3269,ACS-LOC-0255,0.331,0.206,False,far_side,midday
+ACS-POI-0328,ACS,Windmere Park,Harbor Mall,shopping_mall,major,3471,ACS-LOC-0188,0.432,0.268,False,near_side,night
+ACS-POI-0329,ACS,Greenhollow,Greenhollow Shopping Center,shopping_mall,neighborhood,713,ACS-LOC-0082,0.354,0.22,False,near_side,midday
+ACS-POI-0330,ACS,Old Orchard,Old Orchard Nightlife Quarter,entertainment_district,neighborhood,698,ACS-LOC-0184,0.244,0.152,False,near_side,morning
+ACS-POI-0331,ACS,Cobblestone Village,Summit Mall,shopping_mall,major,5474,ACS-LOC-0221,0.435,0.27,False,near_side,night
+ACS-POI-0332,ACS,Cobblestone Village,Summit Cobblestone Fresh Market,grocery_anchor,minor,560,ACS-LOC-0161,0.064,0.04,False,far_side,midday
+ACS-POI-0333,ACS,Old Orchard,Old Orchard Health Pavilion,hospital,neighborhood,292,ACS-LOC-0074,0.097,0.06,False,near_side,midday
+ACS-POI-0334,ACS,Southgate Commons,South Southgate Municipal Building,government_building,minor,189,ACS-LOC-0175,0.181,0.112,False,far_side,morning
+ACS-POI-0335,ACS,Southgate Commons,Heritage Southgate Historic District,tourist_landmark,minor,170,ACS-LOC-0105,0.251,0.156,False,far_side,midday
+ACS-POI-0336,ACS,Windmere Park,Central Residences,residential_tower,neighborhood,1583,ACS-LOC-0238,0.358,0.222,False,near_side,evening
+ACS-POI-0337,ACS,Fallowfield,Fallowfield Stadium,stadium_arena,flagship,11003,ACS-LOC-0004,0.238,0.148,True,near_side,night
+DAT-POI-0001,DAT,Bellwood,Bellwood Shopping Center,shopping_mall,neighborhood,4001,DAT-LOC-0294,0.066,0.041,False,near_side,evening
+DAT-POI-0002,DAT,Central Yard,Central Yard Corporate Center,office_park,flagship,16641,DAT-LOC-0101,0.569,0.354,True,far_side,midday
+DAT-POI-0003,DAT,Central Yard,Cedar Central Headquarters Campus,corporate_campus,minor,815,DAT-LOC-0101,0.014,0.009,True,near_side,evening
+DAT-POI-0004,DAT,Harrow Point,Landmark Tech Campus,corporate_campus,neighborhood,483,DAT-LOC-0255,0.339,0.211,False,far_side,midday
+DAT-POI-0005,DAT,Harrow Point,Riverside Corporate Center,office_park,flagship,4532,DAT-LOC-0075,0.459,0.285,False,near_side,morning
+DAT-POI-0006,DAT,Ashford Row,Summit Ashford Medical Center,hospital,major,2800,DAT-LOC-0232,0.252,0.157,False,near_side,afternoon
+DAT-POI-0007,DAT,Lakeside Loop,Harbor Shopping Center,shopping_mall,neighborhood,2340,DAT-LOC-0128,0.341,0.212,False,far_side,midday
+DAT-POI-0008,DAT,Kestrel Heights,Grand Towers,residential_tower,major,4178,DAT-LOC-0047,0.16,0.099,True,near_side,morning
+DAT-POI-0009,DAT,Kestrel Heights,Heritage Galleria,shopping_mall,minor,105,DAT-LOC-0047,0.202,0.126,True,near_side,evening
+DAT-POI-0010,DAT,Kestrel Heights,Kestrel Heights Fresh Market,grocery_anchor,major,3080,DAT-LOC-0047,0.468,0.291,True,near_side,afternoon
+DAT-POI-0011,DAT,Kestrel Heights,Kestrel Heights Theater Row,entertainment_district,minor,126,DAT-LOC-0047,0.054,0.034,True,near_side,afternoon
+DAT-POI-0012,DAT,Northbank,Central Mall,shopping_mall,major,2176,DAT-LOC-0260,0.561,0.349,False,near_side,evening
+DAT-POI-0013,DAT,Ashford Row,Heritage Grocery & Provisions,grocery_anchor,minor,277,DAT-LOC-0182,0.297,0.185,False,far_side,evening
+DAT-POI-0014,DAT,Northbank,Cedar Northbank Residences,residential_tower,minor,319,DAT-LOC-0250,0.21,0.13,False,far_side,evening
+DAT-POI-0015,DAT,Bellwood,South Bellwood Towers,residential_tower,neighborhood,3950,DAT-LOC-0074,0.343,0.213,False,near_side,morning
+DAT-POI-0016,DAT,Northbank,Metro Medical Center,hospital,major,3151,DAT-LOC-0210,0.792,0.492,False,near_side,afternoon
+DAT-POI-0017,DAT,Harrow Point,Union Municipal Building,government_building,minor,272,DAT-LOC-0065,0.037,0.023,False,near_side,morning
+DAT-POI-0018,DAT,Northbank,Northbank Medical Center,hospital,major,3517,DAT-LOC-0100,0.792,0.492,False,near_side,evening
+DAT-POI-0019,DAT,Kestrel Heights,Parkview Kestrel General Hospital,hospital,neighborhood,794,DAT-LOC-0007,0.026,0.016,True,far_side,midday
+DAT-POI-0020,DAT,Kestrel Heights,Kestrel Heights Corporate Center,office_park,major,4202,DAT-LOC-0007,0.554,0.344,True,far_side,evening
+DAT-POI-0021,DAT,Kestrel Heights,Summit Kestrel Market,grocery_anchor,neighborhood,666,DAT-LOC-0007,0.227,0.141,True,near_side,afternoon
+DAT-POI-0022,DAT,Kestrel Heights,Summit Kestrel University,university,minor,420,DAT-LOC-0007,0.037,0.023,True,near_side,midday
+DAT-POI-0023,DAT,Lakeside Loop,Lakeside Loop Galleria,shopping_mall,major,7930,DAT-LOC-0028,0.271,0.168,False,near_side,midday
+DAT-POI-0024,DAT,Lakeside Loop,Lakeside Loop Office Commons,office_park,minor,337,DAT-LOC-0028,0.261,0.162,False,near_side,night
+DAT-POI-0025,DAT,Ashford Row,Ashford Row Mall,shopping_mall,neighborhood,1117,DAT-LOC-0152,0.375,0.233,False,far_side,evening
+DAT-POI-0026,DAT,Milltown,Milltown Towers,residential_tower,major,6779,DAT-LOC-0286,0.31,0.193,False,near_side,evening
+DAT-POI-0027,DAT,Union Flats,Landmark Market,grocery_anchor,neighborhood,1262,DAT-LOC-0133,0.315,0.196,False,near_side,morning
+DAT-POI-0028,DAT,Central Yard,Central Yard Galleria,shopping_mall,minor,1249,DAT-LOC-0241,0.086,0.053,True,near_side,afternoon
+DAT-POI-0029,DAT,Central Yard,Metro Central Office Commons,office_park,neighborhood,2954,DAT-LOC-0241,0.346,0.215,True,near_side,evening
+DAT-POI-0030,DAT,Ashford Row,Landmark Ashford Galleria,shopping_mall,minor,451,DAT-LOC-0082,0.236,0.147,False,far_side,afternoon
+DAT-POI-0031,DAT,Kestrel Heights,Stone Kestrel Fresh Market,grocery_anchor,flagship,6991,DAT-LOC-0197,0.595,0.37,False,near_side,afternoon
+DAT-POI-0032,DAT,Ashford Row,Crescent Ashford General Hospital,hospital,neighborhood,1297,DAT-LOC-0192,0.153,0.095,False,near_side,afternoon
+DAT-POI-0033,DAT,Ashford Row,Ivy Ashford Towers,residential_tower,neighborhood,675,DAT-LOC-0092,0.085,0.053,False,near_side,evening
+DAT-POI-0034,DAT,Ashford Row,Ashford Row Apartments,residential_tower,major,2990,DAT-LOC-0022,0.475,0.295,True,near_side,morning
+DAT-POI-0035,DAT,Ashford Row,Ashford Row City Hall,government_building,minor,373,DAT-LOC-0022,0.195,0.121,True,far_side,morning
+DAT-POI-0036,DAT,Ashford Row,Landmark Market,grocery_anchor,minor,441,DAT-LOC-0022,0.091,0.057,True,near_side,night
+DAT-POI-0037,DAT,Harrow Point,Stone Harrow Business Park,office_park,neighborhood,962,DAT-LOC-0215,0.338,0.21,False,far_side,morning
+DAT-POI-0038,DAT,Milltown,Summit Milltown Market,grocery_anchor,neighborhood,1715,DAT-LOC-0206,0.082,0.051,False,far_side,midday
+DAT-POI-0039,DAT,Harrow Point,Metro Corporate Center,office_park,minor,156,DAT-LOC-0175,0.273,0.17,False,near_side,afternoon
+DAT-POI-0040,DAT,Kestrel Heights,Landmark Galleria,shopping_mall,major,2006,DAT-LOC-0137,0.145,0.09,False,near_side,midday
+DAT-POI-0041,DAT,Ashford Row,Summit Galleria,shopping_mall,major,4546,DAT-LOC-0252,0.566,0.352,False,far_side,morning
+DAT-POI-0042,DAT,Kestrel Heights,Kestrel Heights Grocery & Provisions,grocery_anchor,neighborhood,1615,DAT-LOC-0237,0.155,0.096,False,near_side,evening
+DAT-POI-0043,DAT,Lakeside Loop,Lakeside Loop Medical Center,hospital,major,5491,DAT-LOC-0098,0.268,0.167,False,near_side,midday
+DAT-POI-0044,DAT,Lakeside Loop,Founders Lakeside Office Commons,office_park,neighborhood,3165,DAT-LOC-0038,0.325,0.202,True,near_side,morning
+DAT-POI-0045,DAT,Lakeside Loop,Founders Lakeside Shopping Center,shopping_mall,minor,373,DAT-LOC-0038,0.101,0.063,True,far_side,evening
+DAT-POI-0046,DAT,Lakeside Loop,Stone Lakeside City Hall,government_building,neighborhood,3563,DAT-LOC-0038,0.336,0.209,True,far_side,morning
+DAT-POI-0047,DAT,Milltown,North Milltown Towers,residential_tower,neighborhood,1921,DAT-LOC-0276,0.218,0.135,False,far_side,morning
+DAT-POI-0048,DAT,Kestrel Heights,Founders Kestrel Historic District,tourist_landmark,minor,347,DAT-LOC-0077,0.102,0.063,False,near_side,morning
+DAT-POI-0049,DAT,Ashford Row,Ashford Row Residences,residential_tower,major,4083,DAT-LOC-0142,0.311,0.193,False,far_side,afternoon
+DAT-POI-0050,DAT,Northbank,Northbank University,university,major,2044,DAT-LOC-0010,0.532,0.331,True,far_side,morning
+DAT-POI-0051,DAT,Northbank,Metro Fresh Market,grocery_anchor,minor,343,DAT-LOC-0010,0.056,0.035,True,near_side,afternoon
+DAT-POI-0052,DAT,Northbank,Parkview Northbank Apartments,residential_tower,minor,298,DAT-LOC-0010,0.109,0.068,True,far_side,morning
+DAT-POI-0053,DAT,Union Flats,North Mall,shopping_mall,major,5866,DAT-LOC-0273,0.62,0.385,False,far_side,evening
+DAT-POI-0054,DAT,Milltown,Milltown Apartments,residential_tower,major,3201,DAT-LOC-0296,0.338,0.21,False,far_side,morning
+DAT-POI-0055,DAT,Bellwood,Bellwood College,university,major,6559,DAT-LOC-0154,0.616,0.383,False,near_side,afternoon
+DAT-POI-0056,DAT,Union Flats,Union Flats Entertainment District,entertainment_district,neighborhood,1782,DAT-LOC-0063,0.404,0.251,False,near_side,evening
+DAT-POI-0057,DAT,Ashford Row,South Ashford Mall,shopping_mall,minor,207,DAT-LOC-0062,0.249,0.155,False,near_side,midday
+DAT-POI-0058,DAT,Founders Square,Founders Galleria,shopping_mall,neighborhood,2893,DAT-LOC-0169,0.419,0.26,False,near_side,afternoon
+DAT-POI-0059,DAT,Founders Square,Founders Square Mall,shopping_mall,minor,567,DAT-LOC-0139,0.197,0.122,False,near_side,afternoon
+DAT-POI-0060,DAT,Milltown,Heritage Milltown Grocery & Provisions,grocery_anchor,neighborhood,2399,DAT-LOC-0116,0.469,0.291,False,near_side,evening
+DAT-POI-0061,DAT,Founders Square,Cedar Founders Grocery & Provisions,grocery_anchor,minor,627,DAT-LOC-0159,0.258,0.16,False,far_side,afternoon
+DAT-POI-0062,DAT,Union Flats,Union Flats Market,grocery_anchor,neighborhood,1104,DAT-LOC-0033,0.324,0.201,True,far_side,afternoon
+DAT-POI-0063,DAT,Union Flats,South Theater Row,entertainment_district,minor,409,DAT-LOC-0033,0.171,0.106,True,far_side,night
+DAT-POI-0064,DAT,Union Flats,Summit Union Apartments,residential_tower,neighborhood,1376,DAT-LOC-0033,0.178,0.111,True,far_side,morning
+DAT-POI-0065,DAT,Union Flats,Union Flats Shopping Center,shopping_mall,flagship,12983,DAT-LOC-0033,0.522,0.324,True,far_side,night
+DAT-POI-0066,DAT,Kestrel Heights,Metro Kestrel Health Pavilion,hospital,major,1817,DAT-LOC-0207,0.349,0.217,False,near_side,night
+DAT-POI-0067,DAT,Bellwood,Bellwood College,university,neighborhood,1508,DAT-LOC-0264,0.37,0.23,False,near_side,morning
+DAT-POI-0068,DAT,Central Yard,Central Yard Heritage Museum,museum,neighborhood,3251,DAT-LOC-0291,0.248,0.154,True,far_side,afternoon
+DAT-POI-0069,DAT,Central Yard,Landmark Central Fresh Market,grocery_anchor,neighborhood,4474,DAT-LOC-0291,0.14,0.087,True,near_side,morning
+DAT-POI-0070,DAT,Bellwood,Ivy Bellwood Shopping Center,shopping_mall,minor,617,DAT-LOC-0014,0.149,0.093,True,near_side,afternoon
+DAT-POI-0071,DAT,Bellwood,Heritage Bellwood College,university,minor,460,DAT-LOC-0014,0.037,0.023,True,near_side,afternoon
+DAT-POI-0072,DAT,Bellwood,Founders Bellwood Fresh Market,grocery_anchor,flagship,19638,DAT-LOC-0014,0.492,0.306,True,far_side,afternoon
+DAT-POI-0073,DAT,Union Flats,Heritage Union Health Pavilion,hospital,minor,179,DAT-LOC-0183,0.231,0.144,False,far_side,evening
+DAT-POI-0074,DAT,Union Flats,Heritage Union Mall,shopping_mall,neighborhood,1989,DAT-LOC-0073,0.088,0.055,False,near_side,midday
+DAT-POI-0075,DAT,Founders Square,Heritage Founders Shopping Center,shopping_mall,minor,222,DAT-LOC-0089,0.055,0.034,False,near_side,night
+DAT-POI-0076,DAT,Milltown,Milltown Fresh Market,grocery_anchor,minor,438,DAT-LOC-0026,0.239,0.149,False,far_side,afternoon
+DAT-POI-0077,DAT,Milltown,Metro Health Pavilion,hospital,neighborhood,2672,DAT-LOC-0026,0.195,0.121,False,near_side,midday
+DAT-POI-0078,DAT,Kestrel Heights,Kestrel Heights Theater Row,entertainment_district,major,2491,DAT-LOC-0097,0.683,0.424,False,far_side,evening
+DAT-POI-0079,DAT,Central Yard,Central Yard Business Park,office_park,neighborhood,4019,DAT-LOC-0261,0.105,0.065,True,far_side,morning
+DAT-POI-0080,DAT,Central Yard,Crescent Central Civic Center,government_building,minor,1522,DAT-LOC-0261,0.04,0.025,True,near_side,midday
+DAT-POI-0081,DAT,Kestrel Heights,Kestrel Heights Medical Center,hospital,neighborhood,1129,DAT-LOC-0187,0.334,0.208,False,near_side,morning
+DAT-POI-0082,DAT,Lakeside Loop,Lakeside Loop Market,grocery_anchor,minor,373,DAT-LOC-0248,0.096,0.06,False,near_side,evening
+DAT-POI-0083,DAT,Union Flats,Union Flats General Hospital,hospital,neighborhood,1191,DAT-LOC-0243,0.158,0.098,False,far_side,midday
+DAT-POI-0084,DAT,Ashford Row,Ashford Row Institute of Technology,university,major,4535,DAT-LOC-0292,0.648,0.403,False,near_side,midday
+DAT-POI-0085,DAT,Bellwood,Heritage Bellwood College,university,major,4678,DAT-LOC-0044,0.084,0.052,True,near_side,afternoon
+DAT-POI-0086,DAT,Bellwood,Union Grocery & Provisions,grocery_anchor,minor,886,DAT-LOC-0044,0.121,0.075,True,far_side,afternoon
+DAT-POI-0087,DAT,Bellwood,Crescent Bellwood Residences,residential_tower,minor,821,DAT-LOC-0044,0.142,0.088,True,near_side,evening
+DAT-POI-0088,DAT,Bellwood,Bellwood Entertainment District,entertainment_district,minor,522,DAT-LOC-0044,0.166,0.103,True,far_side,evening
+DAT-POI-0089,DAT,Milltown,Parkview Milltown Shopping Center,shopping_mall,minor,428,DAT-LOC-0086,0.097,0.06,False,near_side,evening
+DAT-POI-0090,DAT,Harrow Point,Parkview Mall,shopping_mall,minor,203,DAT-LOC-0105,0.108,0.067,False,near_side,midday
+DAT-POI-0091,DAT,Ashford Row,North Ashford Apartments,residential_tower,major,2589,DAT-LOC-0072,0.751,0.467,False,far_side,morning
+DAT-POI-0092,DAT,Union Flats,Summit Civic Center,government_building,neighborhood,1778,DAT-LOC-0013,0.195,0.121,True,near_side,morning
+DAT-POI-0093,DAT,Union Flats,Founders Union Galleria,shopping_mall,minor,471,DAT-LOC-0013,0.16,0.099,True,near_side,evening
+DAT-POI-0094,DAT,Union Flats,Parkview Residences,residential_tower,major,4073,DAT-LOC-0013,0.144,0.089,True,far_side,evening
+DAT-POI-0095,DAT,Ashford Row,Metro Ashford Grocery & Provisions,grocery_anchor,major,2786,DAT-LOC-0122,0.136,0.085,False,near_side,midday
+DAT-POI-0096,DAT,Northbank,Summit Northbank Entertainment District,entertainment_district,neighborhood,1319,DAT-LOC-0300,0.085,0.053,False,near_side,afternoon
+DAT-POI-0097,DAT,Northbank,Central Northbank Medical Center,hospital,neighborhood,1502,DAT-LOC-0190,0.467,0.29,False,far_side,afternoon
+DAT-POI-0098,DAT,Milltown,Stone Theater Row,entertainment_district,flagship,7263,DAT-LOC-0246,0.633,0.393,False,near_side,afternoon
+DAT-POI-0099,DAT,Lakeside Loop,Lakeside Loop Market,grocery_anchor,flagship,15803,DAT-LOC-0108,0.357,0.222,False,near_side,evening
+DAT-POI-0100,DAT,Union Flats,Union Flats Galleria,shopping_mall,minor,242,DAT-LOC-0263,0.152,0.094,False,near_side,afternoon
+DAT-POI-0101,DAT,Founders Square,Stone Galleria,shopping_mall,neighborhood,2870,DAT-LOC-0179,0.106,0.066,False,near_side,afternoon
+DAT-POI-0102,DAT,Milltown,Summit Milltown Grocery & Provisions,grocery_anchor,major,3301,DAT-LOC-0226,0.395,0.245,False,near_side,morning
+DAT-POI-0103,DAT,Bellwood,Ivy Bellwood Galleria,shopping_mall,major,7288,DAT-LOC-0224,0.447,0.278,False,far_side,midday
+DAT-POI-0104,DAT,Kestrel Heights,Union Kestrel Municipal Building,government_building,minor,223,DAT-LOC-0247,0.051,0.032,False,near_side,morning
+DAT-POI-0105,DAT,Northbank,Northbank Shopping Center,shopping_mall,neighborhood,485,DAT-LOC-0280,0.42,0.261,False,near_side,afternoon
+DAT-POI-0106,DAT,Founders Square,Founders Square Galleria,shopping_mall,major,6026,DAT-LOC-0059,0.185,0.115,True,far_side,evening
+DAT-POI-0107,DAT,Founders Square,Heritage Founders Entertainment District,entertainment_district,neighborhood,2553,DAT-LOC-0059,0.287,0.178,True,far_side,evening
+DAT-POI-0108,DAT,Founders Square,Founders Square City Hall,government_building,minor,267,DAT-LOC-0059,0.036,0.022,True,near_side,morning
+DAT-POI-0109,DAT,Founders Square,Founders Square Market,grocery_anchor,flagship,11275,DAT-LOC-0059,0.738,0.459,True,near_side,afternoon
+DAT-POI-0110,DAT,Ashford Row,Parkview Grocery & Provisions,grocery_anchor,flagship,5449,DAT-LOC-0032,0.363,0.226,True,far_side,evening
+DAT-POI-0111,DAT,Ashford Row,Crescent Galleria,shopping_mall,neighborhood,468,DAT-LOC-0032,0.237,0.147,True,near_side,afternoon
+DAT-POI-0112,DAT,Ashford Row,Grand Ashford Apartments,residential_tower,neighborhood,792,DAT-LOC-0032,0.181,0.112,True,near_side,morning
+DAT-POI-0113,DAT,Central Yard,Central Yard Civic Center,government_building,neighborhood,5164,DAT-LOC-0211,0.265,0.165,True,far_side,midday
+DAT-POI-0114,DAT,Central Yard,Metro Central Business Park,office_park,neighborhood,3289,DAT-LOC-0211,0.313,0.194,True,near_side,evening
+DAT-POI-0115,DAT,Lakeside Loop,Cedar Lakeside College,university,minor,817,DAT-LOC-0228,0.074,0.046,False,near_side,morning
+DAT-POI-0116,DAT,Harrow Point,Harrow Point Headquarters Campus,corporate_campus,minor,244,DAT-LOC-0285,0.063,0.039,False,near_side,midday
+DAT-POI-0117,DAT,Kestrel Heights,Founders Landmark Tower,tourist_landmark,neighborhood,1317,DAT-LOC-0267,0.458,0.285,False,near_side,midday
+DAT-POI-0118,DAT,Ashford Row,Ashford Row Apartments,residential_tower,neighborhood,633,DAT-LOC-0112,0.051,0.032,False,far_side,evening
+DAT-POI-0119,DAT,Northbank,Crescent Residences,residential_tower,flagship,7034,DAT-LOC-0060,0.472,0.293,True,far_side,midday
+DAT-POI-0120,DAT,Northbank,Founders Northbank Grocery & Provisions,grocery_anchor,flagship,7888,DAT-LOC-0060,0.534,0.332,True,near_side,evening
+DAT-POI-0121,DAT,Northbank,Metro General Hospital,hospital,minor,260,DAT-LOC-0060,0.072,0.045,True,near_side,afternoon
+DAT-POI-0122,DAT,Harrow Point,Crescent Harrow Business Park,office_park,major,1573,DAT-LOC-0155,0.204,0.127,False,far_side,evening
+DAT-POI-0123,DAT,Lakeside Loop,Stone College,university,minor,343,DAT-LOC-0208,0.053,0.033,False,far_side,afternoon
+DAT-POI-0124,DAT,Northbank,Central Civic Center,government_building,minor,170,DAT-LOC-0160,0.057,0.035,False,far_side,morning
+DAT-POI-0125,DAT,Ashford Row,Metro Ashford Corporate Center,office_park,major,4575,DAT-LOC-0162,0.224,0.139,False,far_side,midday
+DAT-POI-0126,DAT,Kestrel Heights,Summit Kestrel Health Pavilion,hospital,neighborhood,1179,DAT-LOC-0017,0.086,0.053,True,near_side,midday
+DAT-POI-0127,DAT,Kestrel Heights,Kestrel Heights University,university,minor,354,DAT-LOC-0017,0.043,0.027,True,near_side,afternoon
+DAT-POI-0128,DAT,Kestrel Heights,Landmark Theater Row,entertainment_district,major,2164,DAT-LOC-0017,0.153,0.095,True,far_side,afternoon
+DAT-POI-0129,DAT,Lakeside Loop,Riverside General Hospital,hospital,flagship,11946,DAT-LOC-0068,0.337,0.209,False,near_side,afternoon
+DAT-POI-0130,DAT,Central Yard,Central Yard Tech Campus,corporate_campus,neighborhood,4786,DAT-LOC-0051,0.064,0.04,True,far_side,morning
+DAT-POI-0131,DAT,Central Yard,Central Yard Hotel & Conference Center,hotel_convention,flagship,35837,DAT-LOC-0051,0.663,0.412,True,far_side,morning
+DAT-POI-0132,DAT,Central Yard,Metro Central Civic Center,government_building,major,12273,DAT-LOC-0051,0.067,0.042,True,far_side,night
+DAT-POI-0133,DAT,Kestrel Heights,Kestrel Heights Office Commons,office_park,minor,113,DAT-LOC-0277,0.059,0.037,False,far_side,evening
+DAT-POI-0134,DAT,Founders Square,Central Founders Market,grocery_anchor,major,6201,DAT-LOC-0229,0.287,0.178,False,near_side,morning
+DAT-POI-0135,DAT,Central Yard,Union Central Tech Campus,corporate_campus,minor,484,DAT-LOC-0161,0.193,0.12,True,near_side,midday
+DAT-POI-0136,DAT,Central Yard,Metro Convention Center,hotel_convention,neighborhood,5655,DAT-LOC-0161,0.245,0.152,True,far_side,evening
+DAT-POI-0137,DAT,Kestrel Heights,Stone University,university,major,4310,DAT-LOC-0127,0.297,0.185,False,near_side,midday
+DAT-POI-0138,DAT,Milltown,Milltown Civic Center,government_building,major,5087,DAT-LOC-0256,0.52,0.323,False,far_side,morning
+DAT-POI-0139,DAT,Union Flats,Riverside Market,grocery_anchor,major,5889,DAT-LOC-0113,0.563,0.35,False,far_side,evening
+DAT-POI-0140,DAT,Bellwood,Riverside Bellwood Residences,residential_tower,major,5004,DAT-LOC-0124,0.413,0.257,False,far_side,night
+DAT-POI-0141,DAT,Union Flats,Union Flats Grocery & Provisions,grocery_anchor,neighborhood,868,DAT-LOC-0213,0.182,0.113,False,near_side,evening
+DAT-POI-0142,DAT,Lakeside Loop,Lakeside Loop Grocery & Provisions,grocery_anchor,neighborhood,2052,DAT-LOC-0088,0.403,0.25,False,near_side,evening
+DAT-POI-0143,DAT,Central Yard,Parkview Grand Hotel,hotel_convention,neighborhood,2612,DAT-LOC-0011,0.046,0.029,True,far_side,afternoon
+DAT-POI-0144,DAT,Central Yard,Union Corporate Campus,corporate_campus,neighborhood,1612,DAT-LOC-0011,0.348,0.216,True,near_side,afternoon
+DAT-POI-0145,DAT,Central Yard,South Central Museum,museum,minor,769,DAT-LOC-0011,0.18,0.112,True,far_side,midday
+DAT-POI-0146,DAT,Milltown,Union Milltown Shopping Center,shopping_mall,minor,276,DAT-LOC-0196,0.252,0.157,False,near_side,midday
+DAT-POI-0147,DAT,Milltown,Heritage Market,grocery_anchor,minor,352,DAT-LOC-0106,0.216,0.134,False,far_side,morning
+DAT-POI-0148,DAT,Kestrel Heights,Heritage Kestrel Grocery & Provisions,grocery_anchor,flagship,4942,DAT-LOC-0257,0.748,0.465,False,far_side,morning
+DAT-POI-0149,DAT,Founders Square,Grand Shopping Center,shopping_mall,minor,494,DAT-LOC-0049,0.222,0.138,False,near_side,evening
+DAT-POI-0150,DAT,Founders Square,Founders Square Nightlife Quarter,entertainment_district,major,8032,DAT-LOC-0049,0.122,0.076,False,far_side,evening
+DAT-POI-0151,DAT,Harrow Point,Parkview Gallery,museum,minor,251,DAT-LOC-0225,0.252,0.157,False,far_side,afternoon
+DAT-POI-0152,DAT,Bellwood,Bellwood Institute of Technology,university,minor,847,DAT-LOC-0054,0.091,0.057,True,near_side,midday
+DAT-POI-0153,DAT,Bellwood,Bellwood Theater Row,entertainment_district,neighborhood,2992,DAT-LOC-0054,0.152,0.094,True,near_side,midday
+DAT-POI-0154,DAT,Bellwood,Bellwood Residences,residential_tower,neighborhood,1389,DAT-LOC-0054,0.044,0.027,True,far_side,evening
+DAT-POI-0155,DAT,Central Yard,Central Yard Business Park,office_park,major,6109,DAT-LOC-0111,0.515,0.32,True,near_side,morning
+DAT-POI-0156,DAT,Central Yard,Central Tech Campus,corporate_campus,major,11701,DAT-LOC-0111,0.082,0.051,True,far_side,midday
+DAT-POI-0157,DAT,Bellwood,Bellwood Galleria,shopping_mall,flagship,16436,DAT-LOC-0094,0.447,0.278,False,near_side,midday
+DAT-POI-0158,DAT,Ashford Row,Union Ashford University,university,neighborhood,592,DAT-LOC-0222,0.221,0.137,False,far_side,morning
+DAT-POI-0159,DAT,Central Yard,Riverside Civic Center,government_building,minor,348,DAT-LOC-0151,0.044,0.027,True,far_side,morning
+DAT-POI-0160,DAT,Central Yard,Founders Central Headquarters Campus,corporate_campus,minor,1349,DAT-LOC-0151,0.142,0.088,True,far_side,morning
+DAT-POI-0161,DAT,Lakeside Loop,Central Lakeside Apartments,residential_tower,neighborhood,1306,DAT-LOC-0018,0.115,0.071,True,far_side,night
+DAT-POI-0162,DAT,Lakeside Loop,Landmark Market,grocery_anchor,neighborhood,1511,DAT-LOC-0018,0.221,0.137,True,near_side,midday
+DAT-POI-0163,DAT,Lakeside Loop,Riverside Plaza,tourist_landmark,major,8822,DAT-LOC-0018,0.334,0.208,True,far_side,afternoon
+DAT-POI-0164,DAT,Lakeside Loop,Riverside Lakeside Market,grocery_anchor,major,5373,DAT-LOC-0218,0.148,0.092,False,far_side,afternoon
+DAT-POI-0165,DAT,Lakeside Loop,Union Lakeside Business Park,office_park,major,6439,DAT-LOC-0238,0.279,0.173,False,far_side,evening
+DAT-POI-0166,DAT,Central Yard,Central Yard Grand Hotel,hotel_convention,major,10090,DAT-LOC-0271,0.37,0.23,True,far_side,afternoon
+DAT-POI-0167,DAT,Central Yard,Central Central Headquarters Campus,corporate_campus,neighborhood,4601,DAT-LOC-0271,0.186,0.116,True,near_side,evening
+DAT-POI-0168,DAT,Kestrel Heights,Kestrel Heights Mall,shopping_mall,neighborhood,631,DAT-LOC-0037,0.053,0.033,True,near_side,afternoon
+DAT-POI-0169,DAT,Kestrel Heights,South Business Park,office_park,minor,323,DAT-LOC-0037,0.081,0.05,True,near_side,midday
+DAT-POI-0170,DAT,Kestrel Heights,Ivy Medical Center,hospital,neighborhood,575,DAT-LOC-0037,0.337,0.209,True,near_side,midday
+DAT-POI-0171,DAT,Founders Square,Central Fresh Market,grocery_anchor,minor,505,DAT-LOC-0269,0.217,0.135,False,near_side,midday
+DAT-POI-0172,DAT,Lakeside Loop,Lakeside Loop Municipal Building,government_building,major,4880,DAT-LOC-0288,0.498,0.309,False,far_side,afternoon
+DAT-POI-0173,DAT,Harrow Point,Crescent Fresh Market,grocery_anchor,major,1997,DAT-LOC-0125,0.116,0.072,False,far_side,afternoon
+DAT-POI-0174,DAT,Union Flats,Founders Union Mall,shopping_mall,flagship,9991,DAT-LOC-0163,0.463,0.288,False,far_side,evening
+DAT-POI-0175,DAT,Founders Square,Harbor City Hall,government_building,major,3545,DAT-LOC-0199,0.726,0.451,False,near_side,night
+DAT-POI-0176,DAT,Lakeside Loop,Ivy Lakeside Market,grocery_anchor,neighborhood,1384,DAT-LOC-0008,0.249,0.155,True,near_side,evening
+DAT-POI-0177,DAT,Lakeside Loop,Cedar Lakeside Apartments,residential_tower,minor,645,DAT-LOC-0008,0.027,0.017,True,far_side,evening
+DAT-POI-0178,DAT,Lakeside Loop,Lakeside Loop Medical Center,hospital,minor,754,DAT-LOC-0008,0.075,0.047,True,near_side,midday
+DAT-POI-0179,DAT,Northbank,Northbank Galleria,shopping_mall,minor,219,DAT-LOC-0070,0.166,0.103,False,near_side,afternoon
+DAT-POI-0180,DAT,Founders Square,Summit Nightlife Quarter,entertainment_district,neighborhood,1315,DAT-LOC-0009,0.249,0.155,True,far_side,evening
+DAT-POI-0181,DAT,Founders Square,Founders Square Grocery & Provisions,grocery_anchor,minor,847,DAT-LOC-0009,0.126,0.078,True,near_side,evening
+DAT-POI-0182,DAT,Founders Square,Founders Square Shopping Center,shopping_mall,neighborhood,2938,DAT-LOC-0009,0.25,0.155,True,far_side,afternoon
+DAT-POI-0183,DAT,Lakeside Loop,Stone Lakeside Business Park,office_park,neighborhood,3531,DAT-LOC-0278,0.188,0.117,False,far_side,midday
+DAT-POI-0184,DAT,Founders Square,Harbor Founders Theater Row,entertainment_district,neighborhood,1778,DAT-LOC-0239,0.427,0.265,False,far_side,evening
+DAT-POI-0185,DAT,Founders Square,Founders Square Civic Center,government_building,minor,232,DAT-LOC-0109,0.045,0.028,False,far_side,morning
+DAT-POI-0186,DAT,Ashford Row,North Mall,shopping_mall,neighborhood,1282,DAT-LOC-0012,0.185,0.115,True,far_side,evening
+DAT-POI-0187,DAT,Ashford Row,Ashford Row Office Commons,office_park,minor,297,DAT-LOC-0012,0.035,0.022,True,far_side,night
+DAT-POI-0188,DAT,Ashford Row,Ashford Row Apartments,residential_tower,minor,332,DAT-LOC-0012,0.167,0.104,True,near_side,night
+DAT-POI-0189,DAT,Harrow Point,Grand Office Commons,office_park,neighborhood,726,DAT-LOC-0275,0.454,0.282,False,far_side,evening
+DAT-POI-0190,DAT,Kestrel Heights,Cedar Kestrel Mall,shopping_mall,major,2698,DAT-LOC-0227,0.672,0.418,False,far_side,afternoon
+DAT-POI-0191,DAT,Central Yard,Central Yard Fresh Market,grocery_anchor,major,12444,DAT-LOC-0001,0.474,0.295,True,far_side,afternoon
+DAT-POI-0192,DAT,Central Yard,Metro Corporate Center,office_park,minor,525,DAT-LOC-0001,0.191,0.119,True,near_side,midday
+DAT-POI-0193,DAT,Central Yard,Crescent Galleria,shopping_mall,neighborhood,4378,DAT-LOC-0001,0.278,0.173,True,far_side,evening
+DAT-POI-0194,DAT,Central Yard,Central Yard Fresh Market,grocery_anchor,major,10374,DAT-LOC-0251,0.374,0.232,True,far_side,morning
+DAT-POI-0195,DAT,Central Yard,Heritage Central Business Park,office_park,flagship,33620,DAT-LOC-0251,0.828,0.514,True,far_side,evening
+DAT-POI-0196,DAT,Ashford Row,Crescent Historic District,tourist_landmark,major,3318,DAT-LOC-0102,0.272,0.169,False,far_side,afternoon
+DAT-POI-0197,DAT,Milltown,Harbor Towers,residential_tower,neighborhood,924,DAT-LOC-0006,0.17,0.106,True,far_side,morning
+DAT-POI-0198,DAT,Milltown,Milltown Mall,shopping_mall,major,4924,DAT-LOC-0006,0.241,0.15,True,far_side,afternoon
+DAT-POI-0199,DAT,Milltown,Milltown Civic Center,government_building,major,7016,DAT-LOC-0006,0.098,0.061,True,far_side,midday
+DAT-POI-0200,DAT,Milltown,Milltown General Hospital,hospital,minor,240,DAT-LOC-0006,0.014,0.009,True,near_side,afternoon
+DAT-POI-0201,DAT,Lakeside Loop,Metro Lakeside University,university,neighborhood,2580,DAT-LOC-0198,0.287,0.178,False,near_side,afternoon
+DAT-POI-0202,DAT,Central Yard,Cedar Business Park,office_park,neighborhood,2270,DAT-LOC-0281,0.306,0.19,True,near_side,morning
+DAT-POI-0203,DAT,Central Yard,Riverside Central Tech Campus,corporate_campus,major,12916,DAT-LOC-0281,0.123,0.076,True,near_side,morning
+DAT-POI-0204,DAT,Bellwood,Summit Grocery & Provisions,grocery_anchor,major,9002,DAT-LOC-0144,0.447,0.278,False,near_side,afternoon
+DAT-POI-0205,DAT,Union Flats,Harbor Entertainment District,entertainment_district,minor,478,DAT-LOC-0143,0.289,0.18,False,near_side,night
+DAT-POI-0206,DAT,Central Yard,Ivy Grocery & Provisions,grocery_anchor,minor,850,DAT-LOC-0191,0.16,0.099,True,far_side,afternoon
+DAT-POI-0207,DAT,Central Yard,Central Yard Headquarters Campus,corporate_campus,neighborhood,3245,DAT-LOC-0191,0.228,0.142,True,near_side,morning
+DAT-POI-0208,DAT,Central Yard,Central Yard Convention Center,hotel_convention,minor,1138,DAT-LOC-0231,0.203,0.126,True,near_side,morning
+DAT-POI-0209,DAT,Central Yard,Cedar Business Park,office_park,minor,765,DAT-LOC-0231,0.026,0.016,True,far_side,morning
+DAT-POI-0210,DAT,Bellwood,Founders University,university,minor,982,DAT-LOC-0034,0.123,0.076,True,near_side,afternoon
+DAT-POI-0211,DAT,Bellwood,Bellwood Theater Row,entertainment_district,neighborhood,3179,DAT-LOC-0034,0.332,0.206,True,far_side,evening
+DAT-POI-0212,DAT,Bellwood,Crescent Grocery & Provisions,grocery_anchor,neighborhood,2013,DAT-LOC-0034,0.083,0.052,True,far_side,afternoon
+DAT-POI-0213,DAT,Bellwood,Harbor Bellwood Residences,residential_tower,major,5160,DAT-LOC-0034,0.223,0.139,True,near_side,evening
+DAT-POI-0214,DAT,Northbank,Central Northbank Corporate Center,office_park,neighborhood,430,DAT-LOC-0180,0.247,0.153,False,near_side,night
+DAT-POI-0215,DAT,Harrow Point,Cedar Harrow Office Commons,office_park,minor,305,DAT-LOC-0015,0.066,0.041,True,far_side,midday
+DAT-POI-0216,DAT,Harrow Point,Metro Harrow Municipal Building,government_building,major,2211,DAT-LOC-0015,0.552,0.343,True,near_side,midday
+DAT-POI-0217,DAT,Harrow Point,North Corporate Campus,corporate_campus,major,2028,DAT-LOC-0015,0.473,0.294,True,near_side,night
+DAT-POI-0218,DAT,Harrow Point,Grand Grand Hotel,hotel_convention,major,3259,DAT-LOC-0015,0.466,0.29,True,far_side,afternoon
+DAT-POI-0219,DAT,Kestrel Heights,Ivy Kestrel Nightlife Quarter,entertainment_district,minor,122,DAT-LOC-0167,0.285,0.177,False,near_side,evening
+DAT-POI-0220,DAT,Central Yard,Central Yard Corporate Center,office_park,neighborhood,2155,DAT-LOC-0131,0.304,0.189,True,far_side,evening
+DAT-POI-0221,DAT,Central Yard,Crescent Central Tech Campus,corporate_campus,minor,978,DAT-LOC-0131,0.06,0.037,True,near_side,midday
+DAT-POI-0222,DAT,Bellwood,Summit Theater Row,entertainment_district,neighborhood,2110,DAT-LOC-0024,0.295,0.183,True,near_side,evening
+DAT-POI-0223,DAT,Bellwood,Bellwood University,university,major,7325,DAT-LOC-0024,0.166,0.103,True,far_side,midday
+DAT-POI-0224,DAT,Bellwood,Bellwood Galleria,shopping_mall,major,5411,DAT-LOC-0024,0.355,0.221,True,near_side,evening
+DAT-POI-0225,DAT,Milltown,South Milltown Civic Center,government_building,minor,196,DAT-LOC-0126,0.056,0.035,False,far_side,midday
+DAT-POI-0226,DAT,Union Flats,Union Flats Entertainment District,entertainment_district,flagship,10159,DAT-LOC-0053,0.871,0.541,False,far_side,evening
+DAT-POI-0227,DAT,Union Flats,Grand Union Towers,residential_tower,minor,492,DAT-LOC-0053,0.087,0.054,False,far_side,morning
+DAT-POI-0228,DAT,Northbank,Northbank Apartments,residential_tower,major,3052,DAT-LOC-0030,0.348,0.216,False,near_side,midday
+DAT-POI-0229,DAT,Northbank,Northbank Entertainment District,entertainment_district,major,2315,DAT-LOC-0030,0.168,0.104,False,far_side,night
+DAT-POI-0230,DAT,Bellwood,Central Institute of Technology,university,major,5861,DAT-LOC-0114,0.525,0.326,False,near_side,morning
+DAT-POI-0231,DAT,Bellwood,Metro Shopping Center,shopping_mall,major,4370,DAT-LOC-0134,0.125,0.078,False,near_side,midday
+DAT-POI-0232,DAT,Harrow Point,Crescent Shopping Center,shopping_mall,neighborhood,832,DAT-LOC-0235,0.215,0.134,False,near_side,evening
+DAT-POI-0233,DAT,Union Flats,Harbor Galleria,shopping_mall,major,2342,DAT-LOC-0043,0.153,0.095,True,far_side,evening
+DAT-POI-0234,DAT,Union Flats,Union Flats Fresh Market,grocery_anchor,major,4977,DAT-LOC-0043,0.143,0.089,True,near_side,afternoon
+DAT-POI-0235,DAT,Union Flats,Union Flats Corporate Center,office_park,neighborhood,657,DAT-LOC-0043,0.341,0.212,True,far_side,morning
+DAT-POI-0236,DAT,Union Flats,Grand Union Historic District,tourist_landmark,minor,411,DAT-LOC-0043,0.109,0.068,True,near_side,morning
+DAT-POI-0237,DAT,Founders Square,Founders Square Municipal Building,government_building,neighborhood,1266,DAT-LOC-0039,0.099,0.062,False,near_side,morning
+DAT-POI-0238,DAT,Founders Square,Founders Square Towers,residential_tower,minor,860,DAT-LOC-0039,0.092,0.057,False,near_side,midday
+DAT-POI-0239,DAT,Bellwood,Metro Bellwood Towers,residential_tower,minor,874,DAT-LOC-0174,0.26,0.162,False,far_side,evening
+DAT-POI-0240,DAT,Northbank,Stone Towers,residential_tower,neighborhood,597,DAT-LOC-0290,0.223,0.139,False,near_side,night
+DAT-POI-0241,DAT,Harrow Point,Ivy Corporate Center,office_park,neighborhood,1447,DAT-LOC-0295,0.199,0.124,False,far_side,morning
+DAT-POI-0242,DAT,Northbank,Northbank University,university,minor,313,DAT-LOC-0130,0.272,0.169,False,near_side,night
+DAT-POI-0243,DAT,Harrow Point,Summit Harrow Mall,shopping_mall,major,2292,DAT-LOC-0195,0.512,0.318,False,far_side,afternoon
+DAT-POI-0244,DAT,Ashford Row,Stone Towers,residential_tower,major,3543,DAT-LOC-0202,0.403,0.25,False,near_side,night
+DAT-POI-0245,DAT,Founders Square,Founders Square Municipal Building,government_building,neighborhood,1226,DAT-LOC-0029,0.339,0.211,True,far_side,afternoon
+DAT-POI-0246,DAT,Founders Square,Founders Square Market,grocery_anchor,major,4852,DAT-LOC-0029,0.287,0.178,True,near_side,evening
+DAT-POI-0247,DAT,Founders Square,Stone Founders Nightlife Quarter,entertainment_district,neighborhood,1894,DAT-LOC-0029,0.237,0.147,True,near_side,afternoon
+DAT-POI-0248,DAT,Harrow Point,Summit Harrow Gallery,museum,minor,123,DAT-LOC-0145,0.044,0.027,False,near_side,night
+DAT-POI-0249,DAT,Northbank,Northbank Municipal Building,government_building,major,1677,DAT-LOC-0270,0.753,0.468,False,near_side,afternoon
+DAT-POI-0250,DAT,Harrow Point,Cedar Fresh Market,grocery_anchor,major,2120,DAT-LOC-0205,0.311,0.193,False,near_side,afternoon
+DAT-POI-0251,DAT,Milltown,South Civic Center,government_building,major,3310,DAT-LOC-0136,0.488,0.303,False,near_side,morning
+DAT-POI-0252,DAT,Milltown,Milltown Towers,residential_tower,minor,390,DAT-LOC-0216,0.059,0.037,False,near_side,morning
+DAT-POI-0253,DAT,Harrow Point,North Corporate Campus,corporate_campus,neighborhood,838,DAT-LOC-0135,0.043,0.027,False,far_side,night
+DAT-POI-0254,DAT,Central Yard,Central Yard Hotel & Conference Center,hotel_convention,neighborhood,2160,DAT-LOC-0021,0.198,0.123,True,far_side,midday
+DAT-POI-0255,DAT,Central Yard,Central Yard Business Park,office_park,minor,901,DAT-LOC-0021,0.163,0.101,True,near_side,evening
+DAT-POI-0256,DAT,Central Yard,Central Yard Headquarters Campus,corporate_campus,minor,1144,DAT-LOC-0021,0.078,0.048,True,near_side,morning
+DAT-POI-0257,DAT,Lakeside Loop,Founders Lakeside Landmark Tower,tourist_landmark,major,7107,DAT-LOC-0268,0.458,0.285,False,far_side,afternoon
+DAT-POI-0258,DAT,Central Yard,Grand Central Municipal Building,government_building,major,12756,DAT-LOC-0221,0.486,0.302,True,near_side,morning
+DAT-POI-0259,DAT,Central Yard,Metro Corporate Campus,corporate_campus,minor,449,DAT-LOC-0221,0.012,0.007,True,far_side,morning
+DAT-POI-0260,DAT,Milltown,Crescent Milltown Fresh Market,grocery_anchor,minor,310,DAT-LOC-0056,0.108,0.067,True,near_side,midday
+DAT-POI-0261,DAT,Milltown,Union Milltown Apartments,residential_tower,neighborhood,2023,DAT-LOC-0056,0.059,0.037,True,near_side,morning
+DAT-POI-0262,DAT,Milltown,Harbor Civic Center,government_building,neighborhood,1732,DAT-LOC-0056,0.25,0.155,True,near_side,midday
+DAT-POI-0263,DAT,Milltown,Milltown Nightlife Quarter,entertainment_district,minor,423,DAT-LOC-0056,0.144,0.089,True,near_side,evening
+DAT-POI-0264,DAT,Central Yard,Central Yard City Hall,government_building,major,7201,DAT-LOC-0201,0.255,0.158,True,far_side,morning
+DAT-POI-0265,DAT,Central Yard,Stone Central Corporate Center,office_park,minor,908,DAT-LOC-0201,0.155,0.096,True,near_side,night
+DAT-POI-0266,DAT,Lakeside Loop,Cedar Lakeside Nightlife Quarter,entertainment_district,minor,589,DAT-LOC-0138,0.164,0.102,False,near_side,afternoon
+DAT-POI-0267,DAT,Central Yard,Central Yard Shopping Center,shopping_mall,minor,1155,DAT-LOC-0121,0.195,0.121,True,near_side,evening
+DAT-POI-0268,DAT,Central Yard,Crescent Central Business Park,office_park,minor,534,DAT-LOC-0121,0.152,0.094,True,near_side,evening
+DAT-POI-0269,DAT,Central Yard,Heritage Corporate Campus,corporate_campus,major,12174,DAT-LOC-0141,0.262,0.163,True,near_side,evening
+DAT-POI-0270,DAT,Central Yard,Parkview Market,grocery_anchor,minor,949,DAT-LOC-0141,0.147,0.091,True,near_side,midday
+DAT-POI-0271,DAT,Kestrel Heights,Central Health Pavilion,hospital,neighborhood,1629,DAT-LOC-0107,0.464,0.288,False,near_side,midday
+DAT-POI-0272,DAT,Ashford Row,South Grocery & Provisions,grocery_anchor,neighborhood,1279,DAT-LOC-0272,0.044,0.027,False,near_side,morning
+DAT-POI-0273,DAT,Milltown,Summit Galleria,shopping_mall,neighborhood,1115,DAT-LOC-0156,0.149,0.093,False,near_side,afternoon
+DAT-POI-0274,DAT,Kestrel Heights,Metro Market,grocery_anchor,neighborhood,1405,DAT-LOC-0117,0.07,0.043,False,near_side,night
+DAT-POI-0275,DAT,Northbank,Founders Office Commons,office_park,neighborhood,1062,DAT-LOC-0040,0.042,0.026,True,near_side,evening
+DAT-POI-0276,DAT,Northbank,Northbank City Hall,government_building,minor,276,DAT-LOC-0040,0.106,0.066,True,near_side,midday
+DAT-POI-0277,DAT,Northbank,Harbor Entertainment District,entertainment_district,neighborhood,863,DAT-LOC-0040,0.042,0.026,True,near_side,night
+DAT-POI-0278,DAT,Union Flats,Crescent Union Towers,residential_tower,flagship,11254,DAT-LOC-0223,0.174,0.108,False,far_side,morning
+DAT-POI-0279,DAT,Harrow Point,Harbor Harrow Tech Campus,corporate_campus,major,2792,DAT-LOC-0035,0.181,0.112,True,near_side,afternoon
+DAT-POI-0280,DAT,Harrow Point,Crescent Galleria,shopping_mall,major,3193,DAT-LOC-0035,0.115,0.071,True,near_side,evening
+DAT-POI-0281,DAT,Harrow Point,Summit Harrow Corporate Center,office_park,major,2514,DAT-LOC-0035,0.16,0.099,True,far_side,morning
+DAT-POI-0282,DAT,Harrow Point,Central Tech Campus,corporate_campus,minor,365,DAT-LOC-0185,0.037,0.023,False,near_side,evening
+DAT-POI-0283,DAT,Kestrel Heights,Founders Kestrel City Hall,government_building,neighborhood,1596,DAT-LOC-0057,0.108,0.067,True,near_side,morning
+DAT-POI-0284,DAT,Kestrel Heights,Central Residences,residential_tower,neighborhood,1025,DAT-LOC-0057,0.277,0.172,True,far_side,morning
+DAT-POI-0285,DAT,Kestrel Heights,Kestrel Heights Medical Center,hospital,neighborhood,1491,DAT-LOC-0057,0.244,0.152,True,far_side,afternoon
+DAT-POI-0286,DAT,Kestrel Heights,Stone Shopping Center,shopping_mall,minor,237,DAT-LOC-0057,0.097,0.06,True,near_side,afternoon
+DAT-POI-0287,DAT,Lakeside Loop,Central Lakeside Market,grocery_anchor,minor,365,DAT-LOC-0158,0.046,0.029,False,near_side,afternoon
+DAT-POI-0288,DAT,Harrow Point,Parkview Office Commons,office_park,flagship,4273,DAT-LOC-0095,0.61,0.379,False,near_side,morning
+DAT-POI-0289,DAT,Founders Square,Landmark Founders Theater Row,entertainment_district,neighborhood,1159,DAT-LOC-0289,0.066,0.041,False,near_side,evening
+DAT-POI-0290,DAT,Milltown,Harbor Theater Row,entertainment_district,minor,637,DAT-LOC-0236,0.144,0.089,False,near_side,evening
+DAT-POI-0291,DAT,Northbank,Landmark Towers,residential_tower,major,3444,DAT-LOC-0200,0.452,0.281,False,near_side,night
+DAT-POI-0292,DAT,Kestrel Heights,Stone Theater Row,entertainment_district,major,4364,DAT-LOC-0177,0.261,0.162,False,far_side,afternoon
+DAT-POI-0293,DAT,Northbank,Northbank Shopping Center,shopping_mall,major,2760,DAT-LOC-0080,0.635,0.395,False,far_side,morning
+DAT-POI-0294,DAT,Central Yard,Central Yard Convention Center,hotel_convention,minor,377,DAT-LOC-0181,0.181,0.112,True,near_side,morning
+DAT-POI-0295,DAT,Central Yard,Harbor Central Business Park,office_park,major,8057,DAT-LOC-0181,0.152,0.094,True,near_side,morning
+DAT-POI-0296,DAT,Founders Square,Crescent Apartments,residential_tower,minor,804,DAT-LOC-0129,0.231,0.144,False,near_side,evening
+DAT-POI-0297,DAT,Milltown,Central Milltown Entertainment District,entertainment_district,major,6431,DAT-LOC-0176,0.404,0.251,False,near_side,night
+DAT-POI-0298,DAT,Bellwood,Founders Nightlife Quarter,entertainment_district,neighborhood,3067,DAT-LOC-0234,0.434,0.27,False,far_side,evening
+DAT-POI-0299,DAT,Central Yard,Harbor Central Grocery & Provisions,grocery_anchor,minor,664,DAT-LOC-0041,0.147,0.091,True,near_side,night
+DAT-POI-0300,DAT,Central Yard,Central Yard Corporate Campus,corporate_campus,neighborhood,4308,DAT-LOC-0041,0.138,0.086,True,far_side,evening
+DAT-POI-0301,DAT,Central Yard,Central Yard Mall,shopping_mall,neighborhood,3012,DAT-LOC-0041,0.106,0.066,True,near_side,afternoon
+DAT-POI-0302,DAT,Central Yard,Riverside Central Office Commons,office_park,major,9587,DAT-LOC-0041,0.379,0.235,True,far_side,midday
+DAT-POI-0303,DAT,Founders Square,Landmark Entertainment District,entertainment_district,minor,473,DAT-LOC-0079,0.092,0.057,False,far_side,afternoon
+DAT-POI-0304,DAT,Northbank,Founders Northbank Medical Center,hospital,major,3232,DAT-LOC-0120,0.135,0.084,False,near_side,morning
+DAT-POI-0305,DAT,Union Flats,Union Flats Theater Row,entertainment_district,neighborhood,1011,DAT-LOC-0283,0.477,0.296,False,far_side,night
+DAT-POI-0306,DAT,Central Yard,Summit Central Convention Center,hotel_convention,major,7091,DAT-LOC-0171,0.313,0.194,True,near_side,morning
+DAT-POI-0307,DAT,Central Yard,Central Yard Business Park,office_park,neighborhood,5219,DAT-LOC-0171,0.156,0.097,True,far_side,evening
+DAT-POI-0308,DAT,Milltown,Milltown City Hall,government_building,minor,354,DAT-LOC-0016,0.199,0.124,True,near_side,morning
+DAT-POI-0309,DAT,Milltown,Founders Milltown Apartments,residential_tower,minor,668,DAT-LOC-0016,0.017,0.011,True,far_side,evening
+DAT-POI-0310,DAT,Milltown,Central Milltown Galleria,shopping_mall,neighborhood,1871,DAT-LOC-0016,0.132,0.082,True,near_side,evening
+DAT-POI-0311,DAT,Kestrel Heights,Founders Kestrel Galleria,shopping_mall,minor,316,DAT-LOC-0217,0.287,0.178,False,far_side,night
+DAT-POI-0312,DAT,Lakeside Loop,Landmark Lakeside Apartments,residential_tower,neighborhood,2895,DAT-LOC-0178,0.428,0.266,False,near_side,morning
+DAT-POI-0313,DAT,Union Flats,Union Flats Residences,residential_tower,major,3088,DAT-LOC-0093,0.503,0.313,False,far_side,morning
+DAT-POI-0314,DAT,Lakeside Loop,Riverside Lakeside Nightlife Quarter,entertainment_district,minor,720,DAT-LOC-0168,0.145,0.09,False,far_side,evening
+DAT-POI-0315,DAT,Founders Square,Union Fresh Market,grocery_anchor,minor,623,DAT-LOC-0219,0.189,0.117,False,near_side,afternoon
+DAT-POI-0316,DAT,Union Flats,Cedar Business Park,office_park,neighborhood,1621,DAT-LOC-0293,0.095,0.059,False,near_side,morning
+DAT-POI-0317,DAT,Bellwood,Heritage Nightlife Quarter,entertainment_district,neighborhood,1507,DAT-LOC-0284,0.262,0.163,False,far_side,afternoon
+DAT-POI-0318,DAT,Milltown,Central Grocery & Provisions,grocery_anchor,neighborhood,2235,DAT-LOC-0186,0.364,0.226,False,near_side,morning
+DAT-POI-0319,DAT,Northbank,Northbank General Hospital,hospital,minor,125,DAT-LOC-0150,0.263,0.163,False,far_side,night
+DAT-POI-0320,DAT,Lakeside Loop,Metro Health Pavilion,hospital,major,5360,DAT-LOC-0078,0.336,0.209,False,far_side,midday
+DAT-POI-0321,DAT,Harrow Point,Harrow Point Office Commons,office_park,minor,377,DAT-LOC-0085,0.275,0.171,False,far_side,evening
+DAT-POI-0322,DAT,Ashford Row,Union Ashford General Hospital,hospital,neighborhood,1398,DAT-LOC-0262,0.307,0.191,False,far_side,afternoon
+DAT-POI-0323,DAT,Union Flats,Crescent Residences,residential_tower,neighborhood,1396,DAT-LOC-0193,0.181,0.112,False,near_side,evening
+DAT-POI-0324,DAT,Harrow Point,Harrow Point Tech Campus,corporate_campus,major,2865,DAT-LOC-0115,0.728,0.452,False,far_side,evening
+DAT-POI-0325,DAT,Central Yard,Central Yard Headquarters Campus,corporate_campus,minor,354,DAT-LOC-0061,0.199,0.124,True,far_side,evening
+DAT-POI-0326,DAT,Central Yard,Central Yard Municipal Building,government_building,neighborhood,4308,DAT-LOC-0061,0.051,0.032,True,near_side,morning
+DAT-POI-0327,DAT,Lakeside Loop,Lakeside Loop Theater Row,entertainment_district,major,9235,DAT-LOC-0258,0.282,0.175,False,far_side,afternoon
+DAT-POI-0328,DAT,Kestrel Heights,Kestrel Heights Mall,shopping_mall,major,3984,DAT-LOC-0067,0.628,0.39,False,near_side,evening
+DAT-POI-0329,DAT,Ashford Row,South Plaza,tourist_landmark,major,4506,DAT-LOC-0002,0.5,0.311,False,far_side,afternoon
+DAT-POI-0330,DAT,Ashford Row,Ashford Row Mall,shopping_mall,minor,436,DAT-LOC-0002,0.054,0.034,False,far_side,afternoon
+DAT-POI-0331,DAT,Bellwood,Cedar Bellwood Residences,residential_tower,major,6382,DAT-LOC-0064,0.155,0.096,False,far_side,evening
+DAT-POI-0332,DAT,Union Flats,Central Grocery & Provisions,grocery_anchor,neighborhood,1878,DAT-LOC-0083,0.346,0.215,False,near_side,evening
+DAT-POI-0333,DAT,Union Flats,Central Union Civic Center,government_building,minor,276,DAT-LOC-0123,0.256,0.159,False,far_side,evening
+DAT-POI-0334,DAT,Milltown,Milltown Fresh Market,grocery_anchor,neighborhood,2587,DAT-LOC-0036,0.346,0.215,False,near_side,midday
+DAT-POI-0335,DAT,Milltown,Milltown Residences,residential_tower,neighborhood,1113,DAT-LOC-0036,0.442,0.275,False,far_side,evening
+DAT-POI-0336,DAT,Founders Square,Ivy Founders Galleria,shopping_mall,neighborhood,1365,DAT-LOC-0249,0.114,0.071,False,near_side,afternoon
+DAT-POI-0337,DAT,Harrow Point,Harrow Point Corporate Center,office_park,minor,354,DAT-LOC-0025,0.178,0.111,True,far_side,evening
+DAT-POI-0338,DAT,Harrow Point,Harrow Point Convention Center,hotel_convention,neighborhood,982,DAT-LOC-0025,0.116,0.072,True,near_side,night
+DAT-POI-0339,DAT,Harrow Point,Metro Harrow Municipal Building,government_building,neighborhood,1111,DAT-LOC-0025,0.056,0.035,True,near_side,morning
+DAT-POI-0340,DAT,Milltown,Milltown Residences,residential_tower,major,6669,DAT-LOC-0266,0.688,0.428,False,far_side,evening
+DAT-POI-0341,DAT,Kestrel Heights,Kestrel Heights Nightlife Quarter,entertainment_district,major,4018,DAT-LOC-0287,0.386,0.24,False,far_side,evening
+DAT-POI-0342,DAT,Union Flats,South Office Commons,office_park,flagship,10741,DAT-LOC-0023,0.254,0.158,True,far_side,morning
+DAT-POI-0343,DAT,Union Flats,Cedar Union Market,grocery_anchor,neighborhood,906,DAT-LOC-0023,0.086,0.053,True,far_side,evening
+DAT-POI-0344,DAT,Union Flats,Cedar Union Nightlife Quarter,entertainment_district,neighborhood,2245,DAT-LOC-0023,0.025,0.016,True,near_side,night
+DAT-POI-0345,DAT,Bellwood,Ivy Institute of Technology,university,flagship,14088,DAT-LOC-0084,0.712,0.442,False,far_side,afternoon
+DAT-POI-0346,DAT,Ashford Row,Grand Entertainment District,entertainment_district,major,2846,DAT-LOC-0132,0.389,0.242,False,far_side,afternoon
+DAT-POI-0347,DAT,Northbank,Grand Northbank Business Park,office_park,neighborhood,1010,DAT-LOC-0110,0.402,0.25,False,near_side,morning
+DAT-POI-0348,DAT,Lakeside Loop,Lakeside Loop Corporate Center,office_park,major,5234,DAT-LOC-0298,0.187,0.116,False,far_side,evening
+DAT-POI-0349,DAT,Bellwood,Union Bellwood Mall,shopping_mall,flagship,18810,DAT-LOC-0104,0.889,0.552,False,far_side,morning
+DAT-POI-0350,DAT,Northbank,Northbank Towers,residential_tower,neighborhood,1395,DAT-LOC-0230,0.434,0.27,False,far_side,midday
+DAT-POI-0351,DAT,Bellwood,Parkview Bellwood Nightlife Quarter,entertainment_district,major,10501,DAT-LOC-0164,0.503,0.313,False,near_side,evening
+DAT-POI-0352,DAT,Northbank,Ivy Northbank Nightlife Quarter,entertainment_district,major,3457,DAT-LOC-0220,0.455,0.283,False,near_side,night
+DAT-POI-0353,DAT,Kestrel Heights,Landmark Health Pavilion,hospital,neighborhood,1147,DAT-LOC-0157,0.042,0.026,False,far_side,midday
+DAT-POI-0354,DAT,Harrow Point,Parkview Museum,museum,minor,104,DAT-LOC-0045,0.046,0.029,True,far_side,afternoon
+DAT-POI-0355,DAT,Harrow Point,Harrow Point Tech Campus,corporate_campus,neighborhood,1301,DAT-LOC-0045,0.192,0.119,True,far_side,evening
+DAT-POI-0356,DAT,Harrow Point,Harrow Point Mall,shopping_mall,neighborhood,1195,DAT-LOC-0045,0.295,0.183,True,near_side,evening
+DAT-POI-0357,DAT,Northbank,Founders Northbank Health Pavilion,hospital,neighborhood,790,DAT-LOC-0050,0.234,0.145,True,near_side,afternoon
+DAT-POI-0358,DAT,Northbank,Grand Northbank Business Park,office_park,minor,107,DAT-LOC-0050,0.033,0.021,True,far_side,morning
+DAT-POI-0359,DAT,Northbank,North Plaza,tourist_landmark,minor,136,DAT-LOC-0050,0.099,0.062,True,far_side,morning
+DAT-POI-0360,DAT,Bellwood,Bellwood Grocery & Provisions,grocery_anchor,neighborhood,1482,DAT-LOC-0194,0.441,0.274,False,near_side,morning
+DAT-POI-0361,DAT,Union Flats,Union Flats General Hospital,hospital,minor,253,DAT-LOC-0173,0.11,0.068,False,far_side,afternoon
+DAT-POI-0362,DAT,Harrow Point,Harrow Point Hotel & Conference Center,hotel_convention,major,2988,DAT-LOC-0265,0.6,0.373,False,near_side,midday
+DAT-POI-0363,DAT,Milltown,Milltown Shopping Center,shopping_mall,neighborhood,2407,DAT-LOC-0076,0.094,0.058,False,near_side,evening
+DAT-POI-0364,DAT,Union Flats,Union Flats Galleria,shopping_mall,neighborhood,2319,DAT-LOC-0203,0.033,0.021,False,far_side,midday
+DAT-POI-0365,DAT,Kestrel Heights,Parkview Kestrel Grocery & Provisions,grocery_anchor,flagship,7545,DAT-LOC-0087,0.314,0.195,False,near_side,afternoon
+DAT-POI-0366,DAT,Founders Square,Founders Square Galleria,shopping_mall,major,4795,DAT-LOC-0189,0.738,0.459,False,near_side,evening
+DAT-POI-0367,DAT,Bellwood,Union Bellwood Galleria,shopping_mall,neighborhood,1373,DAT-LOC-0004,0.09,0.056,True,near_side,afternoon
+DAT-POI-0368,DAT,Bellwood,Landmark Entertainment District,entertainment_district,minor,533,DAT-LOC-0004,0.126,0.078,True,far_side,evening
+DAT-POI-0369,DAT,Bellwood,Bellwood Market,grocery_anchor,flagship,14431,DAT-LOC-0004,0.252,0.157,True,far_side,afternoon
+DAT-POI-0370,DAT,Bellwood,South Bellwood College,university,minor,482,DAT-LOC-0004,0.189,0.117,True,near_side,midday
+DAT-POI-0371,DAT,Lakeside Loop,Stone Lakeside Grocery & Provisions,grocery_anchor,minor,367,DAT-LOC-0048,0.13,0.081,False,far_side,evening
+DAT-POI-0372,DAT,Lakeside Loop,Crescent Theater Row,entertainment_district,neighborhood,1166,DAT-LOC-0048,0.315,0.196,False,near_side,afternoon
+DAT-POI-0373,DAT,Bellwood,Bellwood Apartments,residential_tower,neighborhood,2513,DAT-LOC-0184,0.401,0.249,False,far_side,evening
+DAT-POI-0374,DAT,Milltown,Milltown Grocery & Provisions,grocery_anchor,minor,635,DAT-LOC-0066,0.236,0.147,False,near_side,afternoon
+DAT-POI-0375,DAT,Milltown,Harbor Grocery & Provisions,grocery_anchor,neighborhood,741,DAT-LOC-0166,0.238,0.148,False,near_side,morning
+DAT-POI-0376,DAT,Lakeside Loop,Landmark Municipal Building,government_building,minor,572,DAT-LOC-0118,0.024,0.015,False,near_side,midday
+DAT-POI-0377,DAT,Lakeside Loop,Landmark Lakeside Institute of Technology,university,neighborhood,1683,DAT-LOC-0188,0.057,0.035,False,far_side,morning
+DAT-POI-0378,DAT,Ashford Row,Union Ashford Fresh Market,grocery_anchor,neighborhood,1300,DAT-LOC-0042,0.286,0.178,False,near_side,afternoon
+DAT-POI-0379,DAT,Ashford Row,South Ashford Galleria,shopping_mall,major,4241,DAT-LOC-0042,0.158,0.098,False,far_side,midday
+DAT-POI-0380,DAT,Kestrel Heights,Grand Kestrel Shopping Center,shopping_mall,major,3168,DAT-LOC-0297,0.788,0.49,False,near_side,evening
+DAT-POI-0381,DAT,Lakeside Loop,Ivy Lakeside Plaza,tourist_landmark,minor,637,DAT-LOC-0058,0.199,0.124,True,near_side,evening
+DAT-POI-0382,DAT,Lakeside Loop,Lakeside Loop Entertainment District,entertainment_district,minor,230,DAT-LOC-0058,0.175,0.109,True,near_side,night
+DAT-POI-0383,DAT,Lakeside Loop,Lakeside Loop Medical Center,hospital,major,7251,DAT-LOC-0058,0.404,0.251,True,near_side,afternoon
+DAT-POI-0384,DAT,Founders Square,Riverside Entertainment District,entertainment_district,major,5782,DAT-LOC-0099,0.685,0.426,False,near_side,night
+DAT-POI-0385,DAT,Northbank,Grand Northbank Entertainment District,entertainment_district,major,2434,DAT-LOC-0140,0.539,0.335,False,near_side,afternoon
+DAT-POI-0386,DAT,Northbank,Summit Northbank Fresh Market,grocery_anchor,major,3514,DAT-LOC-0240,0.273,0.17,False,far_side,afternoon
+DAT-POI-0387,DAT,Founders Square,Founders Square Mall,shopping_mall,flagship,17864,DAT-LOC-0259,0.337,0.209,False,near_side,afternoon
+DAT-POI-0388,DAT,Founders Square,Stone Founders Municipal Building,government_building,major,4853,DAT-LOC-0069,0.588,0.365,False,near_side,midday
+DAT-POI-0389,DAT,Union Flats,Union Union Apartments,residential_tower,minor,463,DAT-LOC-0253,0.068,0.042,False,far_side,evening
+DAT-POI-0390,DAT,Union Flats,Founders Union Theater Row,entertainment_district,neighborhood,1214,DAT-LOC-0233,0.411,0.255,False,far_side,afternoon
+DAT-POI-0391,DAT,Milltown,Metro Milltown Theater Row,entertainment_district,major,6180,DAT-LOC-0146,0.281,0.175,False,near_side,midday
+DAT-POI-0392,DAT,Ashford Row,Central Ashford Medical Center,hospital,neighborhood,1068,DAT-LOC-0172,0.182,0.113,False,far_side,afternoon
+DAT-POI-0393,DAT,Harrow Point,Stone Office Commons,office_park,major,2647,DAT-LOC-0055,0.228,0.142,True,far_side,morning
+DAT-POI-0394,DAT,Harrow Point,Harrow Point Grand Hotel,hotel_convention,neighborhood,595,DAT-LOC-0055,0.025,0.016,True,far_side,afternoon
+DAT-POI-0395,DAT,Harrow Point,Ivy Grocery & Provisions,grocery_anchor,neighborhood,657,DAT-LOC-0055,0.258,0.16,True,far_side,afternoon
+DAT-POI-0396,DAT,Union Flats,Union Flats Institute of Technology,university,minor,501,DAT-LOC-0153,0.272,0.169,False,near_side,midday
+DAT-POI-0397,DAT,Harrow Point,Union Harrow Hotel & Conference Center,hotel_convention,major,2216,DAT-LOC-0005,0.518,0.322,False,far_side,afternoon
+DAT-POI-0398,DAT,Harrow Point,Harrow Point Office Commons,office_park,neighborhood,1433,DAT-LOC-0005,0.486,0.302,False,near_side,evening
+DAT-POI-0399,DAT,Founders Square,Founders Square Mall,shopping_mall,flagship,10596,DAT-LOC-0279,1.077,0.669,False,near_side,midday
+DAT-POI-0400,DAT,Founders Square,Founders Square Mall,shopping_mall,major,6967,DAT-LOC-0149,0.692,0.43,False,near_side,afternoon
+DAT-POI-0401,DAT,Milltown,Milltown General Hospital,hospital,neighborhood,1140,DAT-LOC-0096,0.252,0.157,False,near_side,midday
+DAT-POI-0402,DAT,Bellwood,Bellwood Institute of Technology,university,minor,316,DAT-LOC-0254,0.237,0.147,False,far_side,afternoon
+DAT-POI-0403,DAT,Bellwood,Bellwood Entertainment District,entertainment_district,major,8498,DAT-LOC-0204,0.779,0.484,False,near_side,night
+DAT-POI-0404,DAT,Founders Square,Landmark Market,grocery_anchor,flagship,16475,DAT-LOC-0019,0.568,0.353,False,near_side,midday
+DAT-POI-0405,DAT,Founders Square,Founders Square Nightlife Quarter,entertainment_district,neighborhood,1906,DAT-LOC-0019,0.19,0.118,False,far_side,evening
+DAT-POI-0406,DAT,Central Yard,Metro Gallery,museum,major,15550,DAT-LOC-0091,0.15,0.093,True,near_side,afternoon
+DAT-POI-0407,DAT,Central Yard,Heritage Tech Campus,corporate_campus,neighborhood,4823,DAT-LOC-0091,0.236,0.147,True,near_side,evening
+DAT-POI-0408,DAT,Bellwood,Bellwood Grocery & Provisions,grocery_anchor,neighborhood,2409,DAT-LOC-0214,0.258,0.16,False,far_side,afternoon
+DAT-POI-0409,DAT,Northbank,Northbank Theater Row,entertainment_district,neighborhood,1129,DAT-LOC-0090,0.407,0.253,False,near_side,evening
+DAT-POI-0410,DAT,Northbank,Grand Northbank Plaza,tourist_landmark,major,2717,DAT-LOC-0020,0.44,0.273,True,far_side,morning
+DAT-POI-0411,DAT,Northbank,Northbank College,university,neighborhood,655,DAT-LOC-0020,0.288,0.179,True,far_side,midday
+DAT-POI-0412,DAT,Northbank,Northbank Shopping Center,shopping_mall,major,3895,DAT-LOC-0020,0.29,0.18,True,near_side,afternoon
+DAT-POI-0413,DAT,Bellwood,Bellwood College,university,major,9497,DAT-LOC-0274,0.48,0.298,False,near_side,midday
+DAT-POI-0414,DAT,Founders Square,Heritage Founders Mall,shopping_mall,flagship,10130,DAT-LOC-0119,0.918,0.57,False,near_side,afternoon
+DAT-POI-0415,DAT,Milltown,Parkview Milltown Fresh Market,grocery_anchor,neighborhood,1573,DAT-LOC-0046,0.159,0.099,False,far_side,evening
+DAT-POI-0416,DAT,Milltown,Metro Milltown Nightlife Quarter,entertainment_district,neighborhood,800,DAT-LOC-0046,0.183,0.114,False,near_side,evening
+DAT-POI-0417,DAT,Central Yard,Riverside Grocery & Provisions,grocery_anchor,neighborhood,1698,DAT-LOC-0031,0.334,0.208,True,near_side,evening
+DAT-POI-0418,DAT,Central Yard,Parkview Corporate Center,office_park,minor,1042,DAT-LOC-0031,0.209,0.13,True,far_side,midday
+DAT-POI-0419,DAT,Central Yard,Heritage Central Shopping Center,shopping_mall,neighborhood,3680,DAT-LOC-0031,0.271,0.168,True,near_side,evening
+DAT-POI-0420,DAT,Central Yard,North Museum,museum,minor,1086,DAT-LOC-0031,0.192,0.119,True,far_side,midday
+DAT-POI-0421,DAT,Kestrel Heights,Metro Business Park,office_park,neighborhood,777,DAT-LOC-0147,0.247,0.153,False,far_side,afternoon
+DAT-POI-0422,DAT,Harrow Point,North Harrow Corporate Center,office_park,major,1633,DAT-LOC-0165,0.301,0.187,False,far_side,evening
+DAT-POI-0423,DAT,Lakeside Loop,Lakeside Loop Entertainment District,entertainment_district,neighborhood,3414,DAT-LOC-0148,0.036,0.022,False,near_side,evening
+DAT-POI-0424,DAT,Union Flats,Union Flats Historic District,tourist_landmark,neighborhood,1531,DAT-LOC-0103,0.11,0.068,False,near_side,midday
+DAT-POI-0425,DAT,Harrow Point,Cedar Harrow Convention Center,hotel_convention,major,1987,DAT-LOC-0245,0.789,0.49,False,near_side,midday
+DAT-POI-0426,DAT,Bellwood,Grand Bellwood Nightlife Quarter,entertainment_district,major,7929,DAT-LOC-0244,0.537,0.334,False,far_side,evening
+DAT-POI-0427,DAT,Founders Square,Founders Square Residences,residential_tower,minor,427,DAT-LOC-0209,0.171,0.106,False,near_side,night
+DAT-POI-0428,DAT,Central Yard,Central Yard Corporate Center,office_park,neighborhood,2385,DAT-LOC-0081,0.071,0.044,True,far_side,evening
+DAT-POI-0429,DAT,Central Yard,Metro Central Fresh Market,grocery_anchor,neighborhood,2558,DAT-LOC-0081,0.317,0.197,True,near_side,evening
+DAT-POI-0430,DAT,Ashford Row,Ashford Row College,university,minor,208,DAT-LOC-0282,0.17,0.106,False,near_side,evening
+DAT-POI-0431,DAT,Union Flats,Metro Union Office Commons,office_park,major,4399,DAT-LOC-0003,0.227,0.141,True,near_side,morning
+DAT-POI-0432,DAT,Union Flats,Union Union Fresh Market,grocery_anchor,minor,608,DAT-LOC-0003,0.093,0.058,True,far_side,afternoon
+DAT-POI-0433,DAT,Union Flats,Parkview Union City Hall,government_building,neighborhood,759,DAT-LOC-0003,0.207,0.129,True,near_side,morning
+DAT-POI-0434,DAT,Union Flats,Ivy Union Galleria,shopping_mall,minor,462,DAT-LOC-0003,0.2,0.124,True,near_side,evening
+DAT-POI-0435,DAT,Central Yard,Summit Shopping Center,shopping_mall,major,9690,DAT-LOC-0071,0.497,0.309,True,near_side,evening
+DAT-POI-0436,DAT,Central Yard,South City Hall,government_building,neighborhood,5535,DAT-LOC-0071,0.087,0.054,True,near_side,morning
+DAT-POI-0437,DAT,Founders Square,Founders Square City Hall,government_building,neighborhood,1132,DAT-LOC-0299,0.314,0.195,False,near_side,evening
+DAT-POI-0438,DAT,Ashford Row,Landmark Medical Center,hospital,flagship,9928,DAT-LOC-0242,0.866,0.538,False,near_side,afternoon
+DAT-POI-0439,DAT,Northbank,Northbank Office Commons,office_park,minor,384,DAT-LOC-0170,0.17,0.106,False,far_side,afternoon
+DAT-POI-0440,DAT,Ashford Row,Ivy Ashford Corporate Center,office_park,flagship,10371,DAT-LOC-0212,1.02,0.634,False,far_side,morning
+DAT-POI-0441,DAT,Ashford Row,Metro Apartments,residential_tower,minor,127,DAT-LOC-0052,0.257,0.16,False,far_side,evening
+DAT-POI-0442,DAT,Ashford Row,Ashford Row Market,grocery_anchor,neighborhood,1312,DAT-LOC-0052,0.097,0.06,False,near_side,afternoon
+DAT-POI-0443,DAT,Kestrel Heights,Kestrel Heights Health Pavilion,hospital,major,2381,DAT-LOC-0027,0.208,0.129,True,near_side,evening
+DAT-POI-0444,DAT,Kestrel Heights,Kestrel Heights Galleria,shopping_mall,neighborhood,1370,DAT-LOC-0027,0.067,0.042,True,near_side,midday
+DAT-POI-0445,DAT,Kestrel Heights,Kestrel Heights Civic Center,government_building,minor,193,DAT-LOC-0027,0.154,0.096,True,far_side,morning
+DAT-POI-0446,DAT,Kestrel Heights,Crescent Apartments,residential_tower,major,3891,DAT-LOC-0027,0.124,0.077,True,far_side,evening
+DAT-POI-0447,DAT,Central Yard,Crescent Central Stadium,stadium_arena,flagship,10836,DAT-LOC-0241,0.113,0.07,True,near_side,evening
