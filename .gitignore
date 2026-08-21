@@ -1,1 +1,34 @@
-datasets/ridership_actuals.csv 
+# Large source data (provision separately)
+datasets/ridership_actuals.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Generated artifacts & local DB derivatives
+backend/artifacts/
+*.duckdb
+*.parquet
+
+# User-uploaded documents (keep the folder, not the contents)
+stage/*
+!stage/.gitkeep
+
+# OS / editor
+.DS_Store

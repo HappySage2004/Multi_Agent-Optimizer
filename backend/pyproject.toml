@@ -1,0 +1,49 @@
+[project]
+name = "transit-media-backend"
+version = "0.1.0"
+description = "Transit Media Campaign Recommendation System - FastAPI + LangGraph Deep Agents"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "python-multipart>=0.0.12",
+    "duckdb>=1.1",
+    "pandas>=2.2",
+    "pyarrow>=18.0",
+    "deepagents>=0.2",
+    "langchain-google-genai>=4.3",
+    "langgraph>=0.3",
+    "pulp>=2.9",
+    "scikit-learn>=1.5",
+    "lightgbm>=4.5",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.24", "ruff>=0.7", "httpx>=0.27"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "FURB", "ISC"]
+# Campaign dates and localDB timestamps are deliberately timezone-naive: the source
+# datasets carry date-only fields, and city timezones live in cities.csv when needed.
+ignore = ["ISC001"]
+
+[tool.ruff.lint.per-file-ignores]
+# B008: `File(...)`/`Form(...)` in argument defaults is the required FastAPI idiom.
+"app/api/uploads.py" = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,308 @@
+[
+  {
+    "id": "run-6fe4f55ba1f6",
+    "created_at": "2026-08-22T00:31:56",
+    "session_id": "ses-4cb0c6a17846",
+    "status": "validated",
+    "campaign_spec": {
+      "campaign_objective": "Consumer tech product launch targeting commuters aged 18-34 in Downtown Core",
+      "industry_vertical": "Consumer Tech",
+      "ad_type": "consumer tech product launch",
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": [
+          18,
+          34
+        ],
+        "income_range": null,
+        "occupations": [],
+        "commuter": true,
+        "other_attributes": {}
+      },
+      "start_date": "2026-10-01",
+      "duration_days": 30,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": "I have $50,000 for a 30-day campaign starting 2026-10-01 targeting commuters aged 18-34 in the Downtown Core zone of Las Hackland. Consumer tech product launch. Optimize for reach.",
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-5794c2a3761e",
+        "kind": "screen_candidates",
+        "path": "/Users/aaryanawadh/projects/Multi_Agent-Optimizer/backend/artifacts/screen_candidates-5794c2a3761e.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "reasons",
+          "hard_constraints_passed",
+          "city_id",
+          "zone_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 250,
+          "relevance_min": 0.7872,
+          "relevance_mean": 0.8263,
+          "relevance_max": 0.9512
+        },
+        "provenance": "stub",
+        "created_at": "2026-08-22T00:32:56.212252"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-f2169fb9f37c",
+        "kind": "screen_economics",
+        "path": "/Users/aaryanawadh/projects/Multi_Agent-Optimizer/backend/artifacts/screen_economics-f2169fb9f37c.parquet",
+        "rows": 750,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "availability",
+          "max_slots_per_day",
+          "demand_forecast",
+          "pricing",
+          "expected_impressions",
+          "expected_revenue",
+          "confidence"
+        ],
+        "summary": {
+          "rows": 750,
+          "screens": 250,
+          "time_blocks": [
+            "2",
+            "3",
+            "5"
+          ],
+          "price_mean": 105.21,
+          "impressions_per_slot_day_mean": 6000.5,
+          "confidence_min": 0.551
+        },
+        "provenance": "stub",
+        "created_at": "2026-08-22T00:33:17.747598"
+      }
+    },
+    "optimization": {
+      "status": "feasible",
+      "package": {
+        "allocations": [
+          {
+            "screen_id": "LH-SCR-003995",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 119.47,
+            "expected_impressions": 402468.0,
+            "expected_revenue": 1871.1
+          },
+          {
+            "screen_id": "LH-SCR-001984",
+            "time_block_id": "3",
+            "slots_per_day": 3,
+            "duration_days": 30,
+            "price_per_slot_per_day": 119.22,
+            "expected_impressions": 1188018.0000000002,
+            "expected_revenue": 6930.900000000001
+          },
+          {
+            "screen_id": "LH-SCR-005683",
+            "time_block_id": "3",
+            "slots_per_day": 3,
+            "duration_days": 30,
+            "price_per_slot_per_day": 116.63,
+            "expected_impressions": 1157561.9999999998,
+            "expected_revenue": 5538.6
+          },
+          {
+            "screen_id": "LH-SCR-004387",
+            "time_block_id": "5",
+            "slots_per_day": 3,
+            "duration_days": 30,
+            "price_per_slot_per_day": 117.12,
+            "expected_impressions": 1153151.9999999998,
+            "expected_revenue": 8619.3
+          },
+          {
+            "screen_id": "LH-SCR-001163",
+            "time_block_id": "2",
+            "slots_per_day": 2,
+            "duration_days": 30,
+            "price_per_slot_per_day": 122.59,
+            "expected_impressions": 795600.0,
+            "expected_revenue": 3886.8
+          },
+          {
+            "screen_id": "LH-SCR-001313",
+            "time_block_id": "5",
+            "slots_per_day": 2,
+            "duration_days": 30,
+            "price_per_slot_per_day": 119.63,
+            "expected_impressions": 769800.0,
+            "expected_revenue": 6441.0
+          }
+        ],
+        "total_cost": 49884.6,
+        "expected_impressions": 5466600.0,
+        "expected_reach": 3711201.629327902,
+        "expected_frequency": 1.473,
+        "budget_utilization": 0.9976920000000001,
+        "constraint_status": {
+          "budget": true,
+          "inventory": true,
+          "geography": true,
+          "campaign_dates": true,
+          "requested_num_screens": true
+        },
+        "objective_value": 5466600.0,
+        "optimization_method": "stub_greedy_value_density"
+      },
+      "infeasibility": null,
+      "solver_log": [
+        "objective=reach",
+        "candidate_lines=750",
+        "budget=50,000.00",
+        "duration_days=30",
+        "allocated_screens=6",
+        "spent=49,884.60"
+      ]
+    },
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "package_non_empty",
+          "status": "pass",
+          "detail": "Package contains 6 allocations.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "budget_respected",
+          "status": "pass",
+          "detail": "Recomputed package cost 49,884.60 against budget 50,000.00.",
+          "expected": "<= 50,000.00",
+          "observed": "49,884.60"
+        },
+        {
+          "name": "cost_reconciles",
+          "status": "pass",
+          "detail": "Reported total_cost matches the sum of price x slots x days over allocations.",
+          "expected": "49,884.60",
+          "observed": "49,884.60"
+        },
+        {
+          "name": "budget_utilization_reconciles",
+          "status": "pass",
+          "detail": "Reported budget_utilization matches recomputed cost / budget.",
+          "expected": "0.9977",
+          "observed": "0.9977"
+        },
+        {
+          "name": "impressions_reconcile",
+          "status": "pass",
+          "detail": "Reported expected_impressions matches the sum over allocations.",
+          "expected": "5,466,600",
+          "observed": "5,466,600"
+        },
+        {
+          "name": "reach_not_above_impressions",
+          "status": "pass",
+          "detail": "Deduplicated reach does not exceed gross impressions.",
+          "expected": "<= 5,466,600",
+          "observed": "3,711,202"
+        },
+        {
+          "name": "frequency_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_frequency matches impressions / reach.",
+          "expected": "1.473",
+          "observed": "1.473"
+        },
+        {
+          "name": "screens_exist",
+          "status": "pass",
+          "detail": "Every allocated screen_id exists in the inventory.",
+          "expected": "0 unknown",
+          "observed": "0 unknown"
+        },
+        {
+          "name": "time_blocks_valid",
+          "status": "pass",
+          "detail": "Every time_block_id exists in dim_slot.",
+          "expected": "one of ['1', '2', '3', '4', '5', '6']",
+          "observed": "0 invalid"
+        },
+        {
+          "name": "no_duplicate_allocations",
+          "status": "pass",
+          "detail": "Each (screen, time block) pair appears at most once.",
+          "expected": "0 duplicates",
+          "observed": "0 duplicates"
+        },
+        {
+          "name": "geography_eligible",
+          "status": "pass",
+          "detail": "All allocated screens fall inside the requested geography (1,601 eligible).",
+          "expected": "0 outside",
+          "observed": "0 outside"
+        },
+        {
+          "name": "duration_within_campaign",
+          "status": "pass",
+          "detail": "No allocation runs longer than the campaign duration.",
+          "expected": "<= 30 days",
+          "observed": "0 over"
+        },
+        {
+          "name": "start_date_not_in_past",
+          "status": "pass",
+          "detail": "Campaign starts 2026-10-01 (reference date 2026-08-22).",
+          "expected": ">= 2026-08-22",
+          "observed": "2026-10-01"
+        },
+        {
+          "name": "hard_constraints",
+          "status": "skipped",
+          "detail": "Spec declared no additional hard constraints.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "inventory_availability",
+          "status": "pass",
+          "detail": "Purchased slots never exceed available slots.",
+          "expected": "0 over-allocations",
+          "observed": "0 over-allocations"
+        },
+        {
+          "name": "model_confidence",
+          "status": "pass",
+          "detail": "Lowest per-screen model confidence is 0.55.",
+          "expected": ">= 0.30",
+          "observed": "0.55"
+        }
+      ]
+    },
+    "stub_stages": [
+      "screen_candidates",
+      "screen_economics"
+    ],
+    "updated_at": "2026-08-22T00:33:51"
+  }
+]
