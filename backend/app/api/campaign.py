@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from langchain_core.exceptions import (
     ModelAPIError,
@@ -20,11 +20,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agents.master import build_master_agent
 from app.agents.tracing import AgentRunLogger
-from app.api.schemas import CampaignQuery, CampaignRunOut
+from app.api.schemas import ArtifactRowsOut, CampaignQuery, CampaignRunOut
 from app.config import get_settings
 from app.logging_utils import error as log_error
 from app.logging_utils import info as log_info
-from app.services import local_db, run_state
+from app.services import artifact_store, local_db, run_state
 
 router = APIRouter(tags=["campaign"])
 
@@ -94,8 +94,7 @@ def _require_api_key() -> None:
         raise HTTPException(
             status_code=503,
             detail=(
-                "GEMINI_API_KEY is not configured. Set it in the repo-root .env "
-                "(or backend/.env)."
+                "GEMINI_API_KEY is not configured. Set it in the repo-root .env (or backend/.env)."
             ),
         )
 
@@ -127,18 +126,25 @@ def _latest_run_for_session(session_id: str) -> str | None:
     return max(runs, key=lambda r: r.get("created_at") or "")["id"]
 
 
+def _message_text(message: Any) -> str:
+    """Assistant text carried by one message, or "" if it carries none.
+
+    Gemini returns content blocks rather than a bare string, so keep only the `text`
+    blocks and drop thinking/tool_use. Shared by the blocking and streaming paths.
+    """
+    content = getattr(message, "content", None)
+    if getattr(message, "type", None) != "ai" or not content:
+        return ""
+    if isinstance(content, str):
+        return content.strip()
+    return "\n".join(
+        b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
+    ).strip()
+
+
 def _final_text(state: dict[str, Any]) -> str:
     for message in reversed(state.get("messages", [])):
-        content = getattr(message, "content", None)
-        if getattr(message, "type", None) != "ai" or not content:
-            continue
-        if isinstance(content, str):
-            return content
-        # Content blocks: keep the text, drop thinking/tool_use blocks.
-        text = "\n".join(
-            b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
-        ).strip()
-        if text:
+        if text := _message_text(message):
             return text
     return ""
 
@@ -197,6 +203,9 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
         agent = _agent_instance()
         tracer = AgentRunLogger(label=f"campaign/stream session={session_id}")
         tracer.start()
+        # `updates` mode carries progress, not the reply, so keep the latest assistant
+        # text as it goes past — the `done` event is where the UI reads the answer.
+        answer = ""
         try:
             async for update in agent.astream(
                 {"messages": [{"role": "user", "content": prompt}]},
@@ -205,6 +214,10 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
             ):
                 for node, delta in update.items():
                     yield _sse("update", {"node": node, "summary": _summarize(delta)})
+                    if isinstance(delta, dict):
+                        for message in delta.get("messages") or []:
+                            if text := _message_text(message):
+                                answer = text
         except ModelError as exc:
             log_error(f"stream aborted: {type(exc).__name__}")
             tracer.log_summary()
@@ -224,6 +237,7 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
             {
                 "session_id": session_id,
                 "run_id": run_id,
+                "answer": answer,
                 "run_state": run_state.snapshot(run_id) if run_id else None,
                 "token_usage": usage,
             },
@@ -265,3 +279,53 @@ def list_runs(session_id: str | None = None) -> list[dict]:
     if session_id:
         runs = [r for r in runs if r.get("session_id") == session_id]
     return [run_state.snapshot(r["id"]) for r in runs]
+
+
+@router.get("/runs/{run_id}/artifacts/{kind}", response_model=ArtifactRowsOut)
+def get_artifact_rows(
+    run_id: str,
+    kind: str,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 25,
+    screen_ids: Annotated[list[str] | None, Query()] = None,
+) -> ArtifactRowsOut:
+    """Rows of one run artifact, for the inspector panel.
+
+    A UI-only read path: the artifact stays on disk and out of every agent's context.
+    Rows come back in the artifact's own order, which is already ranked for
+    `screen_candidates`.
+
+    Pass `screen_ids` to pull the rows for specific screens — the ones in a package sit
+    anywhere in the artifact, so a plain top-N slice would mostly miss them. Filtering
+    happens before `limit`.
+    """
+    try:
+        ref = run_state.get_artifact(run_id, kind)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"No run '{run_id}'") from exc
+    if ref is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"Run '{run_id}' has no '{kind}' artifact yet — the producing stage has not run."
+            ),
+        )
+
+    try:
+        rows = artifact_store.read_rows(ref, limit=limit, screen_ids=screen_ids)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=410,
+            detail=f"Artifact '{ref.artifact_id}' is recorded but its file is gone.",
+        ) from exc
+
+    return ArtifactRowsOut(
+        run_id=run_id,
+        kind=kind,
+        artifact_id=ref.artifact_id,
+        provenance=ref.provenance,
+        total_rows=ref.rows,
+        returned_rows=len(rows),
+        columns=ref.columns,
+        summary=ref.summary,
+        rows=rows,
+    )

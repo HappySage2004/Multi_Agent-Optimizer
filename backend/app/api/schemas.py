@@ -40,6 +40,20 @@ class CampaignRunOut(BaseModel):
     )
 
 
+class ArtifactRowsOut(BaseModel):
+    """Top-N rows of one run artifact. Backs the inspector panel; never agent context."""
+
+    run_id: str
+    kind: str
+    artifact_id: str
+    provenance: str = "computed"
+    total_rows: int
+    returned_rows: int
+    columns: list[str] = []
+    summary: dict[str, Any] = {}
+    rows: list[dict[str, Any]] = []
+
+
 class UploadOut(BaseModel):
     id: str
     session_id: str

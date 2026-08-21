@@ -84,6 +84,29 @@ def read_artifact(ref: ArtifactReference | str) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
+def read_rows(
+    ref: ArtifactReference | str,
+    *,
+    limit: int | None = None,
+    screen_ids: Sequence[str] | None = None,
+) -> list[dict[str, Any]]:
+    """JSON-safe rows for the HTTP read path that backs the inspector panel.
+
+    Row-level data still never crosses an agent boundary — this exists for the UI only.
+    Ordering is the artifact's own, which is already ranked for `screen_candidates`.
+
+    `screen_ids` filters before `limit`, which is what lets the UI pull the rows for the
+    screens actually in a package: those sit anywhere in the artifact, so a plain top-N
+    slice would mostly miss them.
+    """
+    df = read_artifact(ref)
+    if screen_ids is not None and "screen_id" in df.columns:
+        df = df[df["screen_id"].isin(list(screen_ids))]
+    if limit is not None:
+        df = df.head(limit)
+    return [_pythonize(rec) for rec in df.to_dict(orient="records")]
+
+
 def read_models(ref: ArtifactReference | str, model: type[T]) -> list[T]:
     """Rehydrate an artifact into its Pydantic contract type."""
     df = read_artifact(ref)

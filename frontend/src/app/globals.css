@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Thin scrollbars, matching UI-handoff.html. */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-zinc-200);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-zinc-300);
+}
+
+/* Column-resize handles between the three panels. */
+.resizer {
+  width: 4px;
+  cursor: col-resize;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+}
+.resizer:hover,
+.resizer[data-dragging="true"] {
+  background-color: var(--color-violet-950);
+}
+
+/* While dragging, keep the cursor and kill text selection across the whole document. */
+body[data-resizing="true"] {
+  cursor: col-resize;
+  user-select: none;
+}
