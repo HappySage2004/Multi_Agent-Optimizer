@@ -5,6 +5,11 @@ subagents. Every check here runs in Python against reference data — an LLM nev
 whether a constraint was met, and cannot reason a violation away.
 
 Covers the checklist in SOLUTION.md section 18.
+
+Two checks deliberately recompute rather than trust: `cost_reconciles` re-derives
+sum(price x slots x days) from the allocations, and `reach_reconciles` re-derives
+deduplicated reach from the pool_key groups. Both exist because those are the two numbers
+an optimizer can most plausibly overstate.
 """
 
 from __future__ import annotations
@@ -61,6 +66,7 @@ def validate_package(
 
     checks.extend(_cost_checks(spec, package))
     checks.extend(_reconciliation_checks(package))
+    checks.extend(_reach_checks(package, economics))
     checks.extend(_inventory_checks(package))
     checks.extend(_geography_checks(spec, package))
     checks.extend(_date_checks(spec, package, today=today))
@@ -107,34 +113,34 @@ def _cost_checks(spec: CampaignSpec, package: OptimizedPackage) -> list[Validati
 
 
 def _reconciliation_checks(package: OptimizedPackage) -> list[ValidationCheck]:
-    impressions = sum(a.expected_impressions for a in package.allocations)
+    exposures = sum(a.viewed_exposures for a in package.allocations)
     checks = [
         _check(
             "impressions_reconcile",
-            abs(impressions - package.expected_impressions) <= _tol(impressions),
-            "Reported expected_impressions matches the sum over allocations.",
-            f"{impressions:,.0f}",
-            f"{package.expected_impressions:,.0f}",
+            abs(exposures - package.gross_impressions_viewed) <= _tol(exposures),
+            "Reported gross_impressions_viewed matches the sum over allocations.",
+            f"{exposures:,.0f}",
+            f"{package.gross_impressions_viewed:,.0f}",
         )
     ]
 
-    # Reach is deduplicated exposure, so it can never exceed gross impressions.
+    # Reach is deduplicated exposure, so it can never exceed gross exposures.
     if package.expected_reach:
         checks.append(
             _check(
                 "reach_not_above_impressions",
-                package.expected_reach <= package.expected_impressions + _tol(impressions),
-                "Deduplicated reach does not exceed gross impressions.",
-                f"<= {package.expected_impressions:,.0f}",
+                package.expected_reach <= package.gross_impressions_viewed + _tol(exposures),
+                "Deduplicated reach does not exceed gross viewed exposures.",
+                f"<= {package.gross_impressions_viewed:,.0f}",
                 f"{package.expected_reach:,.0f}",
             )
         )
-        implied_frequency = package.expected_impressions / package.expected_reach
+        implied_frequency = package.gross_impressions_viewed / package.expected_reach
         checks.append(
             _check(
                 "frequency_reconciles",
                 abs(implied_frequency - package.expected_frequency) <= 0.01,
-                "Reported expected_frequency matches impressions / reach.",
+                "Reported expected_frequency matches viewed exposures / reach.",
                 f"{implied_frequency:.3f}",
                 f"{package.expected_frequency:.3f}",
             )
@@ -142,6 +148,99 @@ def _reconciliation_checks(package: OptimizedPackage) -> list[ValidationCheck]:
     else:
         checks.append(_skip("frequency_reconciles", "No expected_reach reported."))
     return checks
+
+
+def _reach_checks(
+    package: OptimizedPackage, economics: list[ScreenEconomics] | None
+) -> list[ValidationCheck]:
+    """Recompute deduplicated reach from the economics and compare it to the optimizer's.
+
+    This is the check that catches an over-counted audience — the single easiest number in
+    this system to inflate, because summing per-screen impressions looks reasonable and
+    over-states reach by ~23x on a realistic pool. Screens sharing a `pool_key` see the
+    same people, so each (pool, time block) group's bought exposure is capped at that
+    group's REACHABLE daily audience — the share who look at the screen, since the exposures
+    being capped are viewed exposures.
+
+    Keep this definition in step with `or_agent_tools._package_metrics`. The point is that
+    two independent implementations agree, so do not import one into the other.
+    """
+    if not economics:
+        return [
+            _skip(
+                "reach_reconciles",
+                "No ScreenEconomics supplied — deduplicated reach could not be "
+                "independently recomputed.",
+            )
+        ]
+    if not package.expected_reach:
+        return [_skip("reach_reconciles", "Package reports no expected_reach.")]
+
+    lookup = {(e.screen_id, str(e.time_block_id)): e for e in economics}
+    grouped: dict[tuple[str, str], float] = {}
+    caps: dict[tuple[str, str], float] = {}
+    unmatched = 0
+    for a in package.allocations:
+        line = lookup.get((a.screen_id, str(a.time_block_id)))
+        if line is None:
+            unmatched += 1
+            continue
+        key = (line.pool_key or line.screen_id, str(a.time_block_id))
+        grouped[key] = grouped.get(key, 0.0) + a.viewed_exposures
+        caps[key] = max(caps.get(key, 0.0), line.reachable_daily_audience)
+
+    if unmatched:
+        return [
+            _check(
+                "reach_reconciles",
+                False,
+                f"{unmatched} allocation(s) have no matching screen_economics line, so "
+                f"reach cannot be verified.",
+                "0 unmatched",
+                f"{unmatched} unmatched",
+            )
+        ]
+
+    recomputed = sum(min(gross, caps.get(key, 0.0)) for key, gross in grouped.items())
+    checks = [
+        _check(
+            "reach_reconciles",
+            abs(recomputed - package.expected_reach) <= max(1.0, _tol(recomputed)),
+            "Reported expected_reach matches reach recomputed from pool_key groups, each "
+            "capped at its reachable daily audience.",
+            f"{recomputed:,.0f}",
+            f"{package.expected_reach:,.0f}",
+        )
+    ]
+    checks.extend(_curve_reach_guard(package, caps))
+    return checks
+
+
+def _curve_reach_guard(
+    package: OptimizedPackage, caps: dict[tuple[str, str], float]
+) -> list[ValidationCheck]:
+    """Bound the solver's saturation-curve diagnostic without depending on its constant.
+
+    `curve_reach_diagnostic` comes from `P x (1 - exp(-lambda x E / P))`, and lambda is
+    ASSUMED. Re-deriving that formula here would validate nothing about the only real
+    unknown in it, so this checks the two things that hold for ANY lambda: reach can exceed
+    neither the exposures bought nor the people available to be reached. It catches the
+    over-count class — pool misalignment inflating a diagnostic that then gets quoted.
+    """
+    if package.curve_reach_diagnostic is None:
+        return [_skip("curve_reach_bounded", "Package reports no curve_reach_diagnostic.")]
+    ceiling = min(package.gross_impressions_viewed, sum(caps.values()))
+    curve = package.curve_reach_diagnostic
+    return [
+        _check(
+            "curve_reach_bounded",
+            curve <= ceiling + max(1.0, _tol(ceiling)),
+            "Solver curve reach stays within min(gross viewed exposures, reachable "
+            "audience) — a bound that holds for any saturation constant.",
+            f"<= {ceiling:,.0f}",
+            f"{curve:,.0f}",
+        )
+    ]
 
 
 # --- inventory, geography, dates ----------------------------------------------
@@ -387,16 +486,23 @@ def _availability_checks(
 
 
 def _confidence_checks(economics: list[ScreenEconomics] | None) -> list[ValidationCheck]:
+    """SOLUTION.md section 18 check 6.
+
+    Skipped rather than evaluated: no stage produces a per-screen confidence today. The
+    pricing engine reports its trust signals differently — segmentation depth and sample
+    size per row in `assumptions`, and a price-coefficient sign check on the
+    booking-probability model as a whole (see `describe_pricing_model`). Gating on the
+    contract's defaulted 0.5 would report a pass that means nothing. Restore the gate when
+    a stage emits a real confidence.
+    """
     if not economics:
         return [_skip("model_confidence", "No ScreenEconomics supplied.")]
-    worst = min(e.confidence for e in economics)
     return [
-        _check(
+        _skip(
             "model_confidence",
-            worst >= MIN_ACCEPTABLE_CONFIDENCE,
-            f"Lowest per-screen model confidence is {worst:.2f}.",
-            f">= {MIN_ACCEPTABLE_CONFIDENCE:.2f}",
-            f"{worst:.2f}",
+            "No stage emits a per-screen confidence; not gating on the contract default. "
+            "Pricing trust signals are per-row assumptions plus the booking-probability "
+            "sign check.",
         )
     ]
 

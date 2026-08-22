@@ -3,11 +3,11 @@
 /**
  * D1: Audience Profiling Engine (UI.md §2 Panel 3).
  *
- * The mockup's "proximity clusters" and 24-hour footfall sparkline come from POI and
- * ridership features the Data Agent owns. What the API exposes today is the resolved
- * spec, the candidate-pool aggregates, and per-time-block demand from the economics
- * rows — so the chart plots forecast impression share by real `dim_slot` block, and the
- * cluster tags reflect the inventory mix actually in the candidate pool.
+ * The mockup's "proximity clusters" and 24-hour footfall sparkline come from the POI and
+ * ridership features the relevance engine builds. What the API exposes today is the
+ * resolved spec, the candidate-pool aggregates, and per-time-block audience volume from
+ * the economics rows — so the chart plots impression share by real `dim_slot` block, and
+ * the cluster tags reflect the inventory mix actually in the candidate pool.
  */
 
 import {
@@ -54,7 +54,7 @@ export function TabAudienceD1({
         title="Audience Profiling"
         badge={candidatesRef ? "Active" : "Pending"}
         badgeTone={candidatesRef ? "active" : "neutral"}
-        description="Inferred from the resolved brief, the eligible inventory, and per-time-block demand forecasts."
+        description="Inferred from the resolved brief, the eligible inventory, and per-time-block transit ridership."
       />
 
       <InspectorSection title="Resolved Brief" meta={spec.optimization_goal.toUpperCase()}>
@@ -92,7 +92,7 @@ export function TabAudienceD1({
           meta={`${formatNumber(candidatesRef.rows)} screens`}
         >
           {candidatesRef.provenance === "stub" ? (
-            <StubNotice stage="Relevance scoring (Data Agent)" />
+            <StubNotice stage="Relevance scoring (relevance engine)" />
           ) : null}
           <div className="grid grid-cols-2 gap-2 text-[11px]">
             <Stat
@@ -142,7 +142,7 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
       <InspectorSection title="Inventory Mix">
         <p className="text-[10px] leading-relaxed text-zinc-400">
           Populated from the <code className="font-mono">screen_candidates</code> artifact once
-          the Data Agent has run.
+          the relevance engine has run.
         </p>
       </InspectorSection>
     );
@@ -172,11 +172,11 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
               key={type}
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium ${
                 primary
-                  ? "bg-zinc-700 text-zinc-100"
+                  ? "border border-zinc-800 bg-zinc-50 text-zinc-800"
                   : "border border-zinc-200/50 bg-zinc-100/70 text-zinc-600"
               }`}
             >
-              <Icon className={`h-3 w-3 ${primary ? "text-violet-300" : "text-zinc-400"}`} />
+              <Icon className={`h-3 w-3 ${primary ? "text-violet-950" : "text-zinc-400"}`} />
               {titleCase(type)} ({count})
             </span>
           );

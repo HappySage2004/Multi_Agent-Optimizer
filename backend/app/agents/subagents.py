@@ -1,8 +1,16 @@
-"""The three specialist subagents.
+"""Aggregator for the specialist subagents.
 
-Each is a thin delegation shell over its tool module. The tools are where the real work
-happens (or, today, where the stub lives) — so integrating a teammate's implementation
-means replacing a tool module, not touching this file.
+One module per agent — `ml_agent.py`, `or_agent.py` — each holding its name, description,
+system prompt and `build()`. This file only assembles them in pipeline order, so
+`master.py` has a single import regardless of how many specialists exist.
+
+There is no data/relevance subagent. Stage 2 is the deterministic audience relevance engine
+in `app/tools/relevance_tools.py`, which the Master Agent calls directly: an LLM shell
+around a fixed calculation adds latency and a chance to paraphrase numbers wrongly, and
+SOLUTION.md section 31.2 puts calculation in tools rather than agents. Delegation is
+reserved for the stages where a specialist genuinely reasons about its own output.
+
+The name constants are re-exported because tests and logging refer to them.
 """
 
 from __future__ import annotations
@@ -10,51 +18,17 @@ from __future__ import annotations
 from deepagents import SubAgent
 from langchain_core.language_models import BaseChatModel
 
-from app.agents.prompts import DATA_AGENT_PROMPT, ML_AGENT_PROMPT, OR_AGENT_PROMPT
-from app.tools import data_agent_tools, ml_agent_tools, or_agent_tools
+from app.agents import ml_agent, or_agent
 
-DATA_AGENT = "data_agent"
-ML_AGENT = "ml_agent"
-OR_AGENT = "or_agent"
+ML_AGENT = ml_agent.NAME
+OR_AGENT = or_agent.NAME
+
+__all__ = ["ML_AGENT", "OR_AGENT", "build_subagents"]
 
 
 def build_subagents(model: str | BaseChatModel) -> list[SubAgent]:
-    """Specs for the Data, ML and OR agents, in pipeline order."""
+    """Specs for the ML and OR agents, in pipeline order."""
     return [
-        SubAgent(
-            name=DATA_AGENT,
-            description=(
-                "Data Intelligence Agent. Resolves campaign geography against real "
-                "inventory, engineers screen-level features, and returns a ranked "
-                "candidate pool as an artifact reference. Delegate stage 2, before any "
-                "forecasting or optimization."
-            ),
-            system_prompt=DATA_AGENT_PROMPT,
-            tools=data_agent_tools.TOOLS,
-            model=model,
-        ),
-        SubAgent(
-            name=ML_AGENT,
-            description=(
-                "ML / Forecasting Agent. Forecasts demand and recommends pricing for "
-                "the candidate screens, returning a screen_economics artifact "
-                "reference. Delegate stage 3, after the Data Agent and before the OR "
-                "Agent."
-            ),
-            system_prompt=ML_AGENT_PROMPT,
-            tools=ml_agent_tools.TOOLS,
-            model=model,
-        ),
-        SubAgent(
-            name=OR_AGENT,
-            description=(
-                "OR / Optimization Agent. Selects the inventory package that maximizes "
-                "the campaign objective under budget, availability, geography and date "
-                "constraints, or returns an explicit infeasibility report. Delegate "
-                "stage 4, after the ML Agent."
-            ),
-            system_prompt=OR_AGENT_PROMPT,
-            tools=or_agent_tools.TOOLS,
-            model=model,
-        ),
+        ml_agent.build(model),
+        or_agent.build(model),
     ]

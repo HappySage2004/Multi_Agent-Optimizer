@@ -47,12 +47,13 @@ export interface PackageMetrics {
   budget: number;
   /** Optimizer's own figure, not recomputed. */
   budgetUtilization: number;
-  expectedImpressions: number;
+  /** Gross VIEWED exposures. Never label this as people in the UI. */
+  grossImpressionsViewed: number;
   expectedReach: number;
   expectedFrequency: number;
   screenCount: number;
   allocationCount: number;
-  /** Cost per thousand impressions. The one derived ratio, from cost and impressions. */
+  /** Cost per thousand VIEWED exposures. The one derived ratio, from cost and exposures. */
   effectiveCpm: number | null;
   /** Screen counts by `screen_type`, resolved through the candidate rows. */
   screenTypeBreakdown: { label: string; count: number }[];
@@ -78,13 +79,15 @@ export function packageMetrics(
     totalCost: pkg.total_cost,
     budget: spec.budget,
     budgetUtilization: pkg.budget_utilization,
-    expectedImpressions: pkg.expected_impressions,
+    grossImpressionsViewed: pkg.gross_impressions_viewed,
     expectedReach: pkg.expected_reach,
     expectedFrequency: pkg.expected_frequency,
     screenCount: screenIds.size,
     allocationCount: pkg.allocations.length,
     effectiveCpm:
-      pkg.expected_impressions > 0 ? (pkg.total_cost / pkg.expected_impressions) * 1000 : null,
+      pkg.gross_impressions_viewed > 0
+        ? (pkg.total_cost / pkg.gross_impressions_viewed) * 1000
+        : null,
     screenTypeBreakdown: [...counts.entries()]
       .map(([label, count]) => ({ label, count }))
       .sort((a, b) => b.count - a.count),
@@ -112,8 +115,12 @@ export interface TimeBlockRollup {
   cost: number;
   /** Share of total package impressions, 0-1. Drives the D1 bar heights. */
   impressionShare: number;
-  /** Mean `demand_index` over the economics rows for this block, if priced. */
-  demandIndex: number | null;
+  /**
+   * Mean committed-slot fraction across the flight for this block's priced screens, 0-1.
+   * This is real market occupancy from live bookings — how much of the inventory is
+   * already sold. Not to be confused with audience volume.
+   */
+  marketOccupancy: number | null;
   /** Mean recommended price over the economics rows for this block, if priced. */
   meanPrice: number | null;
   /** Bought slots as a share of forecast available slots, 0-1, if both are known. */
@@ -128,13 +135,14 @@ export function timeBlockRollups(
   allocations: Allocation[],
   economics: ScreenEconomics[] = [],
 ): TimeBlockRollup[] {
-  const totalImpressions = allocations.reduce((sum, a) => sum + a.expected_impressions, 0);
+  const totalImpressions = allocations.reduce((sum, a) => sum + a.viewed_exposures, 0);
 
   return TIME_BLOCKS.map(({ id, label }) => {
     const blockAllocations = allocations.filter((a) => a.time_block_id === id);
-    const blockEconomics = economics.filter((e) => e.time_block_id === id);
+    // Infeasible rows carry no pricing, so every aggregate below must exclude them.
+    const blockEconomics = economics.filter((e) => e.time_block_id === id && e.feasible);
 
-    const impressions = blockAllocations.reduce((sum, a) => sum + a.expected_impressions, 0);
+    const impressions = blockAllocations.reduce((sum, a) => sum + a.viewed_exposures, 0);
     const boughtSlots = blockAllocations.reduce((sum, a) => sum + a.slots_per_day, 0);
 
     // Capacity is only meaningful for the screens actually in the package.
@@ -154,8 +162,12 @@ export function timeBlockRollups(
       impressions,
       cost: blockAllocations.reduce((sum, a) => sum + lineCost(a), 0),
       impressionShare: totalImpressions > 0 ? impressions / totalImpressions : 0,
-      demandIndex: mean(blockEconomics.map((e) => e.demand_forecast.demand_index)),
-      meanPrice: mean(blockEconomics.map((e) => e.pricing.recommended_price)),
+      marketOccupancy: mean(
+        blockEconomics.map((e) => e.occupancy_rate).filter((v): v is number => v !== null),
+      ),
+      meanPrice: mean(
+        blockEconomics.map((e) => e.pricing?.recommended_price ?? null).filter((v): v is number => v !== null),
+      ),
       occupancy: availableSlots > 0 ? boughtSlots / availableSlots : null,
     };
   });
@@ -183,11 +195,13 @@ export function priceGuardrail(
   economics: ScreenEconomics[],
   allocations: Allocation[] = [],
 ): PriceGuardrail | null {
-  if (economics.length === 0) return null;
+  // Only feasible rows have a band; sold-out rows carry `pricing: null`.
+  const priced = economics.filter((e) => e.feasible && e.pricing !== null);
+  if (priced.length === 0) return null;
 
-  const floor = mean(economics.map((e) => e.pricing.floor));
-  const target = mean(economics.map((e) => e.pricing.target));
-  const cap = mean(economics.map((e) => e.pricing.cap));
+  const floor = mean(priced.map((e) => e.pricing!.floor));
+  const target = mean(priced.map((e) => e.pricing!.target));
+  const cap = mean(priced.map((e) => e.pricing!.cap));
   if (floor === null || target === null || cap === null) return null;
 
   const slots = allocations.reduce((sum, a) => sum + a.slots_per_day * a.duration_days, 0);
@@ -199,8 +213,8 @@ export function priceGuardrail(
     cap,
     paid,
     paidPosition: paid !== null && cap > floor ? clamp01((paid - floor) / (cap - floor)) : null,
-    screensPriced: new Set(economics.map((e) => e.screen_id)).size,
-    meanBookingProbability: mean(economics.map((e) => e.pricing.booking_probability)),
+    screensPriced: new Set(priced.map((e) => e.screen_id)).size,
+    meanBookingProbability: mean(priced.map((e) => e.pricing!.booking_probability)),
   };
 }
 
@@ -244,7 +258,7 @@ export function rotationRows(
       slots: Array.from({ length: ROTATION_LOOP_SLOTS }, (_, i) => i < a.slots_per_day),
       pricePerSlotPerDay: a.price_per_slot_per_day,
       lineCost: lineCost(a),
-      expectedImpressions: a.expected_impressions,
+      expectedImpressions: a.viewed_exposures,
       relevanceScore: relevance.get(a.screen_id) ?? null,
     }))
     .sort((a, b) => b.expectedImpressions - a.expectedImpressions);

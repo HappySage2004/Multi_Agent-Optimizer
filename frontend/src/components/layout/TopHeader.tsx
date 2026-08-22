@@ -27,7 +27,10 @@ export function TopHeader({
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-zinc-100 bg-white px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <h1 className="truncate text-xs font-bold tracking-wider text-zinc-700 uppercase">
+        <h1
+          className="truncate text-[13px] font-semibold tracking-tight text-zinc-900"
+          title={title}
+        >
           {title}
         </h1>
         <StatusBadge status={status} hasPackage={hasPackage} />
@@ -50,7 +53,7 @@ export function TopHeader({
           type="button"
           onClick={onExport}
           disabled={!hasPackage}
-          className="flex items-center gap-1.5 rounded-lg bg-zinc-700 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-zinc-600 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-50 px-3.5 py-1.5 text-xs font-semibold text-zinc-800 shadow-xs transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-white disabled:text-zinc-300"
         >
           <DownloadDocIcon className="h-3.5 w-3.5" />
           <span>Export Proposal PDF</span>

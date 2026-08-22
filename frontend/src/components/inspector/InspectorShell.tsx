@@ -61,7 +61,7 @@ export function Badge({
   const tones = {
     neutral: "bg-zinc-100/70 text-zinc-600 border border-zinc-200/50",
     active: "bg-emerald-50 text-emerald-700 border border-emerald-200/60",
-    dark: "bg-zinc-700 text-white",
+    dark: "bg-zinc-50 text-zinc-800 border border-zinc-800",
     warning: "bg-amber-50 text-amber-700 border border-amber-200/60",
   } as const;
   return (

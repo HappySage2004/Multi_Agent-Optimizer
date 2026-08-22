@@ -37,6 +37,13 @@ import type {
   Upload,
 } from "@/lib/types";
 
+/**
+ * The placeholder a session carries until a brief names it. The backend renames the
+ * session when a run starts (`_ensure_session`), so this is what the client sees only
+ * before the first brief.
+ */
+const DEFAULT_SESSION_TITLE = "New Campaign";
+
 /** Ranked rows pulled for the D2 candidate list. */
 const RANKED_ROW_LIMIT = 60;
 /**
@@ -389,6 +396,15 @@ export function useCampaignRun() {
               }
             },
             onDone: (event) => {
+              // The backend named the session from this brief; adopt its title so the
+              // sidebar and the header agree with what is on disk.
+              if (event.session_title) {
+                setSessions((prev) =>
+                  prev.map((s) =>
+                    s.id === sessionId ? { ...s, title: event.session_title as string } : s,
+                  ),
+                );
+              }
               seen.add("verification");
               setCompletedStages([...seen, "recommendation"]);
               setActiveStage(null);
@@ -445,14 +461,30 @@ export function useCampaignRun() {
     [activeStage, completedStages],
   );
 
+  /**
+   * Sidebar titles. The backend names a session from the brief the moment a run starts,
+   * but that name only reaches the client on the `done` event a minute or so later. Until
+   * then a still-unnamed session borrows its first user message, which the row shortens
+   * with CSS — so there is no second copy of the backend's title heuristic over here.
+   */
+  const displaySessions = useMemo(
+    () =>
+      sessions.map((session) => {
+        if (session.title !== DEFAULT_SESSION_TITLE) return session;
+        const brief = transcripts[session.id]?.find((m) => m.role === "user")?.text.trim();
+        return brief ? { ...session, title: brief } : session;
+      }),
+    [sessions, transcripts],
+  );
+
   const activeSession = useMemo(
-    () => sessions.find((s) => s.id === activeSessionId) ?? null,
-    [sessions, activeSessionId],
+    () => displaySessions.find((s) => s.id === activeSessionId) ?? null,
+    [displaySessions, activeSessionId],
   );
 
   return {
     health,
-    sessions,
+    sessions: displaySessions,
     activeSession,
     activeSessionId,
     messages,

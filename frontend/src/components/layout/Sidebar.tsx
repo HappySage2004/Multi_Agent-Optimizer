@@ -107,10 +107,13 @@ function SessionRow({
         type="button"
         onClick={onSelect}
         className="flex min-w-0 flex-1 items-center gap-2 p-2 text-left"
+        title={session.title}
       >
         <ChatIcon
           className={`h-3.5 w-3.5 shrink-0 ${active ? "text-violet-950" : "text-zinc-400"}`}
         />
+        {/* A title named after the brief is longer than the rail; truncate and let the
+            tooltip carry the rest. */}
         <span className={`truncate text-[11px] ${active ? "font-semibold" : ""}`}>
           {session.title}
         </span>

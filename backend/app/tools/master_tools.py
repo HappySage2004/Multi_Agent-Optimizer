@@ -15,7 +15,7 @@ from pydantic import ValidationError
 from app.agents.validation import validate_explanations, validate_package
 from app.data.reference import resolve_geography, screen_facts
 from app.logging_utils import debug, error, info
-from app.models.campaign import AudienceTarget, CampaignSpec
+from app.models.campaign import AUDIENCE_TERMS, AudienceTarget, CampaignSpec
 from app.models.economics import ScreenEconomics
 from app.services import run_state
 from app.services.artifact_store import read_models
@@ -64,6 +64,8 @@ def create_campaign_spec(
     audience_age_min: int | None = None,
     audience_age_max: int | None = None,
     audience_commuter: bool | None = None,
+    audience_terms: list[str] | None = None,
+    day_type_focus: str | None = None,
     requested_num_screens: int | None = None,
     preferred_time_blocks: list[str] | None = None,
     preferred_dayparts: list[str] | None = None,
@@ -94,6 +96,15 @@ def create_campaign_spec(
         audience_age_min: Lower bound of the target age range.
         audience_age_max: Upper bound of the target age range.
         audience_commuter: True when the brief targets commuters specifically.
+        audience_terms: Audience segments the relevance engine scores against. Choose only
+            from: young_professionals, professionals, students, families, high_income,
+            commuters. Anything else is rejected — do not invent a segment. Pick every
+            term the brief supports ("young commuters" -> both young_professionals and
+            commuters). Leaving this empty makes every screen score a neutral 0.5 on
+            audience match, so infer it whenever the brief describes who it targets.
+        day_type_focus: "weekday" or "weekend" when the brief clearly weights one.
+            Weekday and weekend ridership differ by roughly 6x. Omit if the brief does not
+            say.
         requested_num_screens: Exact screen count, only if the brief demands one.
         preferred_time_blocks: dim_slot time_block_ids, "1".."6".
         preferred_dayparts: Named dayparts, e.g. ["morning", "evening"].
@@ -120,6 +131,8 @@ def create_campaign_spec(
             industry_vertical=industry_vertical,
             ad_type=ad_type,
             target_audience=AudienceTarget(age_range=age_range, commuter=audience_commuter),
+            audience_terms=audience_terms or [],
+            day_type_focus=day_type_focus,  # type: ignore[arg-type]
             requested_num_screens=requested_num_screens,
             preferred_time_blocks=[str(b) for b in (preferred_time_blocks or [])],
             preferred_dayparts=preferred_dayparts or [],
@@ -134,6 +147,7 @@ def create_campaign_spec(
             "status": "invalid",
             "errors": str(exc),
             "detail": "Fix the brief or ask the user — do not retry with invented values.",
+            "audience_terms_allowed": list(AUDIENCE_TERMS),
         }
 
     unknown = _unknown_geography_ids(spec)
@@ -170,6 +184,8 @@ def create_campaign_spec(
             "budget": spec.budget,
             "requested_num_screens": spec.requested_num_screens,
             "preferred_time_blocks": spec.preferred_time_blocks,
+            "audience_terms": spec.audience_terms,
+            "day_type_focus": spec.day_type_focus,
             "hard_constraints": spec.hard_constraints,
         },
         "missing_information": spec.missing_information,
@@ -235,11 +251,10 @@ def verify_package(run_id: str) -> dict:
     run_state.set_validation(run_id, payload)
 
     if validation.passed:
-        info(f"STAGE 5 verification PASSED ({len(validation.checks)} checks) run_id={run_id}")
+        info(f"STAGE 6 verification PASSED ({len(validation.checks)} checks) run_id={run_id}")
     else:
         error(
-            f"STAGE 5 verification FAILED run_id={run_id}: "
-            f"{[c.name for c in validation.failures]}"
+            f"STAGE 6 verification FAILED run_id={run_id}: {[c.name for c in validation.failures]}"
         )
         for check in validation.failures:
             error(f"  {check.name}: expected {check.expected}, observed {check.observed}")
@@ -263,7 +278,7 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
 
     Args:
         run_id: Handle for the campaign run.
-        limit: How many allocation lines to return, highest impressions first.
+        limit: How many allocation lines to return, highest viewed exposures first.
     """
     try:
         result = run_state.get_optimization(run_id)
@@ -274,7 +289,7 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
 
     pkg = result.package
     facts = screen_facts()
-    top = sorted(pkg.allocations, key=lambda a: -a.expected_impressions)[:limit]
+    top = sorted(pkg.allocations, key=lambda a: -a.viewed_exposures)[:limit]
 
     zones = {facts[s].zone_id for s in pkg.screen_ids if s in facts and facts[s].zone_id}
     types: dict[str, int] = {}
@@ -289,7 +304,7 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
             "allocations": len(pkg.allocations),
             "total_cost": round(pkg.total_cost, 2),
             "budget_utilization": round(pkg.budget_utilization, 4),
-            "expected_impressions": round(pkg.expected_impressions, 0),
+            "gross_impressions_viewed": round(pkg.gross_impressions_viewed, 0),
             "expected_reach": round(pkg.expected_reach, 0),
             "expected_frequency": round(pkg.expected_frequency, 3),
             "optimization_method": pkg.optimization_method,
@@ -305,7 +320,7 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
                 "duration_days": a.duration_days,
                 "price_per_slot_per_day": a.price_per_slot_per_day,
                 "line_cost": round(a.line_cost, 2),
-                "expected_impressions": round(a.expected_impressions, 0),
+                "viewed_exposures": round(a.viewed_exposures, 0),
             }
             for a in top
         ],

@@ -56,7 +56,10 @@ export function StrategySummaryCard({
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 text-[10px] sm:grid-cols-4">
         <Fact label="Solver" value={metrics.optimizationMethod} />
-        <Fact label="Impressions" value={formatCompact(metrics.expectedImpressions)} />
+        <Fact
+          label="Viewed exposures"
+          value={formatCompact(metrics.grossImpressionsViewed)}
+        />
         <Fact label="Spend" value={formatCurrency(metrics.totalCost)} />
         <Fact
           label="Objective"

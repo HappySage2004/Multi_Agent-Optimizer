@@ -24,7 +24,7 @@ from app.api.schemas import ArtifactRowsOut, CampaignQuery, CampaignRunOut
 from app.config import get_settings
 from app.logging_utils import error as log_error
 from app.logging_utils import info as log_info
-from app.services import artifact_store, local_db, run_state
+from app.services import artifact_store, local_db, run_state, session_titles
 
 router = APIRouter(tags=["campaign"])
 
@@ -99,12 +99,15 @@ def _require_api_key() -> None:
         )
 
 
-def _ensure_session(session_id: str | None) -> str:
+def _ensure_session(session_id: str | None, query: str) -> str:
+    """Resolve the session for this run, naming it after the brief if it is still unnamed."""
     if session_id:
         if local_db.get_record(local_db.SESSIONS, session_id) is None:
             raise HTTPException(status_code=404, detail=f"No session '{session_id}'")
+        session_titles.name_if_unnamed(session_id, query)
         return session_id
-    return local_db.insert(local_db.SESSIONS, {"title": "New Campaign"})["id"]
+    created = local_db.insert(local_db.SESSIONS, {"title": session_titles.title_from_text(query)})
+    return created["id"]
 
 
 def _build_prompt(payload: CampaignQuery, session_id: str) -> str:
@@ -153,7 +156,7 @@ def _final_text(state: dict[str, Any]) -> str:
 async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
     """Run the full orchestration for a brief and return the final recommendation."""
     _require_api_key()
-    session_id = _ensure_session(payload.session_id)
+    session_id = _ensure_session(payload.session_id, payload.query)
 
     tracer = AgentRunLogger(label=f"campaign/run session={session_id}")
     tracer.start()
@@ -183,6 +186,7 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 
     return CampaignRunOut(
         session_id=session_id,
+        session_title=session_titles.title_of(session_id),
         run_id=run_id,
         answer=_final_text(state),
         stub_stages=(snapshot or {}).get("stub_stages", []),
@@ -196,7 +200,7 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
     """Server-sent events for the chat UI: one event per graph update, then a `done` event."""
     _require_api_key()
-    session_id = _ensure_session(payload.session_id)
+    session_id = _ensure_session(payload.session_id, payload.query)
     prompt = _build_prompt(payload, session_id)
 
     async def events() -> AsyncIterator[str]:
@@ -236,6 +240,7 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
             "done",
             {
                 "session_id": session_id,
+                "session_title": session_titles.title_of(session_id),
                 "run_id": run_id,
                 "answer": answer,
                 "run_state": run_state.snapshot(run_id) if run_id else None,

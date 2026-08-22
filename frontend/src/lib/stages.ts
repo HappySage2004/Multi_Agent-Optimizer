@@ -2,13 +2,18 @@
  * The six pipeline stages from SOLUTION.md §3, and how to infer the live one from the
  * SSE `update` events.
  *
- * The stream reports top-level graph nodes only, so a specialist's own tools
- * (`build_screen_candidates`, `estimate_screen_economics`, `optimize_package`) are
- * invisible — they run inside the Master's `task` tool. What we can see is the *order* of
- * `task` calls, and that order is guaranteed: stages are strictly sequential, dependent
- * tools refuse to run early via `run_state.missing_prerequisite()`, and the Master's
- * prompt forbids more than one `task` call per turn. So the Nth `task` is the Nth
- * specialist.
+ * Two kinds of stage, resolved differently:
+ *
+ * Master-owned stages call their tool directly, so the tool name pins the stage exactly.
+ * That now includes relevance scoring: `build_screen_candidates` is a deterministic engine
+ * the Master invokes itself, not a delegation.
+ *
+ * Delegated stages run inside the Master's `task` tool, so the specialist's own tools
+ * (`estimate_screen_economics`, `optimize_package`) are invisible in the stream. What we
+ * can see is the *order* of `task` calls, and that order is guaranteed: stages are
+ * strictly sequential, dependent tools refuse to run early via
+ * `run_state.missing_prerequisite()`, and the Master's prompt forbids more than one `task`
+ * call per turn. So the Nth `task` is the Nth specialist.
  */
 
 export type StageId = "intake" | "candidates" | "economics" | "optimization" | "verification" | "recommendation";
@@ -23,8 +28,8 @@ export interface StageDefinition {
 
 export const STAGES: StageDefinition[] = [
   { id: "intake", label: "Brief intake", owner: "Master" },
-  { id: "candidates", label: "Screen candidates", owner: "Data Agent" },
-  { id: "economics", label: "Demand & pricing", owner: "ML Agent" },
+  { id: "candidates", label: "Screen candidates", owner: "Relevance engine" },
+  { id: "economics", label: "Audience & pricing", owner: "ML Agent" },
   { id: "optimization", label: "Optimization", owner: "OR Agent" },
   { id: "verification", label: "Verification", owner: "Master" },
   { id: "recommendation", label: "Recommendation", owner: "Master" },
@@ -34,13 +39,16 @@ export const STAGES: StageDefinition[] = [
 const TOOL_STAGES: Record<string, StageId> = {
   resolve_geography_terms: "intake",
   create_campaign_spec: "intake",
+  describe_inventory: "candidates",
+  build_screen_candidates: "candidates",
+  describe_relevance_model: "candidates",
   verify_package: "verification",
   inspect_package: "verification",
   check_explanations: "verification",
 };
 
-/** The specialist stages, in delegation order. */
-const DELEGATION_ORDER: StageId[] = ["candidates", "economics", "optimization"];
+/** The delegated stages, in `task` call order. Relevance is no longer among them. */
+const DELEGATION_ORDER: StageId[] = ["economics", "optimization"];
 
 export function stageForTool(toolName: string, taskCallIndex: number): StageId | null {
   if (toolName === "task") {

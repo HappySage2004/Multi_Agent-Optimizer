@@ -29,7 +29,13 @@ class Allocation(BaseModel):
 
     price_per_slot_per_day: float = Field(ge=0)
 
-    expected_impressions: float = Field(ge=0)
+    viewed_exposures: float = Field(
+        ge=0,
+        description=(
+            "Gross VIEWED exposures this line delivers over the flight, "
+            "= viewed_exposures_per_slot_per_day x slots x days. Exposures, not people."
+        ),
+    )
     expected_revenue: float = Field(ge=0)
 
     @property
@@ -38,11 +44,30 @@ class Allocation(BaseModel):
 
 
 class OptimizedPackage(BaseModel):
+    """The package the optimizer selected.
+
+    Reach and impressions are different quantities and the gap is large. Never report
+    `gross_impressions_viewed` as a number of people.
+    """
+
     allocations: list[Allocation] = []
 
     total_cost: float = 0.0
-    expected_impressions: float = 0.0
-    expected_reach: float = 0.0
+    gross_impressions_viewed: float = Field(
+        default=0.0,
+        description=(
+            "Total VIEWED exposures over the flight — the sum over allocations. Scales with "
+            "slots x days. Internal and never client-facing as an audience size."
+        ),
+    )
+    expected_reach: float = Field(
+        default=0.0,
+        description=(
+            "DISTINCT PEOPLE, deduplicated by (pool_key, time block) and capped at each "
+            "pool's reachable_daily_audience. Saturates: more slots, days or screens in the "
+            "same pool buy frequency, not reach. Recomputed independently by the validator."
+        ),
+    )
     expected_frequency: float = 0.0
 
     budget_utilization: float = 0.0
@@ -51,6 +76,29 @@ class OptimizedPackage(BaseModel):
 
     objective_value: float = 0.0
     optimization_method: str = "unspecified"
+
+    # --- solver diagnostics, additive and never load-bearing -----------------
+    curve_reach_diagnostic: float | None = Field(
+        default=None,
+        description=(
+            "Reach under the solver's internal saturation curve, "
+            "P x (1 - exp(-lambda x E / P)) with lambda ASSUMED at 0.9. Reported for "
+            "comparison ONLY: the definition this system stands behind is the lambda-free "
+            "min() in expected_reach. Guarded by curve_reach <= min(sum E, sum P)."
+        ),
+    )
+    unmet_coverage: dict[str, float] = Field(
+        default_factory=dict,
+        description="Coverage groups the plan could not satisfy, and by how much. Report it.",
+    )
+    wear_out_exposures_over_cap: float = Field(
+        default=0.0,
+        description=(
+            "Viewed exposures beyond the advisory wear-out cap. Non-zero is expected on any "
+            "long flight — the floor is LOOP_PASSES_PER_TRIP / 6 x days regardless of what "
+            "the optimizer chooses, so the cap constrains stacking, not total exposure."
+        ),
+    )
 
     @property
     def screen_ids(self) -> list[str]:

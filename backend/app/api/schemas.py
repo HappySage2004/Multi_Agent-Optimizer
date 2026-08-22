@@ -11,6 +11,12 @@ class SessionCreate(BaseModel):
     title: str = "New Campaign"
 
 
+class SessionUpdate(BaseModel):
+    """Rename a session. The UI titles a session from the brief once one is submitted."""
+
+    title: str = Field(min_length=1, max_length=120)
+
+
 class SessionOut(BaseModel):
     id: str
     title: str
@@ -30,6 +36,9 @@ class CampaignQuery(BaseModel):
 
 class CampaignRunOut(BaseModel):
     session_id: str | None = None
+    session_title: str | None = Field(
+        default=None, description="The session's title after this run named it from the brief"
+    )
     run_id: str | None = None
     answer: str
     stub_stages: list[str] = []

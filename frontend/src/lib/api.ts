@@ -87,6 +87,14 @@ export function createSession(title = "New Campaign"): Promise<Session> {
   return request<Session>("/sessions", { method: "POST", body: JSON.stringify({ title }) });
 }
 
+/** Rename a session. The sidebar titles a session from the brief that started it. */
+export function updateSession(sessionId: string, title: string): Promise<Session> {
+  return request<Session>(`/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  });
+}
+
 export function deleteSession(sessionId: string): Promise<{ deleted: string }> {
   return request<{ deleted: string }>(`/sessions/${encodeURIComponent(sessionId)}`, {
     method: "DELETE",

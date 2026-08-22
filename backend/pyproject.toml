@@ -15,8 +15,13 @@ dependencies = [
     "deepagents>=0.2",
     "langchain-google-genai>=4.3",
     "langgraph>=0.3",
-    "pulp>=2.9",
-    "scikit-learn>=1.5",
+    # HiGHS MILP backend for app/optimize/solver.py, via scipy.optimize.milp. Was already
+    # present transitively through scikit-learn; declared because we call it directly.
+    # `pulp` was declared for an optimizer that was never written that way and is dropped.
+    "scipy>=1.11",
+    # >=1.6 for sklearn.frozen.FrozenEstimator, used by the booking-probability
+    # calibration in app/ml/booking_probability.py.
+    "scikit-learn>=1.6",
     "lightgbm>=4.5",
     "python-dotenv>=1.0",
 ]

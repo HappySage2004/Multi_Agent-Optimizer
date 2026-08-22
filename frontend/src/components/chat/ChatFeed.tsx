@@ -112,7 +112,7 @@ function AssistantBlock({
 
   return (
     <div className="flex max-w-3xl gap-3">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-700 text-[11px] font-bold text-white shadow-xs">
+      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-50 text-[11px] font-bold text-zinc-800 shadow-xs">
         AI
       </div>
 

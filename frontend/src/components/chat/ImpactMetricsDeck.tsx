@@ -16,14 +16,16 @@ export function ImpactMetricsDeck({ metrics }: { metrics: PackageMetrics }) {
 
   return (
     <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <div className="rounded-xl border border-zinc-600 bg-zinc-700 p-3 text-white shadow-xs">
-        <span className="text-[9px] font-bold tracking-wider text-zinc-300 uppercase">
+      {/* The headline tile. It leads on a near-black outline rather than a dark fill, so
+          it reads as primary without dropping a slab of grey into a white page. */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-50 p-3 shadow-xs">
+        <span className="text-[9px] font-bold tracking-wider text-zinc-500 uppercase">
           Est. Reach
         </span>
-        <p className="mt-0.5 text-base font-black text-white">
+        <p className="mt-0.5 text-base font-black text-zinc-900">
           {formatCompact(metrics.expectedReach)}
         </p>
-        <span className="text-[10px] font-medium text-emerald-300">
+        <span className="text-[10px] font-semibold text-emerald-700">
           {metrics.expectedFrequency > 0
             ? `${metrics.expectedFrequency.toFixed(2)}x avg frequency`
             : "Deduplicated reach"}
@@ -57,8 +59,8 @@ export function ImpactMetricsDeck({ metrics }: { metrics: PackageMetrics }) {
         value={metrics.effectiveCpm === null ? "—" : formatCurrency(metrics.effectiveCpm, 2)}
         footnote={
           metrics.effectiveCpm === null
-            ? "No forecast impressions"
-            : `${formatCompact(metrics.expectedImpressions)} impressions`
+            ? "No forecast exposures"
+            : `${formatCompact(metrics.grossImpressionsViewed)} viewed exposures`
         }
         footnoteClass="text-emerald-700 font-semibold"
       />

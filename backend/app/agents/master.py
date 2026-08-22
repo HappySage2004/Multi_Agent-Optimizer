@@ -13,7 +13,7 @@ from app.agents.prompts import MASTER_SYSTEM_PROMPT
 from app.agents.subagents import build_subagents
 from app.config import get_settings
 from app.logging_utils import debug, info
-from app.tools import master_tools
+from app.tools import master_tools, relevance_tools
 
 # deepagents also accepts a "provider:model" string (e.g. "google_genai:gemini-3.5-flash-lite"),
 # which it resolves through init_chat_model. We build the client explicitly instead so the
@@ -42,8 +42,7 @@ def _chat_model(model_id: str) -> ChatGoogleGenerativeAI:
     settings = get_settings()
     if not settings.gemini_api_key:
         raise RuntimeError(
-            "GEMINI_API_KEY is not configured. Set it in the repo-root .env "
-            "(or backend/.env)."
+            "GEMINI_API_KEY is not configured. Set it in the repo-root .env (or backend/.env)."
         )
     debug(
         f"chat model {model_id} (max_output_tokens={MAX_OUTPUT_TOKENS}, "
@@ -68,11 +67,14 @@ def build_master_agent(
     specialist_model: str | None = None,
     checkpointer=None,
 ) -> CompiledStateGraph:
-    """Compile the Master Agent with the Data, ML and OR specialists attached.
+    """Compile the Master Agent with the ML and OR specialists attached.
+
+    The Master's own tool surface carries stage 2: `relevance_tools` is the deterministic
+    audience relevance engine, called directly rather than wrapped in a subagent.
 
     Args:
         master_model: Override the orchestrator model id.
-        specialist_model: Override the model id used by all three specialists.
+        specialist_model: Override the model id used by both specialists.
         checkpointer: LangGraph checkpointer, for multi-turn sessions.
     """
     settings = get_settings()
@@ -82,11 +84,11 @@ def build_master_agent(
     info(
         f"master agent: model={master_model or settings.master_model_id}, "
         f"specialists={specialist_model or settings.specialist_model_id}, "
-        f"subagents=data_agent/ml_agent/or_agent"
+        f"subagents=ml_agent/or_agent, master_tools+relevance_engine"
     )
     return create_deep_agent(
         model=master,
-        tools=master_tools.TOOLS,
+        tools=[*master_tools.TOOLS, *relevance_tools.TOOLS],
         system_prompt=MASTER_SYSTEM_PROMPT,
         subagents=build_subagents(specialist),
         checkpointer=checkpointer,

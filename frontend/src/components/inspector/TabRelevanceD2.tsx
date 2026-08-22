@@ -5,7 +5,7 @@
  *
  * Ranked candidate list with percentage-fit pills, backed by real
  * `screen_candidates` rows. Each row shows the four sub-scores that compose the
- * relevance score and the reasons the Data Agent recorded — SOLUTION.md §31 requires a
+ * relevance score and the reasons the relevance engine recorded — SOLUTION.md §31 requires a
  * traceable reason per recommendation, so the reasons are shown verbatim rather than
  * summarized.
  */
@@ -37,7 +37,7 @@ export function TabRelevanceD2({
   if (!candidatesRef) {
     return (
       <AwaitingStage
-        stage="the Data Agent (stage 2)"
+        stage="the relevance engine (stage 2)"
         detail="Relevance scoring produces the screen_candidates artifact this panel reads."
       />
     );
@@ -51,10 +51,10 @@ export function TabRelevanceD2({
         title="Relevance Matrix"
         badge={`${formatNumber(candidatesRef.rows)} ranked`}
         badgeTone="dark"
-        description="Weighted affinity score per screen: audience match, geography, transit and context."
+        description="Weighted affinity per screen: audience match, geography, context, time-of-day fit and booking history."
       >
         {candidatesRef.provenance === "stub" ? (
-          <StubNotice stage="Relevance scoring (Data Agent)" />
+          <StubNotice stage="Relevance scoring (relevance engine)" />
         ) : null}
       </InspectorCard>
 
@@ -159,8 +159,19 @@ function CandidateRow({
           <div className="space-y-1.5">
             <ScoreBar label="Audience" value={candidate.audience_match_score} />
             <ScoreBar label="Geography" value={candidate.geography_score} />
-            <ScoreBar label="Transit" value={candidate.transit_score} />
             <ScoreBar label="Context" value={candidate.contextual_score} />
+            <ScoreBar label="Time of day" value={candidate.time_of_day_score} />
+            <ScoreBar label="Booking history" value={candidate.historical_performance_score} />
+          </div>
+
+          {/* Volume percentile, kept visually apart: it is reported, not weighted into
+              the relevance score. */}
+          <div className="space-y-1.5 border-t border-zinc-100 pt-2">
+            <ScoreBar label="Volume percentile" value={candidate.transit_score} />
+            <p className="text-[9px] leading-relaxed text-zinc-400">
+              Audience volume relative to the eligible pool. Reported for context — not part
+              of the relevance score.
+            </p>
           </div>
 
           {candidate.reasons.length > 0 ? (

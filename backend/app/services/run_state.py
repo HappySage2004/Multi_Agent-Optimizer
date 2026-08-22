@@ -80,7 +80,10 @@ def missing_prerequisite(run_id: str, kind: str) -> dict[str, Any] | None:
     if get_artifact(run_id, kind) is not None:
         return None
     producer = {
-        "screen_candidates": "the data_agent (stage 2)",
+        "screen_candidates": (
+            "the relevance engine (stage 2) — call build_screen_candidates yourself, it is "
+            "a Master-owned tool with no subagent"
+        ),
         "screen_economics": "the ml_agent (stage 3)",
     }.get(kind, f"the stage that produces '{kind}'")
     return {

@@ -9,6 +9,24 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 OptimizationGoal = Literal["reach", "frequency", "awareness", "conversion"]
 
+DayTypeFocus = Literal["weekday", "weekend"]
+
+AUDIENCE_TERMS: tuple[str, ...] = (
+    "young_professionals",
+    "professionals",
+    "students",
+    "families",
+    "high_income",
+    "commuters",
+)
+"""Closed vocabulary the audience relevance engine scores against.
+
+Intake picks from this list; anything else is rejected deterministically rather than
+scored as a near-miss. The engine maps each term onto specific demographic score columns
+and preferred time blocks (`app/tools/relevance_tools.py`), so an unrecognized term has
+no meaning there — it would silently collapse the audience sub-score to a 0.5 default.
+"""
+
 
 class AudienceTarget(BaseModel):
     age_range: tuple[int, int] | None = None
@@ -37,6 +55,14 @@ class CampaignSpec(BaseModel):
     corridor_ids: list[str] = []
 
     target_audience: AudienceTarget = Field(default_factory=AudienceTarget)
+    audience_terms: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Audience segments from AUDIENCE_TERMS, chosen by intake from the brief. The "
+            "relevance engine scores against these; an empty list makes the audience "
+            "sub-score fall back to a neutral 0.5 for every screen."
+        ),
+    )
 
     start_date: date
     duration_days: int
@@ -46,6 +72,15 @@ class CampaignSpec(BaseModel):
 
     preferred_dayparts: list[str] = []
     preferred_time_blocks: list[str] = []
+    day_type_focus: DayTypeFocus | None = Field(
+        default=None,
+        description=(
+            "Score relevance against weekday or weekend traffic only. None scores both. "
+            "Weekday and weekend ridership differ ~6x, so a weekend-weighted brief scored "
+            "day-agnostically ranks against traffic it will not buy. This affects scoring "
+            "only — the flight still runs every day in its window."
+        ),
+    )
 
     optimization_goal: OptimizationGoal
 
@@ -80,6 +115,22 @@ class CampaignSpec(BaseModel):
         if v is not None and v <= 0:
             raise ValueError("requested_num_screens must be > 0 when provided")
         return v
+
+    @field_validator("audience_terms")
+    @classmethod
+    def _audience_terms_known(cls, v: list[str]) -> list[str]:
+        """Reject off-vocabulary terms in code rather than letting them score as 0.5.
+
+        An LLM chooses these from the closed list in the tool docstring; this is the
+        deterministic gate that stops an invented term from silently neutralizing the
+        audience component of every score.
+        """
+        unknown = [t for t in v if t not in AUDIENCE_TERMS]
+        if unknown:
+            raise ValueError(
+                f"unknown audience_terms {unknown}; allowed values are {list(AUDIENCE_TERMS)}"
+            )
+        return list(dict.fromkeys(v))
 
     @model_validator(mode="after")
     def _geography_present(self) -> CampaignSpec:

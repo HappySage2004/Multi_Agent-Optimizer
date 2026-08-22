@@ -89,7 +89,14 @@ export interface ArtifactRowsOut<TRow> {
 
 // ----------------------------------------------------------- screen candidates
 
-/** One row of the `screen_candidates` artifact. Drives the D2 Relevance tab. */
+/**
+ * One row of the `screen_candidates` artifact. Drives the D2 Relevance tab.
+ *
+ * `relevance_score` is the weighted sum of exactly five components:
+ *   0.40 audience + 0.20 geography + 0.15 contextual + 0.15 time_of_day
+ * + 0.10 historical_performance.
+ * `transit_score` is a reported volume percentile and is NOT in that sum.
+ */
 export interface ScreenCandidate {
   screen_id: string;
   relevance_score: number;
@@ -97,30 +104,67 @@ export interface ScreenCandidate {
   audience_match_score: number;
   geography_score: number;
   contextual_score: number;
+  /** Audience volume as a percentile of the eligible pool. Diagnostic, not weighted. */
   transit_score: number;
+  time_of_day_score: number;
+  historical_performance_score: number;
 
   /** Must cite real feature values — no generic "highly relevant" text. */
   reasons: string[];
+  /** Sub-scores that fell back to a neutral default, and why. Empty is good. */
+  defaults_applied: string[];
   hard_constraints_passed: boolean;
+
+  /**
+   * The physical-audience unit: location_id for stop-mounted screens, corridor_id for
+   * vehicle-mounted ones. Screens sharing it see the SAME people, so never sum
+   * impressions across a shared pool_key and call the result reach.
+   */
+  pool_key: string | null;
+  /**
+   * How many partitions the pool's audience was divided into for this screen's figure. 1
+   * for stop-mounted screens; the vehicles working the corridor for vehicle-mounted ones.
+   */
+  pool_partition_count: number;
+  /**
+   * PEOPLE PASSING on a typical day, keyed `{block}_{weekday|weekend}` — all 12
+   * combinations present. NOT viewed exposures: no viewability discount here, and a
+   * whole-block daily figure, not per slot. Block 1 (00:00-04:00) is always 0: no
+   * scheduled service starts then, which means "not modelled", not "nobody there".
+   */
+  impressions_by_block: Record<string, number>;
+  impressions_weekday: number;
+  impressions_weekend: number;
 
   city_id: string | null;
   zone_id: string | null;
+  corridor_id: string | null;
   screen_type: string | null;
 }
 
-/** Aggregates the Data Agent puts on the `screen_candidates` reference. */
+/** Aggregates the relevance engine puts on the `screen_candidates` reference. */
 export interface ScreenCandidatesSummary {
   eligible_screens?: number;
   candidates?: number;
   relevance_min?: number;
   relevance_mean?: number;
   relevance_max?: number;
+  /** Time blocks this campaign's audience is active in, e.g. ["2", "5"]. */
+  preferred_time_blocks?: string[];
+  day_type_focus?: string | null;
+  audience_terms?: string[];
+  distinct_audience_pools?: number;
+  /** Deduplicated daily audience. Always well below the naive sum. */
+  pooled_daily_audience?: number;
+  naive_daily_audience?: number;
+  demand_source?: string;
+  defaults_applied?: string[];
 }
 
 // ------------------------------------------------------------ screen economics
 
 export interface DemandForecastSummary {
-  expected_impressions: number;
+  viewed_exposures_per_slot_per_day: number;
   demand_index: number;
   confidence: number;
 }
@@ -140,31 +184,85 @@ export interface TimeSlotAvailability {
   available_slots: number;
 }
 
-/** One row of the `screen_economics` artifact. Drives the D3 Pricing tab. */
+/**
+ * One row of the `screen_economics` artifact -- one candidate screen x time block.
+ * Drives the D3 Pricing tab.
+ *
+ * Rows with no purchasable slot are RETAINED with `feasible: false` and `pricing: null`,
+ * so the UI can show what was excluded and why. Always branch on `feasible` before
+ * reading `pricing`.
+ */
 export interface ScreenEconomics {
   screen_id: string;
   time_block_id: string;
 
+  feasible: boolean;
+
+  /** Empty by design: `max_slots_per_day` is the availability contract. */
   availability: TimeSlotAvailability[];
+  /** Slots purchasable EVERY day of the flight -- the tightest single day, not a mean. */
   max_slots_per_day: number;
+  /** Mean committed-slot fraction across the window, 0-1. */
+  occupancy_rate: number | null;
+  /** Absolute price at each slot count 1-6, null beyond availability. Flat by design. */
+  price_by_slot_count: Record<string, number | null>;
 
-  demand_forecast: DemandForecastSummary;
-  pricing: PricingRecommendation;
+  demand_forecast: DemandForecastSummary | null;
+  /** null on infeasible rows. */
+  pricing: PricingRecommendation | null;
 
-  /** Per slot per day, so the optimizer can scale by slots x duration. */
-  expected_impressions: number;
+  /**
+   * VIEWED exposures one purchased slot earns on one day. A block is a 4-hour window in
+   * which all 6 rotation slots cycle continuously, so holding k slots puts the creative on
+   * k of every 6 loop passes and exposures are linear in k. Scales with slots x days.
+   */
+  viewed_exposures_per_slot_per_day: number;
+  /**
+   * Distinct people PASSING this screen's pool during this block on a typical day. Upstream
+   * truth, carried for traceability — NOT the reach ceiling, because not everyone who
+   * passes looks.
+   */
+  daily_unique_audience: number;
+  /**
+   * THE REACH CEILING: distinct people who look, = daily_unique_audience x viewability.
+   * Does not scale with slots or days.
+   */
+  reachable_daily_audience: number;
+  /** Share of passers-by assumed to look at this screen type. ASSUMED, no ground truth. */
+  viewability_factor: number | null;
+  /** Physical-audience unit; dedupe on this before reporting reach. */
+  pool_key: string | null;
   expected_revenue: number;
   confidence: number;
+
+  seasonality_multiplier: number | null;
+  /** location_match | zone_match | none | not_applicable */
+  event_match_type: string | null;
+  /**
+   * NOT client-facing and NOT campaign reach. Pricing-internal heuristic with mismatched
+   * fixed/mobile units. Do not render this as an audience figure.
+   */
+  pricing_internal_reach_proxy: number | null;
+  reach_owner: string;
+  /** Which fallbacks fired and which adjustments applied, for this row. */
+  assumptions: string[];
 }
 
 /** Aggregates the ML Agent puts on the `screen_economics` reference. */
 export interface ScreenEconomicsSummary {
   rows?: number;
-  screens?: number;
+  feasible_rows?: number;
+  screens_priced?: number;
   time_blocks?: string[];
+  price_min?: number;
   price_mean?: number;
-  impressions_per_slot_day_mean?: number;
-  confidence_min?: number;
+  price_max?: number;
+  occupancy_mean?: number;
+  booking_probability_mean?: number;
+  viewed_exposures_per_slot_per_day_mean?: number;
+  reachable_daily_audience_total_naive?: number;
+  /** Which model produced the audience volume on this artifact. */
+  demand_model?: string;
 }
 
 // ----------------------------------------------------------------- optimization
@@ -175,20 +273,36 @@ export interface Allocation {
   slots_per_day: number;
   duration_days: number;
   price_per_slot_per_day: number;
-  expected_impressions: number;
+  /** Gross VIEWED exposures over the flight. Exposures, not people. */
+  viewed_exposures: number;
   expected_revenue: number;
 }
 
 export interface OptimizedPackage {
   allocations: Allocation[];
   total_cost: number;
-  expected_impressions: number;
+  /** Total VIEWED exposures. Internal — never render this as a number of people. */
+  gross_impressions_viewed: number;
+  /**
+   * DISTINCT PEOPLE, deduplicated by (pool_key, time block) and capped at each pool's
+   * reachable daily audience. Saturates. This is the client-facing audience figure.
+   */
   expected_reach: number;
   expected_frequency: number;
   budget_utilization: number;
   constraint_status: Record<string, boolean>;
   objective_value: number;
   optimization_method: string;
+
+  /**
+   * Reach under the solver's saturation curve, with an ASSUMED constant. Comparison only —
+   * `expected_reach` is the definition this system stands behind.
+   */
+  curve_reach_diagnostic?: number | null;
+  /** Coverage groups the plan could not satisfy, and by how much. Report it. */
+  unmet_coverage?: Record<string, number>;
+  /** Viewed exposures beyond the advisory wear-out cap. Non-zero is expected on long flights. */
+  wear_out_exposures_over_cap?: number;
 }
 
 export interface InfeasibilityReport {
@@ -300,6 +414,8 @@ export interface StreamUpdateEvent {
 /** `event: done` — terminal success. */
 export interface StreamDoneEvent {
   session_id: string;
+  /** The session's title after this run named it from the brief. */
+  session_title: string | null;
   run_id: string | null;
   answer: string;
   run_state: RunSnapshot | null;

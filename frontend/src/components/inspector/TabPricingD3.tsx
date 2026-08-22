@@ -55,33 +55,46 @@ export function TabPricingD3({
       </InspectorCard>
 
       <InspectorSection
-        title="Forecast Aggregates"
+        title="Pricing Aggregates"
         meta={`${formatNumber(economicsRef.rows)} rows`}
       >
         <div className="grid grid-cols-2 gap-2 text-[11px]">
           <Stat
             label="Screens priced"
-            value={summary.screens !== undefined ? formatNumber(summary.screens) : "—"}
+            value={
+              summary.screens_priced !== undefined ? formatNumber(summary.screens_priced) : "—"
+            }
           />
           <Stat
             label="Mean price"
             value={summary.price_mean !== undefined ? formatCurrency(summary.price_mean, 2) : "—"}
           />
           <Stat
-            label="Impressions / slot / day"
+            label="Mean occupancy"
             value={
-              summary.impressions_per_slot_day_mean !== undefined
-                ? formatCompact(summary.impressions_per_slot_day_mean)
+              summary.occupancy_mean !== undefined
+                ? formatPercent(summary.occupancy_mean, 0)
                 : "—"
             }
           />
           <Stat
-            label="Min confidence"
+            label="Mean booking prob."
             value={
-              summary.confidence_min !== undefined ? summary.confidence_min.toFixed(3) : "—"
+              summary.booking_probability_mean !== undefined
+                ? summary.booking_probability_mean.toFixed(3)
+                : "—"
             }
           />
         </div>
+        {summary.viewed_exposures_per_slot_per_day_mean !== undefined ? (
+          <p className="text-[10px] text-zinc-400">
+            Audience volume comes from the relevance engine&rsquo;s transit ridership model:
+            a block&rsquo;s daily riders passing, weighted by this flight&rsquo;s
+            weekday/weekend mix, then converted to viewed exposures for one slot on one day.
+            Reach is deduplicated by audience pool downstream, capped at the people who
+            actually look, and is never the sum of exposures.
+          </p>
+        ) : null}
         {summary.time_blocks && summary.time_blocks.length > 0 ? (
           <p className="text-[10px] text-zinc-400">
             Priced blocks: {summary.time_blocks.join(", ")}
@@ -124,7 +137,8 @@ function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
             style={{ left: `${guardrail.paidPosition * 100}%` }}
             title={`Volume-weighted price paid: ${formatCurrency(guardrail.paid ?? 0, 2)}`}
           >
-            <span className="h-4 w-0.5 rounded bg-zinc-700" />
+            {/* A rule marking the price paid on the band — a mark, so it stays near-black. */}
+            <span className="h-4 w-0.5 rounded bg-zinc-900" />
           </div>
         ) : null}
       </div>
@@ -165,7 +179,7 @@ function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
 
 /** The 6-block occupancy grid. Always all six real `dim_slot` blocks. */
 function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
-  const anyPriced = rollups.some((r) => r.demandIndex !== null || r.selected);
+  const anyPriced = rollups.some((r) => r.marketOccupancy !== null || r.selected);
 
   return (
     <InspectorSection title="6-Block Time Occupancy" meta="dim_slot">
@@ -174,8 +188,8 @@ function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
           const label =
             rollup.occupancy !== null
               ? formatPercent(rollup.occupancy, 0)
-              : rollup.demandIndex !== null
-                ? `idx ${rollup.demandIndex.toFixed(2)}`
+              : rollup.marketOccupancy !== null
+                ? `mkt ${formatPercent(rollup.marketOccupancy, 0)}`
                 : "—";
           return (
             <div
@@ -184,7 +198,7 @@ function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
               className={`rounded p-2 ${
                 rollup.selected
                   ? "bg-violet-950 font-bold text-white"
-                  : rollup.demandIndex !== null
+                  : rollup.marketOccupancy !== null
                     ? "bg-zinc-100 text-zinc-700"
                     : "bg-zinc-100/60 text-zinc-400"
               }`}

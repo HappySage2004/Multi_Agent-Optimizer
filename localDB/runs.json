@@ -304,5 +304,445 @@
       "screen_economics"
     ],
     "updated_at": "2026-08-22T00:33:51"
+  },
+  {
+    "id": "run-59e2ef970038",
+    "created_at": "2026-08-22T20:59:03",
+    "session_id": "ses-0e111284c55f",
+    "status": "validated",
+    "campaign_spec": {
+      "campaign_objective": "Campaign for Korean skincare products targeting young and middle aged females",
+      "industry_vertical": "Beauty / Skincare",
+      "ad_type": "Korean skincare products",
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": [
+          18,
+          55
+        ],
+        "income_range": null,
+        "occupations": [],
+        "commuter": false,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "professionals",
+        "students",
+        "families",
+        "high_income"
+      ],
+      "start_date": "2026-10-01",
+      "duration_days": 30,
+      "budget": 20000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": "I have $20,000 for a 30-day campaign starting 2026-10-1 targeting young and middle aged females in Las Hackland for Korean skincare products. Optimize for reach.",
+      "missing_information": [
+        "exact age range upper bound for middle-aged females (assumed 18-55+)",
+        "preferred dayparts",
+        "preferred time blocks"
+      ]
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-675cb63b0354",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-675cb63b0354.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 6304,
+          "candidates": 250,
+          "relevance_min": 0.7487,
+          "relevance_mean": 0.7498,
+          "relevance_max": 0.7511,
+          "preferred_time_blocks": [
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "professionals",
+            "students",
+            "families",
+            "high_income"
+          ],
+          "distinct_audience_pools": 7,
+          "pooled_daily_audience": 1278659.5,
+          "naive_daily_audience": 49501966.9,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'Beauty / Skincare' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-22T20:59:17.124615"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-84ff066349ec",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-84ff066349ec.parquet",
+        "rows": 1000,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 1000,
+          "feasible_rows": 728,
+          "screens_priced": 250,
+          "time_blocks": [
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "price_min": 48.39,
+          "price_mean": 89.39,
+          "price_max": 179.86,
+          "occupancy_mean": 0.1413,
+          "booking_probability_mean": 0.998,
+          "viewed_exposures_per_slot_per_day_mean": 14419.8,
+          "reachable_daily_audience_total_naive": 7873197.4,
+          "demand_model": "transit_ridership (relevance engine)"
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-22T20:59:39.739286"
+      }
+    },
+    "optimization": {
+      "status": "feasible",
+      "package": {
+        "allocations": [
+          {
+            "screen_id": "LH-SCR-005861",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 60.91,
+            "viewed_exposures": 468738.10666666663,
+            "expected_revenue": 1827.3
+          },
+          {
+            "screen_id": "LH-SCR-005849",
+            "time_block_id": "3",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 50.71,
+            "viewed_exposures": 602866.88,
+            "expected_revenue": 1521.3
+          },
+          {
+            "screen_id": "LH-SCR-005860",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 83.94,
+            "viewed_exposures": 670066.4133333333,
+            "expected_revenue": 2518.2
+          },
+          {
+            "screen_id": "LH-SCR-005574",
+            "time_block_id": "3",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 50.71,
+            "viewed_exposures": 557970.5599999999,
+            "expected_revenue": 1521.3
+          },
+          {
+            "screen_id": "LH-SCR-005574",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 65.2,
+            "viewed_exposures": 633724.3733333332,
+            "expected_revenue": 1956.0
+          },
+          {
+            "screen_id": "LH-SCR-005097",
+            "time_block_id": "3",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 50.71,
+            "viewed_exposures": 548596.6266666666,
+            "expected_revenue": 1521.3
+          },
+          {
+            "screen_id": "LH-SCR-005117",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 65.2,
+            "viewed_exposures": 633343.3866666666,
+            "expected_revenue": 1956.0
+          },
+          {
+            "screen_id": "LH-SCR-004961",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 60.91,
+            "viewed_exposures": 759396.3066666668,
+            "expected_revenue": 1827.3
+          },
+          {
+            "screen_id": "LH-SCR-004959",
+            "time_block_id": "3",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 50.71,
+            "viewed_exposures": 936758.1066666667,
+            "expected_revenue": 1521.3
+          },
+          {
+            "screen_id": "LH-SCR-004961",
+            "time_block_id": "4",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 50.33,
+            "viewed_exposures": 479361.67999999993,
+            "expected_revenue": 1509.8999999999999
+          },
+          {
+            "screen_id": "LH-SCR-004942",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 30,
+            "price_per_slot_per_day": 65.2,
+            "viewed_exposures": 985777.4266666668,
+            "expected_revenue": 1956.0
+          }
+        ],
+        "total_cost": 19635.9,
+        "gross_impressions_viewed": 7276599.866666666,
+        "expected_reach": 181914.99666666667,
+        "expected_frequency": 39.99999999999999,
+        "budget_utilization": 0.9817949999999999,
+        "constraint_status": {
+          "budget": true,
+          "inventory": true,
+          "geography": true,
+          "campaign_dates": true,
+          "requested_num_screens": true,
+          "coverage": true
+        },
+        "objective_value": 181914.99666666667,
+        "optimization_method": "milp_highs_pooled_reach_min[reach,gap<=1%,feasible]",
+        "curve_reach_diagnostic": 181914.99666659004,
+        "unmet_coverage": {},
+        "wear_out_exposures_over_cap": 0.0
+      },
+      "infeasibility": null,
+      "solver_log": [
+        "dropped_unpurchasable_lines=272 (infeasible, unpriced, or sold out)",
+        "pruned_cells_beyond_4_per_pool=616 (reach saturates; extra cells in one pool add search symmetry, not audience)",
+        "objective=reach",
+        "profile=w_reach:1.0 w_freq:0.0 w_conv:0.0",
+        "cells=112 screens=59 pools=28",
+        "budget=20,000.00 days=30",
+        "solver=HiGHS via scipy.optimize.milp, mip_rel_gap=0.01",
+        "status=feasible (Time limit reached. (HiGHS Status 13: Time limit reached))",
+        "min_spend_fraction=0.00",
+        "wear_out_frequency_cap=120 exposures per person (3.0x the 30-day floor of 40)",
+        "allocated_screens=9",
+        "allocated_cells=11",
+        "audience_pool_blocks_touched=11 (pool x time block; physical pools are counted separately below)",
+        "spend=19,635.90",
+        "gross_impressions_viewed=7,276,600",
+        "curve_reach_diagnostic=181,915 (lambda=0.9, ASSUMED \u2014 not the reported reach)",
+        "reported_reach_definition=min(gross viewed exposures, reachable audience) per (pool, block) \u2014 lambda-free",
+        "deduplicated_reach=181,915",
+        "distinct_audience_pools=4",
+        "frequency=40.00",
+        "objective_value=181,915 (deduplicated_reach)"
+      ]
+    },
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "package_non_empty",
+          "status": "pass",
+          "detail": "Package contains 11 allocations.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "budget_respected",
+          "status": "pass",
+          "detail": "Recomputed package cost 19,635.90 against budget 20,000.00.",
+          "expected": "<= 20,000.00",
+          "observed": "19,635.90"
+        },
+        {
+          "name": "cost_reconciles",
+          "status": "pass",
+          "detail": "Reported total_cost matches the sum of price x slots x days over allocations.",
+          "expected": "19,635.90",
+          "observed": "19,635.90"
+        },
+        {
+          "name": "budget_utilization_reconciles",
+          "status": "pass",
+          "detail": "Reported budget_utilization matches recomputed cost / budget.",
+          "expected": "0.9818",
+          "observed": "0.9818"
+        },
+        {
+          "name": "impressions_reconcile",
+          "status": "pass",
+          "detail": "Reported gross_impressions_viewed matches the sum over allocations.",
+          "expected": "7,276,600",
+          "observed": "7,276,600"
+        },
+        {
+          "name": "reach_not_above_impressions",
+          "status": "pass",
+          "detail": "Deduplicated reach does not exceed gross viewed exposures.",
+          "expected": "<= 7,276,600",
+          "observed": "181,915"
+        },
+        {
+          "name": "frequency_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_frequency matches viewed exposures / reach.",
+          "expected": "40.000",
+          "observed": "40.000"
+        },
+        {
+          "name": "reach_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_reach matches reach recomputed from pool_key groups, each capped at its reachable daily audience.",
+          "expected": "181,915",
+          "observed": "181,915"
+        },
+        {
+          "name": "curve_reach_bounded",
+          "status": "pass",
+          "detail": "Solver curve reach stays within min(gross viewed exposures, reachable audience) \u2014 a bound that holds for any saturation constant.",
+          "expected": "<= 181,915",
+          "observed": "181,915"
+        },
+        {
+          "name": "screens_exist",
+          "status": "pass",
+          "detail": "Every allocated screen_id exists in the inventory.",
+          "expected": "0 unknown",
+          "observed": "0 unknown"
+        },
+        {
+          "name": "time_blocks_valid",
+          "status": "pass",
+          "detail": "Every time_block_id exists in dim_slot.",
+          "expected": "one of ['1', '2', '3', '4', '5', '6']",
+          "observed": "0 invalid"
+        },
+        {
+          "name": "no_duplicate_allocations",
+          "status": "pass",
+          "detail": "Each (screen, time block) pair appears at most once.",
+          "expected": "0 duplicates",
+          "observed": "0 duplicates"
+        },
+        {
+          "name": "geography_eligible",
+          "status": "pass",
+          "detail": "All allocated screens fall inside the requested geography (6,304 eligible).",
+          "expected": "0 outside",
+          "observed": "0 outside"
+        },
+        {
+          "name": "duration_within_campaign",
+          "status": "pass",
+          "detail": "No allocation runs longer than the campaign duration.",
+          "expected": "<= 30 days",
+          "observed": "0 over"
+        },
+        {
+          "name": "start_date_not_in_past",
+          "status": "pass",
+          "detail": "Campaign starts 2026-10-01 (reference date 2026-08-22).",
+          "expected": ">= 2026-08-22",
+          "observed": "2026-10-01"
+        },
+        {
+          "name": "hard_constraints",
+          "status": "skipped",
+          "detail": "Spec declared no additional hard constraints.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "inventory_availability",
+          "status": "pass",
+          "detail": "Purchased slots never exceed available slots.",
+          "expected": "0 over-allocations",
+          "observed": "0 over-allocations"
+        },
+        {
+          "name": "model_confidence",
+          "status": "skipped",
+          "detail": "No stage emits a per-screen confidence; not gating on the contract default. Pricing trust signals are per-row assumptions plus the booking-probability sign check.",
+          "expected": null,
+          "observed": null
+        }
+      ]
+    },
+    "stub_stages": [],
+    "updated_at": "2026-08-22T21:00:20"
   }
 ]

@@ -78,7 +78,10 @@ export function TabOptimizerD4({
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <Stat label="Spend" value={formatCurrency(pkg.total_cost)} />
               <Stat label="Budget used" value={formatPercent(pkg.budget_utilization)} />
-              <Stat label="Impressions" value={formatCompact(pkg.expected_impressions)} />
+              <Stat
+                label="Viewed exposures"
+                value={formatCompact(pkg.gross_impressions_viewed)}
+              />
               <Stat label="Reach" value={formatCompact(pkg.expected_reach)} />
               <Stat label="Frequency" value={pkg.expected_frequency.toFixed(2)} />
               <Stat label="Lines" value={formatNumber(pkg.allocations.length)} />
