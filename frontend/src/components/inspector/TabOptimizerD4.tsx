@@ -54,7 +54,7 @@ export function TabOptimizerD4({
 
       {optimization.infeasibility ? (
         <InspectorSection title="Infeasible">
-          <p className="text-[11px] leading-relaxed text-red-700">
+          <p className="text-[13px] leading-relaxed text-red-700">
             {optimization.infeasibility.explanation}
           </p>
           {optimization.infeasibility.reason_codes.length > 0 ? (
@@ -62,7 +62,7 @@ export function TabOptimizerD4({
               {optimization.infeasibility.reason_codes.map((code) => (
                 <span
                   key={code}
-                  className="rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-red-700"
+                  className="rounded border border-red-200 bg-red-50 px-2 py-0.5 font-mono text-[12px] font-semibold text-red-700"
                 >
                   {code}
                 </span>
@@ -75,7 +75,7 @@ export function TabOptimizerD4({
       {pkg ? (
         <>
           <InspectorSection title="Package Totals" meta={pkg.optimization_method}>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
+            <div className="grid grid-cols-2 gap-2 text-[13px]">
               <Stat label="Spend" value={formatCurrency(pkg.total_cost)} />
               <Stat label="Budget used" value={formatPercent(pkg.budget_utilization)} />
               <Stat
@@ -94,7 +94,7 @@ export function TabOptimizerD4({
 
           {optimization.solver_log.length > 0 ? (
             <InspectorSection title="Solver Log">
-              <pre className="overflow-x-auto rounded-lg bg-zinc-50 p-2.5 font-mono text-[10px] leading-relaxed text-zinc-500">
+              <pre className="overflow-x-auto rounded-lg bg-zinc-50 p-2.5 font-mono text-[12px] leading-relaxed text-zinc-500">
                 {optimization.solver_log.join("\n")}
               </pre>
             </InspectorSection>
@@ -118,7 +118,7 @@ function ConstraintStatus({ status }: { status: Record<string, boolean> }) {
         {entries.map(([name, passed]) => (
           <span
             key={name}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium ${
+            className={`flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium ${
               passed
                 ? "border border-emerald-200/60 bg-emerald-50 text-emerald-700"
                 : "border border-red-200/60 bg-red-50 text-red-700"
@@ -141,7 +141,7 @@ function RotationMatrix({ rows }: { rows: RotationRow[] }) {
   if (rows.length === 0) {
     return (
       <InspectorSection title={`Rotation Loop Allocation (${ROTATION_LOOP_SLOTS} Slots/Loop)`}>
-        <p className="text-[10px] text-zinc-400">No allocations in this package.</p>
+        <p className="text-[12px] text-zinc-400">No allocations in this package.</p>
       </InspectorSection>
     );
   }
@@ -154,12 +154,12 @@ function RotationMatrix({ rows }: { rows: RotationRow[] }) {
       <div className="space-y-2.5">
         {rows.map((row) => (
           <div key={`${row.screenId}-${row.timeBlockId}`} className="space-y-1.5">
-            <div className="flex items-baseline justify-between gap-2 text-[10px]">
+            <div className="flex items-baseline justify-between gap-2 text-[12px]">
               <span className="truncate font-semibold text-zinc-700">{row.screenId}</span>
               <span className="shrink-0 font-medium text-zinc-400">{row.timeBlockLabel}</span>
             </div>
 
-            <div className="grid grid-cols-6 gap-1 text-center text-[10px] font-bold">
+            <div className="grid grid-cols-6 gap-1 text-center text-[12px] font-bold">
               {row.slots.map((active, index) => (
                 <div
                   key={index}
@@ -183,7 +183,7 @@ function RotationMatrix({ rows }: { rows: RotationRow[] }) {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] text-zinc-400">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-zinc-400">
               <span>
                 {row.slotsPerDay}
                 {row.maxSlotsPerDay !== null ? `/${row.maxSlotsPerDay}` : ""} slots/day
@@ -199,7 +199,7 @@ function RotationMatrix({ rows }: { rows: RotationRow[] }) {
         ))}
       </div>
 
-      <p className="border-t border-zinc-100 pt-2 text-[9px] leading-relaxed text-zinc-400">
+      <p className="border-t border-zinc-100 pt-2 text-[11px] leading-relaxed text-zinc-400">
         The optimizer allocates a slot <em>count</em> per screen and time block, not named
         slots, so the first N of the loop are marked. Faded cells are beyond that
         screen&rsquo;s forecast daily capacity.
@@ -213,7 +213,7 @@ function ValidationPanel({ validation }: { validation: ValidationResult | null }
   if (!validation) {
     return (
       <InspectorSection title="Validation">
-        <p className="text-[10px] text-zinc-400">
+        <p className="text-[12px] text-zinc-400">
           Not verified yet — the Master Agent runs stage 5 after optimization.
         </p>
       </InspectorSection>
@@ -233,7 +233,7 @@ function ValidationPanel({ validation }: { validation: ValidationResult | null }
     >
       <div className="space-y-1.5">
         {validation.checks.map((check) => (
-          <div key={check.name} className="flex gap-2 text-[10px]">
+          <div key={check.name} className="flex gap-2 text-[12px]">
             <span className="mt-px shrink-0">
               {check.status === "pass" ? (
                 <CheckIcon className="h-3 w-3 text-emerald-600" strokeWidth={3} />
@@ -268,7 +268,7 @@ function ValidationPanel({ validation }: { validation: ValidationResult | null }
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-zinc-50/80 px-2.5 py-2">
-      <span className="block text-[9px] font-medium tracking-wide text-zinc-400 uppercase">
+      <span className="block text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
         {label}
       </span>
       <span className="font-semibold text-zinc-700">{value}</span>

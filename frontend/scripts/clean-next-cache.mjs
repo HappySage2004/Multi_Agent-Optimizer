@@ -1,33 +1,45 @@
 /**
- * Delete `.next` before a production build.
+ * Delete `.next` before `next dev` and `next build`.
  *
- * Why this exists: the repo lives under a OneDrive-synced path. OneDrive dehydrates
- * synced files into cloud placeholders, which carry the Windows `ReparsePoint` attribute
- * but are not symlinks — and Node's `readlink` throws `EINVAL` on one. Next.js calls
- * `readlink` while reading `.next/diagnostics/*.json`, so the *second* build after
- * OneDrive has swept the directory fails with:
+ * The problem: this repo lives under a OneDrive-synced path, and Next reads manifests out
+ * of `.next` with calls that end in `readlink`. On a path OneDrive is managing that throws
+ * `EINVAL`, and the command dies:
  *
- *   [Error: EINVAL: invalid argument, readlink '...\.next\diagnostics\framework.json']
+ *   [Error: EINVAL: invalid argument, readlink '...\.next\cache']
+ *   [Error: EINVAL: invalid argument, readlink '...\.next\server\next-font-manifest.json']
  *
- * A build output that never survives between builds can never be dehydrated, so clearing
- * it first sidesteps the whole class of problem. Builds here take ~7s, so losing the
- * incremental cache costs nothing.
+ * Two things worth knowing, both established by measurement rather than assumption,
+ * because each contradicts the obvious guess:
  *
- * This is a workaround, not a fix. The fix is to keep the project outside OneDrive, which
- * would also spare the Python venv, DuckDB and the 18k files in `node_modules`. Delete
- * this script and its `prebuild` hook if the repo ever moves.
+ *   1. The `ReparsePoint` attribute is NOT the signal. Every single entry under a synced
+ *      path carries it — all ~18k of `node_modules` does, permanently, and that never
+ *      breaks. So "is it a reparse point" cannot be used to detect the bad state.
+ *   2. The pinned attribute (`attrib +P`, OneDrive's "always keep on this device") does
+ *      NOT help. A pinned entry keeps its content local but stays a reparse point
+ *      (`.next` reads `0x80410` = Directory + ReparsePoint + Pinned), and a build over a
+ *      fully pinned `.next` still failed.
  *
- * Note `next dev` writes `.next` too and can hit the same error. It is deliberately not
- * cleaned here — dev leans on that cache for fast restarts. Run this by hand if it bites:
- *   node scripts/clean-next-cache.mjs
+ * What is left is that the failure tracks how long `.next` has been sitting in the synced
+ * tree: a directory just created has not been enrolled by the sync engine yet, and every
+ * build over a freshly deleted `.next` has succeeded. So the mitigation is to never let
+ * one persist. This costs the incremental cache — a cold build here is ~6s against ~2s
+ * warm, which is the right trade for a command that otherwise fails outright.
+ *
+ * This is a mitigation, not a guarantee. The failure is intermittent, so a long `next dev`
+ * session can still be swept after startup; re-running is the workaround. The only actual
+ * fix is to keep the project outside OneDrive, which would also spare the Python venv,
+ * DuckDB and `node_modules`. Delete this script and its two hooks if the repo moves.
+ *
+ * Relocating `distDir` outside OneDrive was tried and rejected: the build output lands
+ * clean (0 reparse points), but Next generates `.next/types/*` that cannot resolve
+ * `next/dist/...` from outside the project, so typechecking breaks.
  */
 
 import { rmSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const target = join(projectRoot, ".next");
 
-// `force` makes a missing directory a no-op, so a first-ever build is not an error.
-rmSync(target, { recursive: true, force: true });
+// `force` makes a missing directory a no-op, so a first-ever run is not an error.
+rmSync(join(projectRoot, ".next"), { recursive: true, force: true });

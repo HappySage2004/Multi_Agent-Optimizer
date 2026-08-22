@@ -58,7 +58,7 @@ export function TabPricingD3({
         title="Pricing Aggregates"
         meta={`${formatNumber(economicsRef.rows)} rows`}
       >
-        <div className="grid grid-cols-2 gap-2 text-[11px]">
+        <div className="grid grid-cols-2 gap-2 text-[13px]">
           <Stat
             label="Screens priced"
             value={
@@ -87,7 +87,7 @@ export function TabPricingD3({
           />
         </div>
         {summary.viewed_exposures_per_slot_per_day_mean !== undefined ? (
-          <p className="text-[10px] text-zinc-400">
+          <p className="text-[12px] text-zinc-400">
             Audience volume comes from the relevance engine&rsquo;s transit ridership model:
             a block&rsquo;s daily riders passing, weighted by this flight&rsquo;s
             weekday/weekend mix, then converted to viewed exposures for one slot on one day.
@@ -96,7 +96,7 @@ export function TabPricingD3({
           </p>
         ) : null}
         {summary.time_blocks && summary.time_blocks.length > 0 ? (
-          <p className="text-[10px] text-zinc-400">
+          <p className="text-[12px] text-zinc-400">
             Priced blocks: {summary.time_blocks.join(", ")}
           </p>
         ) : null}
@@ -104,7 +104,7 @@ export function TabPricingD3({
 
       {loading && !guardrail ? (
         <InspectorSection title="Slot Price Guardrail">
-          <p className="text-[10px] text-zinc-400">Loading economics rows…</p>
+          <p className="text-[12px] text-zinc-400">Loading economics rows…</p>
         </InspectorSection>
       ) : null}
 
@@ -143,7 +143,7 @@ function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
         ) : null}
       </div>
 
-      <div className="flex justify-between text-[10px] font-medium text-zinc-400">
+      <div className="flex justify-between text-[12px] font-medium text-zinc-400">
         <span>Floor: {formatCurrency(guardrail.floor, 0)}</span>
         <span className="font-bold text-violet-950">
           Target: {formatCurrency(guardrail.target, 0)}
@@ -151,7 +151,7 @@ function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
         <span>Cap: {formatCurrency(guardrail.cap, 0)}</span>
       </div>
 
-      <dl className="grid grid-cols-2 gap-2 border-t border-zinc-100 pt-2 text-[10px]">
+      <dl className="grid grid-cols-2 gap-2 border-t border-zinc-100 pt-2 text-[12px]">
         <div>
           <dt className="text-zinc-400">Weighted price paid</dt>
           <dd className="font-semibold text-zinc-700">
@@ -168,7 +168,7 @@ function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
         </div>
       </dl>
 
-      <p className="text-[9px] leading-relaxed text-zinc-400">
+      <p className="text-[11px] leading-relaxed text-zinc-400">
         Band is the mean floor/target/cap across the{" "}
         {formatNumber(guardrail.screensPriced)} screens in this package. The marker is total
         spend over total slots bought. Pool-wide mean price is shown above.
@@ -183,7 +183,7 @@ function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
 
   return (
     <InspectorSection title="6-Block Time Occupancy" meta="dim_slot">
-      <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] font-medium">
+      <div className="grid grid-cols-3 gap-1.5 text-center text-[12px] font-medium">
         {rollups.map((rollup) => {
           const label =
             rollup.occupancy !== null
@@ -204,13 +204,13 @@ function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
               }`}
             >
               <span className="block">{rollup.label}</span>
-              <span className="block text-[9px] opacity-80">{label}</span>
+              <span className="block text-[11px] opacity-80">{label}</span>
             </div>
           );
         })}
       </div>
 
-      <p className="text-[9px] leading-relaxed text-zinc-400">
+      <p className="text-[11px] leading-relaxed text-zinc-400">
         {anyPriced
           ? "Violet = bought by the optimizer, showing slots bought over slots available. Grey with an index = priced but not bought."
           : "No blocks priced yet."}
@@ -236,7 +236,7 @@ function describeBlock(rollup: TimeBlockRollup): string {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-zinc-50/80 px-2.5 py-2">
-      <span className="block text-[9px] font-medium tracking-wide text-zinc-400 uppercase">
+      <span className="block text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
         {label}
       </span>
       <span className="font-semibold text-zinc-700">{value}</span>

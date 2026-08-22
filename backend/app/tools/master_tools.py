@@ -203,6 +203,73 @@ def _unknown_geography_ids(spec: CampaignSpec) -> list[str]:
 
 
 @tool
+def get_active_run(session_id: str) -> dict:
+    """Find the package already built in this session, and the inputs it was built from.
+
+    Call this FIRST on any turn that is not the session's opening brief. It is how you
+    tell a follow-up question apart from a revised brief:
+
+    - `status: "none"` — this session has no package yet. Run the full pipeline.
+    - `status: "ok"` — a package exists. Compare `campaign_inputs` against what the user
+      just said. If none of those inputs changed, answer the question from this run using
+      the read-only tools (`inspect_package`, `get_run_state`, `describe_relevance_model`,
+      `describe_inventory`) and do NOT rebuild anything. If an input did change, or the
+      user asked for a different package, run the pipeline again from
+      `create_campaign_spec`.
+
+    `campaign_inputs` is exactly the set of decisions the optimizer consumed, so a field
+    that is absent from it cannot have changed the package.
+    """
+    run_id = run_state.latest_run_for_session(session_id)
+    if run_id is None:
+        return {
+            "status": "none",
+            "detail": (
+                f"Session '{session_id}' has no runs yet. This is an opening brief — "
+                "start at create_campaign_spec."
+            ),
+        }
+
+    try:
+        spec = run_state.get_spec(run_id)
+        snapshot = run_state.snapshot(run_id)
+    except KeyError as exc:
+        return {"status": "error", "detail": str(exc)}
+
+    debug(f"get_active_run session={session_id} -> run_id={run_id}")
+    return {
+        "status": "ok",
+        "run_id": run_id,
+        # Only the fields the optimizer actually consumed. Anything outside this set is
+        # commentary and cannot justify a rebuild.
+        "campaign_inputs": {
+            "campaign_objective": spec.campaign_objective,
+            "industry_vertical": spec.industry_vertical,
+            "ad_type": spec.ad_type,
+            "budget": spec.budget,
+            "start_date": spec.start_date.isoformat(),
+            "duration_days": spec.duration_days,
+            "city_ids": spec.city_ids,
+            "zone_ids": spec.zone_ids,
+            "corridor_ids": spec.corridor_ids,
+            "target_audience": spec.target_audience.model_dump(mode="json"),
+            "audience_terms": spec.audience_terms,
+            "optimization_goal": spec.optimization_goal,
+            "requested_num_screens": spec.requested_num_screens,
+            "preferred_dayparts": spec.preferred_dayparts,
+            "preferred_time_blocks": spec.preferred_time_blocks,
+            "day_type_focus": spec.day_type_focus,
+            "hard_constraints": spec.hard_constraints,
+            "soft_preferences": spec.soft_preferences,
+        },
+        "original_query": spec.original_query,
+        "missing_information": spec.missing_information,
+        "state": snapshot,
+        "has_package": snapshot.get("optimization_status") in {"optimal", "feasible"},
+    }
+
+
+@tool
 def get_run_state(run_id: str) -> dict:
     """Report which pipeline stages have completed for a run, and which used stub output.
 
@@ -344,6 +411,7 @@ def check_explanations(run_id: str, explained_screen_ids: list[str]) -> dict:
 
 
 TOOLS = [
+    get_active_run,
     resolve_geography_terms,
     create_campaign_spec,
     get_run_state,

@@ -417,6 +417,8 @@ export interface StreamDoneEvent {
   /** The session's title after this run named it from the brief. */
   session_title: string | null;
   run_id: string | null;
+  /** False when the turn answered from the existing package instead of rebuilding it. */
+  pipeline_ran: boolean;
   answer: string;
   run_state: RunSnapshot | null;
   token_usage: TokenUsage | null;

@@ -310,6 +310,16 @@ their input via `run_state.missing_prerequisite()` and return a recoverable
 `prerequisite_missing` result naming the producing stage — they never crash. The Master's
 prompt also forbids more than one `task` call per turn.
 
+**Not every turn runs the pipeline.** A question about an existing package is answered
+from it — the pipeline only re-runs when a campaign *input* changes. The Master calls
+`get_active_run(session_id)` first on any non-opening turn; it returns the session's
+latest run plus a `campaign_inputs` dict of exactly what the optimizer consumed, and the
+prompt's triage rule compares that against the new message (ANSWER vs REBUILD). The API
+reports `pipeline_ran` (a run id that changed across the turn), which is how the UI knows
+to skip the stage rail and not repeat the metrics deck. Read-only tools
+(`inspect_package`, `describe_relevance_model`, …) must never create a run — if you add
+one that does, add it to `PIPELINE_ENTRY_TOOL` in `frontend/src/lib/stages.ts`.
+
 **Logging.** `app/logging_utils.py` prints `[INFO]` milestones, `[DEBUG]` per-call detail
 and `[ERROR]` failures (set `LOG_DEBUG=0` to quiet the debug lines).
 `app/agents/tracing.py` holds `AgentRunLogger`, a callback handler registered once in the
@@ -377,9 +387,12 @@ cd frontend && npm run dev        # :3000
 npx tsc --noEmit && npx next lint
 ```
 
-The repo sits in OneDrive, which dehydrates synced files into cloud placeholders that
-`readlink` rejects with `EINVAL` — hence `next build`'s `prebuild` clean of `.next`
-(`frontend/scripts/clean-next-cache.mjs`); `next dev` and `.venv` are still exposed.
+The repo sits in OneDrive, whose synced paths make Next's `readlink` calls on `.next`
+fail intermittently with `EINVAL` — so `predev`/`prebuild` delete it via
+`frontend/scripts/clean-next-cache.mjs`; a `.next` that never persists is never swept.
+Read that script's header before trying anything cleverer: the `ReparsePoint` attribute is
+not the signal (all of `node_modules` has it), `attrib +P` does not help, and relocating
+`distDir` breaks typechecking. Only moving the repo out of OneDrive actually fixes it.
 
 `GET /health` reports table count, whether `ridership_actuals.csv` was provisioned, and
 whether `GEMINI_API_KEY` is configured. The agent endpoints return 503 without a key; the

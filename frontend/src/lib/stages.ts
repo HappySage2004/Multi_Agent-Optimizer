@@ -35,6 +35,17 @@ export const STAGES: StageDefinition[] = [
   { id: "recommendation", label: "Recommendation", owner: "Master" },
 ];
 
+/**
+ * The tool whose call means a new pipeline run has begun.
+ *
+ * Needed because most of the Master's tools are read-only and a follow-up turn calls them
+ * to answer a question — `inspect_package` maps to the verification stage, but seeing it
+ * on its own means the agent is reading an existing package, not building one.
+ * `create_campaign_spec` is the only tool that creates a run, so it is the unambiguous
+ * signal. Until it fires, the stage rail stays hidden.
+ */
+export const PIPELINE_ENTRY_TOOL = "create_campaign_spec";
+
 /** Master-owned tools that pin a stage directly. */
 const TOOL_STAGES: Record<string, StageId> = {
   resolve_geography_terms: "intake",

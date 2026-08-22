@@ -26,7 +26,13 @@ import {
   stageUpload,
   streamCampaign,
 } from "@/lib/api";
-import { STAGES, type StageId, stageForTool, stageIndex } from "@/lib/stages";
+import {
+  PIPELINE_ENTRY_TOOL,
+  STAGES,
+  type StageId,
+  stageForTool,
+  stageIndex,
+} from "@/lib/stages";
 import type {
   HealthOut,
   RunRecord,
@@ -361,7 +367,10 @@ export function useCampaignRun() {
 
       setStatus("streaming");
       setError(null);
-      setActiveStage("intake");
+      // Deliberately not pre-set to "intake". A follow-up question never enters the
+      // pipeline, so the stage rail must stay hidden until a run is actually created —
+      // otherwise every question shows a tracker frozen on "Brief intake".
+      setActiveStage(null);
       setCompletedStages([]);
       setToolTrail([]);
       setTokenUsage(null);
@@ -372,6 +381,9 @@ export function useCampaignRun() {
 
       // `task` calls are counted so the Nth delegation maps to the Nth specialist.
       let taskCalls = 0;
+      // Flipped by the tool that creates a run. Until then this is a follow-up turn and
+      // the read-only tools it calls must not drive the stage rail.
+      let pipelineStarted = false;
       const seen = new Set<StageId>();
 
       const advanceTo = (stage: StageId) => {
@@ -390,9 +402,10 @@ export function useCampaignRun() {
               for (const name of event.summary.tool_calls ?? []) {
                 if (!name) continue;
                 setToolTrail((prev) => [...prev, name]);
+                if (name === PIPELINE_ENTRY_TOOL) pipelineStarted = true;
                 const stage = stageForTool(name, taskCalls);
                 if (name === "task") taskCalls += 1;
-                if (stage) advanceTo(stage);
+                if (stage && pipelineStarted) advanceTo(stage);
               }
             },
             onDone: (event) => {
@@ -405,8 +418,15 @@ export function useCampaignRun() {
                   ),
                 );
               }
-              seen.add("verification");
-              setCompletedStages([...seen, "recommendation"]);
+              // The backend reports whether this turn rebuilt the package. A follow-up
+              // resolves to the same run, so attaching it to the message would repeat the
+              // metrics deck under every answer — and completing the stage rail would
+              // claim a pipeline that never ran.
+              const rebuilt = event.pipeline_ran !== false;
+              if (rebuilt && pipelineStarted) {
+                seen.add("verification");
+                setCompletedStages([...seen, "recommendation"]);
+              }
               setActiveStage(null);
               setTokenUsage(event.token_usage);
               setStatus("done");
@@ -415,9 +435,10 @@ export function useCampaignRun() {
                 id: nextMessageId(),
                 role: "assistant",
                 text: event.answer,
-                runId: event.run_id ?? undefined,
+                runId: rebuilt ? event.run_id ?? undefined : undefined,
               });
-              if (event.run_id) void loadRun(event.run_id);
+              // Only refetch when there is something new to fetch.
+              if (rebuilt && event.run_id) void loadRun(event.run_id);
             },
             onError: (event) => {
               setStatus("error");

@@ -60,13 +60,13 @@ export function TabRelevanceD2({
 
       {loading && candidates.length === 0 ? (
         <InspectorSection title="Candidates">
-          <p className="text-[10px] text-zinc-400">Loading candidate rows…</p>
+          <p className="text-[12px] text-zinc-400">Loading candidate rows…</p>
         </InspectorSection>
       ) : null}
 
       {candidates.length > 0 ? (
         <div className="space-y-2">
-          <div className="flex items-baseline justify-between px-1 text-[10px]">
+          <div className="flex items-baseline justify-between px-1 text-[12px]">
             <span className="font-bold tracking-wider text-zinc-400 uppercase">
               Top {candidates.length} of {formatNumber(candidatesRef.rows)}
             </span>
@@ -115,16 +115,16 @@ function CandidateRow({
       >
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="font-mono text-[9px] text-zinc-300">#{rank}</span>
+            <span className="font-mono text-[11px] text-zinc-300">#{rank}</span>
             <span className="truncate font-bold text-zinc-700">{candidate.screen_id}</span>
             {inPackage ? (
-              <span className="flex shrink-0 items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-px text-[9px] font-semibold text-emerald-700">
+              <span className="flex shrink-0 items-center gap-0.5 rounded bg-emerald-50 px-1.5 py-px text-[11px] font-semibold text-emerald-700">
                 <CheckIcon className="h-2 w-2" strokeWidth={3} />
                 Bought
               </span>
             ) : null}
           </div>
-          <div className="mt-0.5 truncate text-[10px] text-zinc-400">
+          <div className="mt-0.5 truncate text-[12px] text-zinc-400">
             {[
               candidate.screen_type ? titleCase(candidate.screen_type) : null,
               candidate.zone_id,
@@ -140,7 +140,7 @@ function CandidateRow({
             <WarningIcon className="h-3.5 w-3.5 text-amber-500" />
           ) : null}
           <span
-            className={`rounded-md px-2.5 py-1 text-xs font-black whitespace-nowrap ${
+            className={`rounded-md px-2.5 py-1 text-[14px] font-black whitespace-nowrap ${
               inPackage
                 ? "bg-violet-950 text-white"
                 : "border border-zinc-200/50 bg-zinc-100/80 font-bold text-zinc-600"
@@ -168,7 +168,7 @@ function CandidateRow({
               the relevance score. */}
           <div className="space-y-1.5 border-t border-zinc-100 pt-2">
             <ScoreBar label="Volume percentile" value={candidate.transit_score} />
-            <p className="text-[9px] leading-relaxed text-zinc-400">
+            <p className="text-[11px] leading-relaxed text-zinc-400">
               Audience volume relative to the eligible pool. Reported for context — not part
               of the relevance score.
             </p>
@@ -176,10 +176,10 @@ function CandidateRow({
 
           {candidate.reasons.length > 0 ? (
             <div className="space-y-1 border-t border-zinc-100 pt-2">
-              <span className="text-[9px] font-bold tracking-wider text-zinc-400 uppercase">
+              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
                 Reasons
               </span>
-              <ul className="list-disc space-y-0.5 pl-4 text-[10px] leading-relaxed text-zinc-500">
+              <ul className="list-disc space-y-0.5 pl-4 text-[12px] leading-relaxed text-zinc-500">
                 {candidate.reasons.map((reason) => (
                   <li key={reason}>{reason}</li>
                 ))}
@@ -188,7 +188,7 @@ function CandidateRow({
           ) : null}
 
           {!candidate.hard_constraints_passed ? (
-            <p className="rounded border border-amber-200/70 bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-800">
+            <p className="rounded border border-amber-200/70 bg-amber-50 px-2 py-1 text-[12px] font-medium text-amber-800">
               Failed hard-constraint filtering — not eligible for the package.
             </p>
           ) : null}

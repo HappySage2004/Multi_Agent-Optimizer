@@ -110,6 +110,14 @@ def _ensure_session(session_id: str | None, query: str) -> str:
     return created["id"]
 
 
+# A turn either builds a package or talks about one. `create_campaign_spec` starts a new
+# run, so a run id that changed across the turn is the authoritative signal that the
+# pipeline ran — more reliable than inspecting the tool trail, which also contains the
+# read-only tools a follow-up uses.
+def _pipeline_ran(run_id: str | None, run_id_before: str | None) -> bool:
+    return run_id is not None and run_id != run_id_before
+
+
 def _build_prompt(payload: CampaignQuery, session_id: str) -> str:
     lines = [payload.query.strip(), "", f"session_id: {session_id}"]
     if payload.upload_ids:
@@ -120,13 +128,6 @@ def _build_prompt(payload: CampaignQuery, session_id: str) -> str:
             lines += ["", "Staged documents (read with the filesystem tools if needed):"]
             lines += [f"- {r['filename']} at {r['stored_path']}" for r in staged]
     return "\n".join(lines)
-
-
-def _latest_run_for_session(session_id: str) -> str | None:
-    runs = [r for r in local_db.list_records(local_db.RUNS) if r.get("session_id") == session_id]
-    if not runs:
-        return None
-    return max(runs, key=lambda r: r.get("created_at") or "")["id"]
 
 
 def _message_text(message: Any) -> str:
@@ -158,6 +159,8 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
     _require_api_key()
     session_id = _ensure_session(payload.session_id, payload.query)
 
+    run_id_before = run_state.latest_run_for_session(session_id)
+
     tracer = AgentRunLogger(label=f"campaign/run session={session_id}")
     tracer.start()
     log_info(f"brief received ({len(payload.query)} chars), model={get_settings().master_model_id}")
@@ -174,13 +177,16 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 
     usage = tracer.log_summary()
 
-    run_id = _latest_run_for_session(session_id)
+    run_id = run_state.latest_run_for_session(session_id)
+    pipeline_ran = _pipeline_ran(run_id, run_id_before)
     snapshot = run_state.snapshot(run_id) if run_id else None
-    if run_id:
+    if pipeline_ran:
         log_info(
             f"run_id={run_id} status={snapshot.get('status')} "
             f"stub_stages={snapshot.get('stub_stages')}"
         )
+    elif run_id:
+        log_info(f"follow-up answered from existing run_id={run_id}; pipeline not re-run")
     else:
         log_error("agent finished without creating a campaign run — intake likely never ran")
 
@@ -188,6 +194,7 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
         session_id=session_id,
         session_title=session_titles.title_of(session_id),
         run_id=run_id,
+        pipeline_ran=pipeline_ran,
         answer=_final_text(state),
         stub_stages=(snapshot or {}).get("stub_stages", []),
         provenance=run_state.overall_provenance(run_id) if run_id else "computed",
@@ -202,6 +209,7 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
     _require_api_key()
     session_id = _ensure_session(payload.session_id, payload.query)
     prompt = _build_prompt(payload, session_id)
+    run_id_before = run_state.latest_run_for_session(session_id)
 
     async def events() -> AsyncIterator[str]:
         agent = _agent_instance()
@@ -235,13 +243,17 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
             return
 
         usage = tracer.log_summary()
-        run_id = _latest_run_for_session(session_id)
+        run_id = run_state.latest_run_for_session(session_id)
+        pipeline_ran = _pipeline_ran(run_id, run_id_before)
+        if run_id and not pipeline_ran:
+            log_info(f"follow-up answered from existing run_id={run_id}; pipeline not re-run")
         yield _sse(
             "done",
             {
                 "session_id": session_id,
                 "session_title": session_titles.title_of(session_id),
                 "run_id": run_id,
+                "pipeline_ran": pipeline_ran,
                 "answer": answer,
                 "run_state": run_state.snapshot(run_id) if run_id else None,
                 "token_usage": usage,

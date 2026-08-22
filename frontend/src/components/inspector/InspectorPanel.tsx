@@ -55,7 +55,7 @@ export function InspectorPanel({
               aria-selected={active}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 rounded-lg py-2 text-[11px] transition-all ${
+              className={`flex-1 rounded-lg py-2 text-[13px] transition-all ${
                 active
                   ? "bg-violet-950 font-bold text-white shadow-xs"
                   : "font-medium text-zinc-500 hover:bg-zinc-100/60"
@@ -67,7 +67,7 @@ export function InspectorPanel({
         })}
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 text-xs">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 text-[14px]">
         {activeTab === "d1" ? (
           <TabAudienceD1
             spec={run?.campaign_spec ?? null}

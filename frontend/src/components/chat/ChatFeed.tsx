@@ -9,7 +9,8 @@
 import { useEffect, useRef } from "react";
 
 import { ImpactMetricsDeck } from "@/components/chat/ImpactMetricsDeck";
-import { StageProgress } from "@/components/chat/StageProgress";
+import { Markdown } from "@/components/chat/Markdown";
+import { StageProgress, ThinkingIndicator } from "@/components/chat/StageProgress";
 import { StrategySummaryCard } from "@/components/chat/StrategySummaryCard";
 import { PaperclipIcon, WarningIcon } from "@/components/ui/Icon";
 import type { ChatMessage, RunData, RunStatus, StageState } from "@/hooks/useCampaignRun";
@@ -60,8 +61,17 @@ export function ChatFeed({
         ),
       )}
 
+      {/* The stage rail only appears once the pipeline is genuinely underway; a follow-up
+          question never enters it and gets the compact indicator instead. */}
       {status === "streaming" ? (
-        <StageProgress stages={stages} toolTrail={toolTrail} onCancel={onCancel} />
+        stages.some((stage) => stage.status !== "pending") ? (
+          <StageProgress stages={stages} toolTrail={toolTrail} onCancel={onCancel} />
+        ) : (
+          <ThinkingIndicator
+            hasPackage={Boolean(runData.run?.optimization?.package)}
+            onCancel={onCancel}
+          />
+        )
       ) : null}
 
       {error ? <ErrorBlock detail={error} onDismiss={onDismissError} /> : null}
@@ -124,7 +134,7 @@ function AssistantBlock({
           </p>
         ) : null}
 
-        {message.text ? <p className="whitespace-pre-wrap text-zinc-600">{message.text}</p> : null}
+        {message.text ? <Markdown>{message.text}</Markdown> : null}
 
         {provenance.note ? (
           <div className="flex gap-2 rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/clean-next-cache.mjs",
     "dev": "next dev --port 3000",
     "prebuild": "node scripts/clean-next-cache.mjs",
     "build": "next build",
@@ -13,7 +14,9 @@
   "dependencies": {
     "next": "^15.5.23",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.2.0",

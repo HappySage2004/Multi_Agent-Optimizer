@@ -33,6 +33,26 @@ def create_run(spec: CampaignSpec, *, session_id: str | None = None) -> str:
     return record["id"]
 
 
+def latest_run_for_session(session_id: str) -> str | None:
+    """The most recent run started in a session, or None if it has never run one.
+
+    This is what makes a follow-up turn possible: the Master Agent resolves the package it
+    is being asked about from the session id, rather than depending on a conversational
+    memory that a process restart would lose.
+    """
+    # `created_at` has second granularity, so two runs started in the same second tie —
+    # which happens when the agent retries `create_campaign_spec` after a validation
+    # error. `max()` would return the first of a tie, i.e. the abandoned run. Scanning
+    # with `>=` instead lets the later record win, and localDB appends in insertion order.
+    latest: dict[str, Any] | None = None
+    for run in local_db.list_records(local_db.RUNS):
+        if run.get("session_id") != session_id:
+            continue
+        if latest is None or (run.get("created_at") or "") >= (latest.get("created_at") or ""):
+            latest = run
+    return None if latest is None else latest["id"]
+
+
 def _require(run_id: str) -> dict[str, Any]:
     record = local_db.get_record(local_db.RUNS, run_id)
     if record is None:

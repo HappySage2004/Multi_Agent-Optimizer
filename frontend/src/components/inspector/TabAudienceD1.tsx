@@ -58,7 +58,7 @@ export function TabAudienceD1({
       />
 
       <InspectorSection title="Resolved Brief" meta={spec.optimization_goal.toUpperCase()}>
-        <dl className="space-y-1.5 text-[11px]">
+        <dl className="space-y-1.5 text-[13px]">
           <Row label="Objective" value={spec.campaign_objective} />
           {spec.industry_vertical ? (
             <Row label="Vertical" value={spec.industry_vertical} />
@@ -74,10 +74,10 @@ export function TabAudienceD1({
 
         {spec.missing_information.length > 0 ? (
           <div className="rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-2">
-            <span className="text-[10px] font-bold tracking-wider text-amber-800 uppercase">
+            <span className="text-[12px] font-bold tracking-wider text-amber-800 uppercase">
               Not specified in the brief
             </span>
-            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[10px] text-amber-700">
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] text-amber-700">
               {spec.missing_information.map((item) => (
                 <li key={item}>{item}</li>
               ))}
@@ -94,7 +94,7 @@ export function TabAudienceD1({
           {candidatesRef.provenance === "stub" ? (
             <StubNotice stage="Relevance scoring (relevance engine)" />
           ) : null}
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div className="grid grid-cols-2 gap-2 text-[13px]">
             <Stat
               label="Eligible in geography"
               value={
@@ -140,7 +140,7 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
   if (candidates.length === 0) {
     return (
       <InspectorSection title="Inventory Mix">
-        <p className="text-[10px] leading-relaxed text-zinc-400">
+        <p className="text-[12px] leading-relaxed text-zinc-400">
           Populated from the <code className="font-mono">screen_candidates</code> artifact once
           the relevance engine has run.
         </p>
@@ -170,7 +170,7 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
           return (
             <span
               key={type}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium ${
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium ${
                 primary
                   ? "border border-zinc-800 bg-zinc-50 text-zinc-800"
                   : "border border-zinc-200/50 bg-zinc-100/70 text-zinc-600"
@@ -195,7 +195,7 @@ function FootfallChart({ rollups }: { rollups: TimeBlockRollup[] }) {
   if (!hasData) {
     return (
       <InspectorSection title="Forecast Impressions by Time Block">
-        <p className="text-[10px] leading-relaxed text-zinc-400">
+        <p className="text-[12px] leading-relaxed text-zinc-400">
           Populated from the optimizer&rsquo;s allocations once stage 4 has run.
         </p>
       </InspectorSection>
@@ -231,7 +231,7 @@ function FootfallChart({ rollups }: { rollups: TimeBlockRollup[] }) {
         })}
       </div>
 
-      <div className="flex gap-2 text-[9px] font-medium tracking-tight text-zinc-400">
+      <div className="flex gap-2 text-[11px] font-medium tracking-tight text-zinc-400">
         {rollups.map((rollup) => (
           <span key={rollup.id} className="flex-1 text-center">
             {rollup.label.slice(0, 5)}
@@ -240,7 +240,7 @@ function FootfallChart({ rollups }: { rollups: TimeBlockRollup[] }) {
         ))}
       </div>
 
-      <div className="flex items-center gap-3 pt-1 text-[9px] text-zinc-400">
+      <div className="flex items-center gap-3 pt-1 text-[11px] text-zinc-400">
         <LegendSwatch className="bg-violet-950" label="Peak block, bought" />
         <LegendSwatch className="bg-zinc-300" label="Bought" />
         <LegendSwatch className="bg-zinc-200/60" label="Not bought" />
@@ -270,7 +270,7 @@ function Row({ label, value }: { label: string; value: string }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-zinc-50/80 px-2.5 py-2">
-      <span className="block text-[9px] font-medium tracking-wide text-zinc-400 uppercase">
+      <span className="block text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
         {label}
       </span>
       <span className="font-semibold text-zinc-700">{value}</span>

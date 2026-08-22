@@ -40,6 +40,10 @@ class CampaignRunOut(BaseModel):
         default=None, description="The session's title after this run named it from the brief"
     )
     run_id: str | None = None
+    pipeline_ran: bool = Field(
+        default=True,
+        description="False when this turn answered from an existing package without rebuilding",
+    )
     answer: str
     stub_stages: list[str] = []
     provenance: str = "computed"
