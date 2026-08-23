@@ -124,6 +124,10 @@ def test_campaign_inputs_cover_every_optimizer_input() -> None:
         "preferred_time_blocks",
         "day_type_focus",
         "hard_constraints",
+        # A mix request changes which screens the optimizer was allowed to leave out, so
+        # "also put some buses in" is a REBUILD. It was missing here, which made that
+        # follow-up an ANSWER off a package that had ignored the request in the first place.
+        "screen_type_mix",
         "soft_preferences",
         # Not a CampaignSpec field, but it belongs here on the same test: levers change the
         # prices the optimizer consumed, so a request to move one is a REBUILD. Reported as
