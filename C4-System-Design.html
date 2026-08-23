@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentIQ — System Design (C4 Model)</title>
+<style>
+  :root {
+    --violet:      #3b0764;
+    --violet-900:  #4c1d95;
+    --violet-700:  #6d28d9;
+    --violet-300:  #d8b4fe;
+    --violet-50:   #f5f3ff;
+    --zinc-50:     #fafafa;
+    --zinc-100:    #f4f4f5;
+    --zinc-200:    #e4e4e7;
+    --zinc-300:    #d4d4d8;
+    --zinc-400:    #a1a1aa;
+    --zinc-500:    #71717a;
+    --zinc-600:    #52525b;
+    --zinc-700:    #3f3f46;
+    --zinc-800:    #27272a;
+    --emerald-50:  #ecfdf5;
+    --emerald-600: #059669;
+    --emerald-700: #047857;
+    --amber-50:    #fffbeb;
+    --amber-300:   #fcd34d;
+    --amber-700:   #b45309;
+    --rose-50:     #fff1f2;
+    --rose-700:    #be123c;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--zinc-700);
+    background: var(--zinc-100);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--zinc-200);
+  }
+
+  /* ---------- cover ---------- */
+  .cover {
+    background: var(--violet);
+    color: #fff;
+    padding: 44px 56px 38px;
+  }
+  .brandmark {
+    display: flex; align-items: center; gap: 11px; margin-bottom: 34px;
+  }
+  .brandmark .logo {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: #fff; color: var(--violet);
+    font-weight: 800; font-size: 11px; letter-spacing: .06em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brandmark .name { font-weight: 700; font-size: 13px; letter-spacing: -.01em; }
+  .brandmark .sub  { font-size: 10.5px; color: var(--violet-300); font-weight: 500; }
+
+  .cover h1 {
+    margin: 0 0 10px; font-size: 34px; line-height: 1.12;
+    letter-spacing: -.026em; font-weight: 700;
+  }
+  .cover .lede {
+    margin: 0; max-width: 68ch; color: #e9d5ff; font-size: 14.5px;
+  }
+  .cover-meta {
+    margin-top: 30px; padding-top: 22px;
+    border-top: 1px solid rgba(255,255,255,.16);
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px;
+  }
+  .cover-meta dt {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--violet-300); font-weight: 700; margin-bottom: 3px;
+  }
+  .cover-meta dd { margin: 0; font-size: 12.5px; color: #fff; font-weight: 500; }
+
+  /* ---------- structure ---------- */
+  section { padding: 40px 56px 8px; }
+  section + section { border-top: 1px solid var(--zinc-100); }
+
+  .eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--violet-700); margin-bottom: 7px;
+  }
+  h2 {
+    margin: 0 0 6px; font-size: 23px; letter-spacing: -.02em;
+    color: var(--zinc-800); font-weight: 700;
+  }
+  h3 {
+    margin: 34px 0 12px; font-size: 15px; letter-spacing: -.01em;
+    color: var(--zinc-800); font-weight: 700;
+  }
+  h4 {
+    margin: 22px 0 8px; font-size: 12.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .07em; color: var(--zinc-500);
+  }
+  .scope {
+    margin: 0 0 26px; max-width: 82ch; color: var(--zinc-600); font-size: 13.5px;
+  }
+  p { max-width: 84ch; }
+  code {
+    font-family: var(--mono); font-size: .88em;
+    background: var(--zinc-100); padding: 1px 4px; border-radius: 4px;
+    color: var(--zinc-800);
+  }
+
+  /* ---------- diagram primitives ---------- */
+  .diagram {
+    background:
+      linear-gradient(var(--zinc-50) 0 0);
+    border: 1px solid var(--zinc-200);
+    border-radius: 14px;
+    padding: 30px 26px;
+    margin: 0 0 8px;
+  }
+  .row {
+    display: flex; gap: 14px; justify-content: center; align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .row--2 > * { flex: 1 1 300px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* element box */
+  .el {
+    border-radius: 11px; padding: 13px 15px; text-align: left;
+    border: 1px solid var(--zinc-200); background: #fff;
+    min-width: 0;
+  }
+  .el .t {
+    font-weight: 700; font-size: 13px; color: var(--zinc-800);
+    letter-spacing: -.01em; margin-bottom: 2px;
+  }
+  .el .tech {
+    font-family: var(--mono); font-size: 10px; color: var(--zinc-400);
+    margin-bottom: 7px; letter-spacing: -.01em;
+  }
+  .el .d { font-size: 11.5px; color: var(--zinc-500); line-height: 1.5; }
+  .el .d strong { color: var(--zinc-700); font-weight: 600; }
+
+  .el--person {
+    background: var(--violet); border-color: var(--violet);
+    max-width: 260px; margin: 0 auto;
+  }
+  .el--person .t { color: #fff; }
+  .el--person .tech { color: var(--violet-300); }
+  .el--person .d { color: #e9d5ff; }
+
+  .el--focus {
+    background: var(--violet); border-color: var(--violet);
+    max-width: 620px; margin: 0 auto; padding: 18px 22px;
+  }
+  .el--focus .t { color: #fff; font-size: 16px; }
+  .el--focus .tech { color: var(--violet-300); }
+  .el--focus .d { color: #e9d5ff; font-size: 12.5px; }
+
+  .el--ext {
+    background: var(--zinc-100); border: 1px dashed var(--zinc-400);
+  }
+  .el--ext .t { color: var(--zinc-600); }
+
+  .el--container { border-top: 3px solid var(--violet); }
+  .el--engine    { border-top: 3px solid var(--emerald-600); }
+  .el--store     { border-top: 3px solid var(--zinc-400); background: var(--zinc-50); }
+  .el--comp      { padding: 11px 13px; }
+  .el--comp .t   { font-size: 12px; }
+
+  /* boundary */
+  .boundary {
+    border: 1.5px dashed var(--violet-300);
+    border-radius: 14px; padding: 16px 16px 18px;
+    position: relative; margin: 0;
+    background: rgba(245,243,255,.45);
+  }
+  .boundary > .blabel {
+    position: absolute; top: -10px; left: 16px;
+    background: #fff; padding: 0 8px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--violet-700);
+    border: 1px solid var(--violet-300); border-radius: 20px;
+  }
+  .boundary--tight { padding: 20px 14px 14px; }
+
+  /* connectors */
+  .conn {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 4px 0; gap: 3px;
+  }
+  .conn .lbl {
+    font-family: var(--mono); font-size: 9.5px; color: var(--zinc-500);
+    background: #fff; border: 1px solid var(--zinc-200);
+    border-radius: 20px; padding: 2px 9px; text-align: center;
+    max-width: 86ch;
+  }
+  .conn .stem {
+    width: 0; height: 13px; border-left: 1.5px solid var(--zinc-300);
+  }
+  .conn .head {
+    width: 0; height: 0;
+    border-left: 4.5px solid transparent; border-right: 4.5px solid transparent;
+    border-top: 6px solid var(--zinc-400); margin-top: -1px;
+  }
+  .conn--up .head {
+    border-top: none; border-bottom: 6px solid var(--zinc-400); margin: 0 0 -1px;
+  }
+  .conn--both .head, .conn--both .head2 {
+    width: 0; height: 0;
+    border-left: 4.5px solid transparent; border-right: 4.5px solid transparent;
+  }
+  .conn--both .head2 { border-bottom: 6px solid var(--zinc-400); margin-bottom: -1px; }
+
+  /* side-attached notes on a diagram */
+  .with-aside {
+    display: grid; grid-template-columns: 1fr 232px; gap: 20px; align-items: start;
+  }
+  .aside-stack { display: flex; flex-direction: column; gap: 10px; }
+
+  /* chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .chip {
+    font-family: var(--mono); font-size: 9.5px; padding: 2px 7px;
+    border-radius: 5px; background: var(--zinc-100); color: var(--zinc-600);
+    border: 1px solid var(--zinc-200); white-space: nowrap;
+  }
+  .chip--v { background: var(--violet-50); color: var(--violet-900); border-color: var(--violet-300); }
+  .chip--e { background: var(--emerald-50); color: var(--emerald-700); border-color: #a7f3d0; }
+  .chip--a { background: var(--amber-50); color: var(--amber-700); border-color: var(--amber-300); }
+
+  /* caption */
+  .caption {
+    font-size: 11.5px; color: var(--zinc-500); margin: 12px 0 0;
+    padding-left: 11px; border-left: 2px solid var(--zinc-200); max-width: 92ch;
+  }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 14px 0 0; font-size: 12.5px;
+  }
+  th {
+    text-align: left; font-size: 9.5px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--zinc-500); font-weight: 800;
+    padding: 8px 10px; border-bottom: 1.5px solid var(--zinc-200);
+    background: var(--zinc-50); vertical-align: bottom;
+  }
+  td {
+    padding: 9px 10px; border-bottom: 1px solid var(--zinc-100);
+    vertical-align: top; color: var(--zinc-600);
+  }
+  td:first-child { color: var(--zinc-800); font-weight: 600; }
+  td code, th code { font-size: 11px; }
+  tbody tr:last-child td { border-bottom: none; }
+  .t-num { font-family: var(--mono); white-space: nowrap; }
+
+  /* legend */
+  .legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 20px; }
+  .legend-item { display: flex; gap: 9px; align-items: flex-start; font-size: 11.5px; }
+  .swatch {
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0; margin-top: 1px;
+    border: 1px solid var(--zinc-200); background: #fff;
+  }
+  .swatch--person { background: var(--violet); border-color: var(--violet); }
+  .swatch--ext { background: var(--zinc-100); border: 1px dashed var(--zinc-400); }
+  .swatch--container { border-top: 3px solid var(--violet); }
+  .swatch--engine { border-top: 3px solid var(--emerald-600); }
+  .swatch--store { border-top: 3px solid var(--zinc-400); background: var(--zinc-50); }
+  .swatch--boundary { border: 1.5px dashed var(--violet-300); background: rgba(245,243,255,.5); }
+  .legend-item b { color: var(--zinc-800); font-weight: 700; display: block; font-size: 11.5px; }
+  .legend-item span { color: var(--zinc-500); }
+
+  /* callouts */
+  .note {
+    border-radius: 11px; padding: 13px 16px; font-size: 12.5px;
+    margin: 16px 0 0; border: 1px solid var(--zinc-200); background: var(--zinc-50);
+  }
+  .note b { color: var(--zinc-800); }
+  .note--rule  { background: var(--violet-50); border-color: var(--violet-300); }
+  .note--warn  { background: var(--amber-50); border-color: var(--amber-300); }
+  .note--warn b { color: var(--amber-700); }
+  .note--ok    { background: var(--emerald-50); border-color: #a7f3d0; }
+  .note p { margin: 0; max-width: 96ch; }
+  .note p + p { margin-top: 7px; }
+
+  /* pipeline / dynamic view */
+  .stage {
+    display: grid; grid-template-columns: 34px 1fr; gap: 14px;
+    padding: 0 0 2px;
+  }
+  .stage-num {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--violet);
+    color: #fff; font-weight: 800; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage-num--m { background: var(--zinc-700); }
+  .stage-body {
+    border: 1px solid var(--zinc-200); border-radius: 11px; background: #fff;
+    padding: 12px 15px; margin-bottom: 0;
+  }
+  .stage-head {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;
+  }
+  .stage-head .n { font-weight: 700; font-size: 13.5px; color: var(--zinc-800); }
+  .stage-head .owner {
+    font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 5px;
+  }
+  .owner--master { background: var(--violet-50); color: var(--violet-900); }
+  .owner--det { background: var(--emerald-50); color: var(--emerald-700); }
+  .owner--sub { background: #fff7ed; color: #c2410c; }
+  .stage-body .d { font-size: 11.5px; color: var(--zinc-500); }
+  .rail {
+    display: grid; grid-template-columns: 34px 1fr; gap: 14px;
+  }
+  .rail-line { display: flex; justify-content: center; }
+  .rail-line i {
+    display: block; width: 0; border-left: 1.5px dashed var(--zinc-300); height: 18px;
+  }
+  .rail-lbl {
+    font-family: var(--mono); font-size: 9.5px; color: var(--zinc-500);
+    align-self: center; padding: 3px 0;
+  }
+
+  /* decision records */
+  .adr { border-left: 3px solid var(--violet); padding: 2px 0 2px 16px; margin: 22px 0; }
+  .adr .h { font-weight: 700; color: var(--zinc-800); font-size: 13.5px; margin-bottom: 3px; }
+  .adr .m {
+    font-family: var(--mono); font-size: 9.5px; color: var(--zinc-400);
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+  }
+  .adr p { margin: 0 0 6px; font-size: 12.5px; }
+
+  footer {
+    padding: 30px 56px; margin-top: 30px;
+    border-top: 1px solid var(--zinc-200); background: var(--zinc-50);
+    font-size: 11.5px; color: var(--zinc-500);
+  }
+  footer b { color: var(--zinc-700); }
+
+  @media print {
+    body { background: #fff; font-size: 11px; }
+    .page { box-shadow: none; max-width: none; }
+    section { padding: 26px 30px 4px; break-inside: avoid; }
+    .lvl { break-before: page; }
+    .diagram, table, .adr, .note { break-inside: avoid; }
+    .cover { padding: 30px 30px 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============================== COVER ============================== -->
+  <header class="cover">
+    <div class="brandmark">
+      <div class="logo">AQ</div>
+      <div>
+        <div class="name">AgentIQ</div>
+        <div class="sub">Urban Media Engine</div>
+      </div>
+    </div>
+
+    <h1>System Design — C4 Model</h1>
+    <p class="lede">
+      Transit Media Campaign Recommendation System. A natural-language campaign brief goes in;
+      an explainable, budget-feasible, sales-ready media package comes out. Documented at the
+      four C4 levels of abstraction, plus a dynamic view of the six-stage pipeline.
+    </p>
+
+    <dl class="cover-meta">
+      <div>
+        <dt>Levels covered</dt>
+        <dd>Context · Container · Component · Dynamic</dd>
+      </div>
+      <div>
+        <dt>Codebase</dt>
+        <dd>56 Python modules · 25 TS modules</dd>
+      </div>
+      <div>
+        <dt>Branch</dt>
+        <dd>mridul/demand_forecasting</dd>
+      </div>
+      <div>
+        <dt>Date</dt>
+        <dd>23 August 2026</dd>
+      </div>
+    </dl>
+  </header>
+
+  <!-- ============================== NOTATION ============================== -->
+  <section>
+    <div class="eyebrow">Notation</div>
+    <h2>How to read these diagrams</h2>
+    <p class="scope">
+      Standard C4 notation. Each level zooms into exactly one element of the level above:
+      the Context diagram's single system becomes the Container diagram; two of those
+      containers are then decomposed into components. Every box carries its technology in
+      monospace; every arrow is labelled with what actually crosses it.
+    </p>
+
+    <div class="diagram">
+      <div class="legend">
+        <div class="legend-item">
+          <div class="swatch swatch--person"></div>
+          <div><b>Person</b><span>A human role that uses the system.</span></div>
+        </div>
+        <div class="legend-item">
+          <div class="swatch swatch--ext"></div>
+          <div><b>External system</b><span>Outside our control. Dashed border.</span></div>
+        </div>
+        <div class="legend-item">
+          <div class="swatch swatch--boundary"></div>
+          <div><b>Boundary</b><span>The scope of the current level.</span></div>
+        </div>
+        <div class="legend-item">
+          <div class="swatch swatch--container"></div>
+          <div><b>Container</b><span>Separately runnable or deployable unit.</span></div>
+        </div>
+        <div class="legend-item">
+          <div class="swatch swatch--engine"></div>
+          <div><b>Deterministic engine</b><span>Calculates. No LLM anywhere inside it.</span></div>
+        </div>
+        <div class="legend-item">
+          <div class="swatch swatch--store"></div>
+          <div><b>Data store</b><span>Persistent state.</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">
+      The engine colour is not decorative. The system's central architectural rule is that
+      <b>LLMs reason and orchestrate; deterministic tools calculate</b> — so which boxes are
+      green and which are violet is the design.
+    </p>
+  </section>
+
+  <!-- ============================== LEVEL 1 ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Level 1</div>
+    <h2>System Context</h2>
+    <p class="scope">
+      One system, one human role, two external dependencies. A media sales rep describes a
+      campaign in prose and receives a validated inventory package they can quote to a
+      client. The system reasons with a hosted LLM and reads a fixed analytical extract of
+      the transit network.
+    </p>
+
+    <div class="diagram">
+      <div class="el el--person">
+        <div class="t">Media Sales Rep</div>
+        <div class="tech">Person</div>
+        <div class="d">Sells transit advertising inventory. Knows commercial context the brief never states.</div>
+      </div>
+
+      <div class="conn conn--both">
+        <div class="head2"></div>
+        <div class="stem"></div>
+        <div class="lbl">campaign brief in natural language, uploaded RFPs/decks, follow-up questions → validated package, prices, reasons [HTTPS]</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <div class="el el--focus">
+        <div class="t">AgentIQ — Campaign Recommendation System</div>
+        <div class="tech">Python 3.13 · FastAPI · LangGraph Deep Agents · Next.js</div>
+        <div class="d">
+          Interprets the brief, scores 11,163 screens for audience fit, prices them against
+          historical bookings, solves a MILP for the best package under budget and
+          availability, verifies the result against the brief's hard constraints, and explains
+          every screen it chose using real feature values.
+        </div>
+      </div>
+
+      <div class="conn conn--both">
+        <div class="head2"></div>
+        <div class="stem"></div>
+        <div class="lbl">reasoning &amp; orchestration prompts, tool-call decisions [HTTPS] &nbsp;·&nbsp; read-only analytical extract [file system]</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="el el--ext">
+          <div class="t">Google Gemini API</div>
+          <div class="tech">gemini-3.5-flash-lite · langchain-google-genai</div>
+          <div class="d">
+            Hosts the Master agent and both specialists. <strong>Free-tier caps requests per
+            minute</strong> (15/min), so a client-side limiter is mandatory rather than
+            defensive. Never sees a candidate list or a price table.
+          </div>
+        </div>
+        <div class="el el--ext">
+          <div class="t">Transit media data extract</div>
+          <div class="tech">14 read-only CSVs · ~166 MB</div>
+          <div class="d">
+            Screens, locations, zones, bookings, lost leads, routes, schedules, vehicles, POIs,
+            events, clients. <strong><code>ridership_actuals.csv</code> (124 MB) is provisioned
+            separately</strong>; without it the audience engine degrades to scheduled
+            ridership and says so.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h4>What the system is responsible for — and what it refuses to do</h4>
+    <table>
+      <thead>
+        <tr><th style="width:26%">Responsibility</th><th>Guarantee it makes to the sales rep</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Interpret the brief</td>
+          <td>Never invents a budget, date, duration or geography the brief did not state — anything absent is returned in <code>missing_information</code> instead of imagined.</td>
+        </tr>
+        <tr>
+          <td>Quote a price</td>
+          <td>Every price traces to quantiles of comparable historical <em>contracted</em> bookings. Where a human moved a price via a lever, the package says so explicitly.</td>
+        </tr>
+        <tr>
+          <td>Report an audience</td>
+          <td>Reach is deduplicated across screens that see the same people. Gross exposures and distinct people are always reported as two different numbers.</td>
+        </tr>
+        <tr>
+          <td>Respect constraints</td>
+          <td>Budget, availability, dates and geography are enforced in code. The LLM cannot reason a violation away, and a failed check is reported as a failure.</td>
+        </tr>
+        <tr>
+          <td>Handle the impossible</td>
+          <td>Infeasibility returns reason codes and relaxation options. The system never assembles a plausible-looking package instead.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================== LEVEL 2 ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Level 2</div>
+    <h2>Containers</h2>
+    <p class="scope">
+      Zooming into AgentIQ. Two processes run — a Next.js dev/edge server and a uvicorn
+      process — and the agent runtime plus all three deterministic engines live
+      <em>in-process</em> with the API. Four distinct persistence layers sit underneath, and
+      conflating them is the most common way to break this system.
+    </p>
+
+    <div class="diagram">
+      <div class="el el--person" style="max-width:230px">
+        <div class="t">Media Sales Rep</div>
+        <div class="tech">Person</div>
+      </div>
+
+      <div class="conn">
+        <div class="stem"></div>
+        <div class="lbl">brief, uploads, follow-ups [HTTPS]</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <div class="boundary">
+        <div class="blabel">AgentIQ system boundary</div>
+
+        <div class="el el--container" style="max-width:660px;margin:6px auto 0">
+          <div class="t">Web UI</div>
+          <div class="tech">Next.js App Router · TypeScript · Tailwind · :3000</div>
+          <div class="d">
+            Three-panel copilot: session sidebar, chat workspace with the impact-metrics deck
+            and stage rail, and a four-tab inspector (Audience / Relevance / Pricing /
+            Optimizer). Server components by default. Reaches the backend
+            <strong>only</strong> through <code>src/lib/api.ts</code>; its types mirror the
+            backend Pydantic models one-for-one.
+          </div>
+          <div class="chips">
+            <span class="chip">ResizableLayout</span><span class="chip">ChatFeed</span>
+            <span class="chip">StageProgress</span><span class="chip">ImpactMetricsDeck</span>
+            <span class="chip">InspectorPanel</span><span class="chip">useCampaignRun</span>
+          </div>
+        </div>
+
+        <div class="conn">
+          <div class="stem"></div>
+          <div class="lbl">JSON over HTTP + <code>text/event-stream</code> (one SSE event per graph update, then <code>done</code>)</div>
+          <div class="stem"></div>
+          <div class="head"></div>
+        </div>
+
+        <div class="el el--container" style="max-width:660px;margin:0 auto">
+          <div class="t">API Layer</div>
+          <div class="tech">FastAPI · uvicorn · Pydantic v2 · :8000</div>
+          <div class="d">
+            Three routers plus health. Maps provider failures to honest HTTP status codes —
+            <strong>429 quota, 503 upstream overload, 502 bad credentials or unknown model</strong>
+            — through the provider-agnostic <code>langchain_core.exceptions</code> bases, so the
+            mapping survives a provider swap. Reports <code>pipeline_ran</code> so the UI knows
+            whether a turn rebuilt a package or merely answered a question about one.
+          </div>
+          <div class="chips">
+            <span class="chip chip--v">POST /campaign/run</span>
+            <span class="chip chip--v">POST /campaign/stream</span>
+            <span class="chip">GET /runs/{id}</span>
+            <span class="chip">GET /runs/{id}/artifacts/{kind}</span>
+            <span class="chip">sessions</span><span class="chip">uploads</span>
+            <span class="chip">GET /health</span>
+          </div>
+        </div>
+
+        <div class="conn">
+          <div class="stem"></div>
+          <div class="lbl">in-process <code>ainvoke</code> / <code>astream</code> · one <code>AgentRunLogger</code> per run</div>
+          <div class="stem"></div>
+          <div class="head"></div>
+        </div>
+
+        <div class="with-aside">
+          <div>
+            <div class="el el--container">
+              <div class="t">Agent Runtime</div>
+              <div class="tech">LangGraph · deepagents · compiled graph singleton</div>
+              <div class="d">
+                One Master Deep Agent and <strong>two</strong> specialists (ML/Pricing, OR).
+                The Master owns stages 1, 2, 5 and 6 through its own tools and delegates
+                stages 3 and 4 via the built-in <code>task</code> tool. Stateless across
+                runs — everything durable lives in run state and the artifact store.
+                <span style="color:var(--violet-900)">Decomposed at Level 3a.</span>
+              </div>
+            </div>
+          </div>
+          <div class="aside-stack">
+            <div class="el el--ext">
+              <div class="t">Google Gemini API</div>
+              <div class="tech">external · HTTPS</div>
+              <div class="d">One <strong>shared</strong> rate limiter across the Master and both specialists — the cap is per project+model, so separate limiters would each assume the full budget.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="conn conn--both">
+          <div class="head2"></div>
+          <div class="stem"></div>
+          <div class="lbl">16 typed tool calls in, Pydantic contracts + artifact references out. <strong>Never DataFrames, never row payloads.</strong></div>
+          <div class="stem"></div>
+          <div class="head"></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="el el--engine">
+            <div class="t">Audience Relevance Engine</div>
+            <div class="tech">app/tools/relevance_tools.py · singleton, ~15 s build</div>
+            <div class="d">
+              Stage 2 in its entirety — feature layer, scoring model and tools in one file.
+              <strong>Zero model calls.</strong> Transparent weighted sum of five components;
+              produces impressions, reach ceilings and <code>pool_key</code> deduplication
+              groups.
+            </div>
+          </div>
+          <div class="el el--engine">
+            <div class="t">Pricing Engine</div>
+            <div class="tech">app/ml/ · singleton, ~9 s build</div>
+            <div class="d">
+              Price bands from comparable bookings, occupancy, booking probability,
+              seasonality, demand-value premium, client negotiation profile, and the
+              agent-tunable lever surface. <span style="color:var(--emerald-700)">Decomposed at Level 3b.</span>
+            </div>
+          </div>
+          <div class="el el--engine">
+            <div class="t">Inventory Optimizer</div>
+            <div class="tech">app/optimize/ · MILP, HiGHS via SciPy</div>
+            <div class="d">
+              Maximizes deduplicated pooled reach to a 1% relative gap under budget,
+              availability, geography, screen-count and wear-out constraints. Returns an
+              explicit infeasibility report rather than a partial fill.
+            </div>
+          </div>
+        </div>
+
+        <div class="conn conn--both">
+          <div class="head2"></div>
+          <div class="stem"></div>
+          <div class="lbl">SQL over views · parquet read/write · JSON records · staged file bytes</div>
+          <div class="stem"></div>
+          <div class="head"></div>
+        </div>
+
+        <div class="grid-4">
+          <div class="el el--store">
+            <div class="t">DuckDB</div>
+            <div class="tech">in-process · transit_media.duckdb</div>
+            <div class="d">The analytical layer. CSVs loaded once, queried through named views (<code>v_screen_profile</code>, <code>v_screen_demand_history</code>, …).</div>
+          </div>
+          <div class="el el--store">
+            <div class="t">Artifact Store</div>
+            <div class="tech">backend/artifacts/*.parquet</div>
+            <div class="d">Large intermediates — candidates, economics — keyed by artifact id. Nested structure preserved as parquet structs.</div>
+          </div>
+          <div class="el el--store">
+            <div class="t">localDB</div>
+            <div class="tech">localDB/*.json</div>
+            <div class="d">Application persistence: <code>sessions.json</code>, <code>runs.json</code>, <code>uploads.json</code>. One file per collection.</div>
+          </div>
+          <div class="el el--store">
+            <div class="t">Upload Stage</div>
+            <div class="tech">stage/{session_id}/</div>
+            <div class="d">Uploaded briefs and decks. Bytes here, metadata only in localDB. Treated as untrusted input.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn conn--up" style="padding-top:10px">
+        <div class="head"></div>
+        <div class="stem"></div>
+        <div class="lbl">read-only bulk load at startup, <code>read_csv_auto</code> · <strong>never written</strong></div>
+        <div class="stem"></div>
+      </div>
+
+      <div class="el el--ext" style="max-width:520px;margin:0 auto">
+        <div class="t">datasets/*.csv</div>
+        <div class="tech">external · 14 files · ~166 MB</div>
+        <div class="d">The analytical source of truth. Read-only by convention and by rule.</div>
+      </div>
+    </div>
+
+    <h4>The three data layers, and why conflating them breaks things</h4>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:15%">Layer</th><th style="width:20%">Holds</th>
+          <th style="width:20%">Written by</th><th>The rule</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>DuckDB / CSV</td>
+          <td>166 MB of analytical truth: screens, bookings, ridership, POIs</td>
+          <td>Nothing. Load-only.</td>
+          <td>Never write to <code>datasets/</code>. Never scan the 2.05 M-row ridership file without <code>usecols</code>/<code>dtype</code>.</td>
+        </tr>
+        <tr>
+          <td>Artifact store</td>
+          <td>Per-run intermediates: screen candidates, screen economics</td>
+          <td><code>services/artifact_store.py</code></td>
+          <td>Referenced by id. Rows never enter an LLM context — that is the entire point of the layer.</td>
+        </tr>
+        <tr>
+          <td>localDB</td>
+          <td>Sessions, runs, uploads metadata, validation payloads, pricing levers</td>
+          <td><code>services/local_db.py</code></td>
+          <td>Application data only. No analytical rows, no uploaded file bytes, no large intermediates.</td>
+        </tr>
+        <tr>
+          <td>Upload stage</td>
+          <td>The user's own brief documents</td>
+          <td><code>api/uploads.py</code></td>
+          <td>Untrusted. Validate type and size, never execute, never pass a whole document into agent context — extract and summarize first.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note note--rule">
+      <p><b>Run handles, not payloads.</b> Every tool takes a <code>run_id</code>. The campaign
+      spec, artifact references, pricing levers, optimization result and validation payload all
+      live in run state; the model sees a handle plus a summary. This is what keeps a
+      250-screen candidate pool and a full price table out of a context window — and it is also
+      why pricing levers live on the run rather than travelling inside a delegation message:
+      <b>a float that has to survive an LLM paraphrase is a float that will eventually arrive
+      wrong.</b></p>
+    </div>
+  </section>
+
+  <!-- ============================== LEVEL 3A ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Level 3a</div>
+    <h2>Components — Agent Runtime</h2>
+    <p class="scope">
+      Zooming into the Agent Runtime container. One supervisor, two specialists, four tool
+      surfaces totalling 16 tools, and a validation layer the Master must pass through before
+      it is allowed to answer.
+    </p>
+
+    <div class="diagram">
+      <div class="with-aside">
+        <div>
+          <div class="el el--container">
+            <div class="t">Master Deep Agent</div>
+            <div class="tech">create_deep_agent() · MASTER_SYSTEM_PROMPT · lru_cache singleton</div>
+            <div class="d">
+              Owns orchestration, verification and the final answer. Triages every turn
+              first: <strong>ANSWER</strong> from the existing run (the default) versus
+              <strong>REBUILD</strong> the pipeline, by comparing the run's
+              <code>campaign_inputs</code> against what the rep just said. The full pipeline
+              costs ~90 s and ~17 model calls, so it exists to build a package, not to talk
+              about one.
+            </div>
+          </div>
+        </div>
+        <div class="aside-stack">
+          <div class="el el--comp">
+            <div class="t">Shared rate limiter</div>
+            <div class="tech">InMemoryRateLimiter</div>
+            <div class="d">12 req/min, burst 3, one instance for all three agents.</div>
+          </div>
+          <div class="el el--comp">
+            <div class="t">AgentRunLogger</div>
+            <div class="tech">agents/tracing.py</div>
+            <div class="d">Registered once; callbacks propagate, so it traces every subagent and totals tokens.</div>
+          </div>
+          <div class="el el--comp">
+            <div class="t">run_state</div>
+            <div class="tech">services/run_state.py</div>
+            <div class="d">Spec, artifacts, levers, optimization, validation. <code>missing_prerequisite()</code> keeps stages in order.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn">
+        <div class="stem"></div>
+        <div class="lbl">direct tool calls (no LLM below this line on the left two surfaces)</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="el el--comp el--container">
+          <div class="t">master_tools</div>
+          <div class="tech">9 tools · Master-owned</div>
+          <div class="d">Intake, geography, run triage, verification, explanation checking, plus the two commercial-conversation tools.</div>
+          <div class="chips">
+            <span class="chip chip--v">get_active_run</span>
+            <span class="chip">resolve_geography_terms</span>
+            <span class="chip chip--v">create_campaign_spec</span>
+            <span class="chip">get_run_state</span>
+            <span class="chip chip--a">get_client_negotiation_profile</span>
+            <span class="chip chip--a">set_pricing_levers</span>
+            <span class="chip chip--v">verify_package</span>
+            <span class="chip">inspect_package</span>
+            <span class="chip">check_explanations</span>
+          </div>
+        </div>
+
+        <div class="el el--comp el--engine">
+          <div class="t">relevance_tools</div>
+          <div class="tech">3 tools · engine + tools in one file</div>
+          <div class="d">Stage 2, called directly by the Master. Deterministic: no LLM, no subagent, <strong>zero model calls.</strong></div>
+          <div class="chips">
+            <span class="chip">describe_inventory</span>
+            <span class="chip chip--e">build_screen_candidates</span>
+            <span class="chip">describe_relevance_model</span>
+          </div>
+        </div>
+
+        <div class="el el--comp el--container">
+          <div class="t">task (built-in)</div>
+          <div class="tech">deepagents delegation</div>
+          <div class="d">The only path to a specialist. <strong>One <code>task</code> call per turn</strong> — enforced by prompt and by prerequisite checks, and relied on by the UI stage rail to identify which specialist is running.</div>
+        </div>
+      </div>
+
+      <div class="conn">
+        <div class="stem"></div>
+        <div class="lbl">delegate stage 3, then stage 4 — <code>run_id</code> + intent only</div>
+        <div class="stem"></div>
+        <div class="head"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="el el--container">
+          <div class="t">ml_agent — ML / Pricing Specialist</div>
+          <div class="tech">SubAgent · agents/ml_agent.py</div>
+          <div class="d">
+            Prices candidates and resolves slot availability, writing the
+            <code>screen_economics</code> artifact. Its prompt is mostly about
+            <strong>ownership</strong>: it prices, it does not model audience volume, and it
+            must attribute the impressions it carries through to the relevance engine.
+          </div>
+          <div class="chips">
+            <span class="chip chip--e">estimate_screen_economics</span>
+            <span class="chip">describe_pricing_model</span>
+          </div>
+        </div>
+        <div class="el el--container">
+          <div class="t">or_agent — OR / Optimization Specialist</div>
+          <div class="tech">SubAgent · agents/or_agent.py</div>
+          <div class="d">
+            Solves for the package or reports infeasibility.
+            <code>compare_objectives</code> exists because the reach/awareness/frequency
+            trade-off is <strong>the human's call, not a silent default</strong> — it withholds
+            profiles that breach the wear-out cap, and discloses why.
+          </div>
+          <div class="chips">
+            <span class="chip chip--e">optimize_package</span>
+            <span class="chip chip--e">compare_objectives</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="conn conn--up" style="padding-top:12px">
+        <div class="head"></div>
+        <div class="stem"></div>
+        <div class="lbl">the Master validates every specialist output before it answers</div>
+        <div class="stem"></div>
+      </div>
+
+      <div class="el el--engine" style="max-width:660px;margin:0 auto">
+        <div class="t">Validation Layer</div>
+        <div class="tech">agents/validation.py · deterministic · Master-owned</div>
+        <div class="d">
+          <strong>24 named checks across 9 families</strong> — cost, reconciliation, reach,
+          inventory, geography, dates, hard constraints, availability, model confidence.
+          Constraint checks fire only when the spec declares the constraint, and a check that
+          cannot be evaluated is recorded as an explicit <em>skip</em> rather than a silent
+          pass. Reach is <strong>recomputed independently here</strong>, not imported from the
+          tool that reported it.
+        </div>
+        <div class="chips">
+          <span class="chip">budget_respected</span><span class="chip">cost_reconciles</span>
+          <span class="chip">reach_reconciles</span><span class="chip">reach_not_above_impressions</span>
+          <span class="chip">curve_reach_bounded</span><span class="chip">inventory_availability</span>
+          <span class="chip">geography_eligible</span><span class="chip">no_duplicate_allocations</span>
+          <span class="chip">min_zone_coverage</span><span class="chip">explanations_consistent</span>
+          <span class="chip">…</span>
+        </div>
+      </div>
+    </div>
+    <p class="caption">
+      <b>Two specialists, not three.</b> The reference architecture called for a third
+      Data Intelligence agent over stage 2. It was removed: stage 2 is a fixed calculation, so
+      an LLM shell around it bought only latency and a chance to paraphrase numbers wrongly.
+      Delegation is reserved for stages where a specialist genuinely reasons about its own
+      output.
+    </p>
+
+    <div class="note note--warn">
+      <p><b>Two tools deliberately absent from the UI stage rail.</b>
+      <code>set_pricing_levers</code> and <code>get_client_negotiation_profile</code> serve the
+      conversation with the sales rep, not a pipeline stage. Mapping either one to a stage
+      would advance the rail past stages that have not run, so they are unmapped — and neither
+      creates a run, so neither is a pipeline entry point. A test pins that.</p>
+    </div>
+  </section>
+
+  <!-- ============================== LEVEL 3B ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Level 3b</div>
+    <h2>Components — Deterministic Engines</h2>
+    <p class="scope">
+      Zooming into the three engines. Nothing here calls an LLM, and nothing here does
+      arithmetic on the model's behalf. Each engine is reached through exactly one thin tool
+      wrapper, which maps run state in and Pydantic contracts out.
+    </p>
+
+    <h3>Audience Relevance Engine <span style="font-weight:400;color:var(--zinc-400);font-size:13px">— stage 2, one file by design</span></h3>
+    <div class="diagram">
+      <div class="grid-3">
+        <div class="el el--comp el--store">
+          <div class="t">Feature layer</div>
+          <div class="tech">app/data/db.py · DuckDB views</div>
+          <div class="d">Demographics, POI draw and schedule-derived demand, resolved per screen × time block × day type.</div>
+          <div class="chips">
+            <span class="chip">v_screen_profile</span><span class="chip">v_screen_demand_history</span>
+            <span class="chip">v_schedule_block</span><span class="chip">v_route_block_demand</span>
+            <span class="chip">v_corridor_block_demand</span><span class="chip">v_screen_poi</span>
+          </div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">Relevance scorer</div>
+          <div class="tech">transparent weighted sum</div>
+          <div class="d">Five 0–1 components, no fitted model, fully explainable per screen.</div>
+          <div class="chips">
+            <span class="chip chip--e">audience 0.40</span><span class="chip chip--e">geography 0.20</span>
+            <span class="chip chip--e">context 0.15</span><span class="chip chip--e">time_of_day 0.15</span>
+            <span class="chip chip--e">booking history 0.10</span>
+          </div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">Volume &amp; pooling</div>
+          <div class="tech">pool_key deduplication</div>
+          <div class="d">People passing per block, the reach ceiling after viewability, and the pool groups the optimizer dedupes on. <code>transit_score</code> is reported but deliberately <strong>not</strong> in the weighted sum — volume is the optimizer's objective, not a measure of fit.</div>
+        </div>
+      </div>
+      <p class="caption">
+        Four units that must not be confused: a <b>time block</b> is 4 hours; a <b>slot</b> is
+        one of 6 rotation positions cycling through it, so slot <em>position</em> is meaningless
+        and slot <em>count</em> is share of voice. <code>impressions_by_block</code> is
+        undiscounted people passing. <code>reachable_daily_audience</code> is the reach ceiling
+        — distinct people, so it does not scale with slots or days.
+        <code>viewed_exposures_per_slot_per_day</code> does scale with both.
+      </p>
+    </div>
+
+    <h3>Pricing Engine <span style="font-weight:400;color:var(--zinc-400);font-size:13px">— stage 3, reached via ml_agent_tools</span></h3>
+    <div class="diagram">
+      <div class="grid-4">
+        <div class="el el--comp el--engine">
+          <div class="t">price_band</div>
+          <div class="tech">p25 / p50 / p90 of comparables</div>
+          <div class="d">Segmented size × type × position × <strong>zone</strong> × daypart, each rung also split by deal shape, with a bounded 5-rung fallback ladder.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">occupancy</div>
+          <div class="tech">day-by-day slot fill</div>
+          <div class="d">6 slots per screen per block per day. The reported figure is the <strong>tightest single day</strong> across the flight, not an average.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">price_optimizer</div>
+          <div class="tech">floor + occupancy × (cap − floor)</div>
+          <div class="d">Seller-side price. Occupancy drives it. A <code>price × P(booked)</code> argmax was tried and rejected — it degenerates to the cap for every screen.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">booking_probability</div>
+          <div class="tech">calibrated logistic</div>
+          <div class="d">Reported as a <strong>diagnostic only</strong>, never as the price driver; within a segment the curve moves ~0.1–0.2%. Guarded by a coefficient sign check.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">seasonality</div>
+          <div class="tech">day-of-week · holiday · event</div>
+          <div class="d">Two terms weighted <em>separately</em> then multiplied, so a rep can keep an event premium while dropping the weekday haircut.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">demand_value</div>
+          <div class="tech">merit vs realized price</div>
+          <div class="d">The one signal that can <strong>disagree with history</strong> — and the only adjustment allowed to carry a quote above the band cap. Never sees a price. Four gates; +15% max.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">client_profile</div>
+          <div class="tech">advisory · wired to no engine</div>
+          <div class="d">The client's own realized price index and objection history, judged against its own standard error. Suggests a multiplier; <strong>only the rep may apply it.</strong></div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">levers</div>
+          <div class="tech">the agent-tunable surface</div>
+          <div class="d">7 parameters, all identity by default, clamped in code rather than in the prompt. Weights dial <strong>influence, not magnitude</strong>: <code>1 + w(m−1)</code>.</div>
+        </div>
+      </div>
+      <p class="caption">
+        The engine is a <b>process singleton</b> — <code>get_pricing_engine()</code>, ~9 s to
+        build. Never constructed per request. What it does <em>not</em> compute is audience
+        volume: <code>pricing_internal_reach_proxy</code> is quarantined, never mapped onto any
+        exposure field, and is not reach.
+      </p>
+    </div>
+
+    <h3>Inventory Optimizer <span style="font-weight:400;color:var(--zinc-400);font-size:13px">— stage 4, reached via or_agent_tools</span></h3>
+    <div class="diagram">
+      <div class="grid-3">
+        <div class="el el--comp el--store">
+          <div class="t">config</div>
+          <div class="tech">provenance-tagged constants</div>
+          <div class="d">Every constant tagged <span class="chip chip--e">STRUCTURAL</span> <span class="chip chip--a">ASSUMED</span> <span class="chip">SOLVER</span> so an assumed number can never be mistaken for a measured one.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">exposure</div>
+          <div class="tech">the only unit conversion</div>
+          <div class="d">People passing → viewed exposures. <strong>One implementation, one call site</strong> — because the constants are assumed, the single call site matters more than the values.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">contract</div>
+          <div class="tech">input validation</div>
+          <div class="d">Rejects a malformed or infeasible-on-its-face instance before a solve is attempted.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">pooled</div>
+          <div class="tech">pool population</div>
+          <div class="d">Builds the reachable population per <code>pool_key</code> × block, plus the reported saturation-curve diagnostic.</div>
+        </div>
+        <div class="el el--comp el--engine">
+          <div class="t">solver</div>
+          <div class="tech">MILP · HiGHS via SciPy · 1% gap</div>
+          <div class="d">Maximizes reach directly: <code>R ≤ min(E, P)</code> is two exact linear constraints. Reports method, objective, gap and whether optimality was <em>proven</em>.</div>
+        </div>
+        <div class="el el--comp el--container">
+          <div class="t">or_agent_tools._package_metrics</div>
+          <div class="tech">the reach definition</div>
+          <div class="d">Not part of the formulation. This is the accounting the system stands behind, and the validator re-derives it independently.</div>
+        </div>
+      </div>
+      <p class="caption">
+        <code>optimization_method</code> is self-describing, e.g.
+        <code>milp_highs_pooled_reach_min[reach,gap&lt;=1%,optimal]</code>. A
+        <code>feasible</code> status means a valid plan inside the gap — not an error, and not a
+        proven optimum.
+      </p>
+    </div>
+
+    <div class="note note--rule">
+      <p><b>Reach is never the sum of exposures.</b> Screens sharing a <code>pool_key</code> —
+      one stop, or one corridor — see the same people; on a 250-screen pool the naive sum
+      over-counts by <b>~23×</b>. The definition is
+      <code>Σ over (pool_key, block) of min(gross viewed exposures bought, that pool's
+      reachable daily audience)</code>, both sides in viewed units.</p>
+      <p><b>One definition, three independent implementations,</b> and that is on purpose: the
+      OR tool computes it, the validator recomputes it, and the solver maximizes it. They must
+      agree — and must never import one another, because agreement between independent
+      implementations is the only thing being tested.</p>
+    </div>
+
+    <div class="note note--warn">
+      <p><b>A validated number may not depend on an assumed constant.</b> If a figure the
+      validator checks moves with a constant nobody can measure, the check validates nothing
+      about the one thing that is actually uncertain. This is why <code>REACH_LAMBDA</code>
+      reaches only the reported diagnostic, and why <code>curve_reach_bounded</code> asserts a
+      lambda-free bound instead of re-deriving the curve.</p>
+    </div>
+  </section>
+
+  <!-- ============================== DYNAMIC ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Dynamic view</div>
+    <h2>The six-stage pipeline</h2>
+    <p class="scope">
+      Stages are <strong>strictly sequential</strong> — each consumes the previous stage's
+      artifact. A supervisor can still try to delegate two at once, so every dependent tool
+      checks its input via <code>run_state.missing_prerequisite()</code> and returns a
+      recoverable <code>prerequisite_missing</code> result naming the producing stage. They
+      never crash.
+    </p>
+
+    <div class="diagram">
+      <div class="stage">
+        <div class="stage-num stage-num--m">1</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Brief intake &amp; geography resolution</span>
+            <span class="owner owner--master">Master</span>
+          </div>
+          <div class="d">
+            <code>resolve_geography_terms</code> → <code>create_campaign_spec</code>. Returns the
+            <code>run_id</code> every later tool needs. Missing facts go into
+            <code>missing_information</code>, never into an invented default.
+          </div>
+        </div>
+      </div>
+      <div class="rail"><div class="rail-line"><i></i></div><div class="rail-lbl">CampaignSpec → run_state · creates the run</div></div>
+
+      <div class="stage">
+        <div class="stage-num" style="background:var(--emerald-600)">2</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Audience &amp; relevance scoring</span>
+            <span class="owner owner--det">Relevance engine · 0 model calls</span>
+          </div>
+          <div class="d">
+            <code>build_screen_candidates</code>, called by the Master directly. Scores the
+            eligible inventory, computes impressions and reach ceilings, assigns
+            <code>pool_key</code>s.
+          </div>
+        </div>
+      </div>
+      <div class="rail"><div class="rail-line"><i></i></div><div class="rail-lbl">artifact <code>screen_candidates</code> (parquet) → run_state</div></div>
+
+      <div class="stage">
+        <div class="stage-num" style="background:#c2410c">3</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Pricing &amp; availability</span>
+            <span class="owner owner--sub">delegated → ml_agent</span>
+          </div>
+          <div class="d">
+            <code>estimate_screen_economics</code>. Reads the run's pricing levers itself —
+            they are never pasted into the delegation message — and returns
+            <code>pricing_levers_applied</code> so the answer can say whether a human moved the
+            quote.
+          </div>
+        </div>
+      </div>
+      <div class="rail"><div class="rail-line"><i></i></div><div class="rail-lbl">artifact <code>screen_economics</code> (parquet) → run_state</div></div>
+
+      <div class="stage">
+        <div class="stage-num" style="background:#c2410c">4</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Inventory optimization</span>
+            <span class="owner owner--sub">delegated → or_agent</span>
+          </div>
+          <div class="d">
+            <code>optimize_package</code> solves the MILP; <code>compare_objectives</code> puts
+            the reach / awareness / frequency trade-off in front of the human. Infeasibility
+            returns reason codes and relaxation options.
+          </div>
+        </div>
+      </div>
+      <div class="rail"><div class="rail-line"><i></i></div><div class="rail-lbl">OptimizedPackage <em>or</em> InfeasibilityReport → run_state</div></div>
+
+      <div class="stage">
+        <div class="stage-num stage-num--m">5</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Verification</span>
+            <span class="owner owner--master">Master · the gate</span>
+          </div>
+          <div class="d">
+            <code>verify_package</code> — <strong>always, no exceptions.</strong> If it fails,
+            the Master must name the failed checks and must not present the package as valid. A
+            failed budget or availability check is never a matter of interpretation.
+          </div>
+        </div>
+      </div>
+      <div class="rail"><div class="rail-line"><i></i></div><div class="rail-lbl">ValidationResult → run_state · status <code>validated</code></div></div>
+
+      <div class="stage">
+        <div class="stage-num stage-num--m">6</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="n">Recommendation</span>
+            <span class="owner owner--master">Master</span>
+          </div>
+          <div class="d">
+            <code>inspect_package</code> + <code>check_explanations</code>, then the Markdown
+            answer the UI renders. Every screen-level claim must cite a real attribute — a
+            zone, a price, an occupancy figure. <em>"This screen is highly relevant"</em> is not
+            an explanation.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h4>Not every turn runs the pipeline</h4>
+    <table>
+      <thead>
+        <tr><th style="width:16%">Turn type</th><th style="width:30%">Trigger</th><th>What happens</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Opening brief</td>
+          <td><code>get_active_run</code> returns <code>status: none</code></td>
+          <td>Full pipeline, stages 1–6. ~90 s, ~17 model calls.</td>
+        </tr>
+        <tr>
+          <td>ANSWER <span style="font-weight:400;color:var(--zinc-400)">(the default)</span></td>
+          <td>A question <em>about</em> the existing package — why a screen, what a number means, what the risks are</td>
+          <td>Read-only tools only. No spec, no candidates, no delegation. The answer is already in the run.</td>
+        </tr>
+        <tr>
+          <td>REBUILD</td>
+          <td>A campaign <em>input</em> changed — budget, dates, geography, audience, goal, screen count, a hard constraint — or a lever moved</td>
+          <td>Pipeline re-runs from stage 1. A new <code>run_id</code> is what tells the UI to show the stage rail again.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="caption">
+      Two things this rule is not. A question that merely <em>mentions</em> a number is not a
+      change — <em>"why is the budget only 99.8% used?"</em> is a question. And a hypothetical
+      is not an instruction: the agent answers from the existing run and the price bands, then
+      offers to rebuild rather than spending 90 seconds unasked.
+    </p>
+  </section>
+
+  <!-- ============================== DECISIONS ============================== -->
+  <section class="lvl">
+    <div class="eyebrow">Cross-cutting</div>
+    <h2>Architectural decisions worth defending</h2>
+    <p class="scope">
+      Six choices that are visible in the diagrams above but not explained by them. Each was a
+      deliberate departure from the obvious option, and each is pinned by a test.
+    </p>
+
+    <div class="adr">
+      <div class="h">Two specialists, not three</div>
+      <div class="m">Departs from the reference architecture · agents/subagents.py</div>
+      <p>The spec called for exactly three specialists, including one over audience relevance.
+      Stage 2 is a fixed calculation, so the LLM shell added latency and a chance to paraphrase
+      numbers wrongly. Removing it also removed several model calls per run against a
+      per-minute rate limit. <b>Prefer a Master-owned tool over a subagent whenever a stage
+      does not actually reason.</b></p>
+    </div>
+
+    <div class="adr">
+      <div class="h">A MILP, not a greedy fill</div>
+      <div class="m">app/optimize/solver.py</div>
+      <p>The four changes made to the ported formulation all point the same way. Reach is
+      bounded by the exact <code>min(E, P)</code> rather than by tangent lines on an exponential
+      curve with an assumed constant — the original left measured audience on the table and
+      turned a 0.1 s solve into a 30 s timeout. The screen-count constraint counts screens, not
+      (screen × block) cells. No 90% spend floor is invented, because no spec declares one. And
+      the wear-out cap is a multiple of the flight's unavoidable exposure floor, because an
+      absolute cap is satisfiable by no plan at all.</p>
+    </div>
+
+    <div class="adr">
+      <div class="h">Clamp in code, not in the prompt</div>
+      <div class="m">app/ml/levers.py</div>
+      <p>Out-of-range lever values are clamped and <em>reported</em>, never rejected. In an
+      agent loop a rejected tool call becomes a retry against a per-minute rate limit — to
+      reach the same number clamping would have returned directly. The tool result carries
+      <code>effective_levers</code> and <code>clamped</code>, and the prompt requires the agent
+      to quote what it got rather than what it asked for.</p>
+    </div>
+
+    <div class="adr">
+      <div class="h">The one signal allowed to disagree with history</div>
+      <div class="m">app/ml/demand_value.py</div>
+      <p>Everything else in the pricing engine answers <em>"what did screens like this sell
+      for?"</em>, which makes it a mirror — a screen always sold cheap is quoted cheap forever.
+      The demand-value model scores what a screen physically delivers and <b>never sees a
+      price</b>, because a model fitted to price treats the historical average as correct and
+      would learn a systematically underpriced category as correct. It is the only adjustment
+      permitted to exceed the band cap, and a test asserts nothing else can.</p>
+    </div>
+
+    <div class="adr">
+      <div class="h">Advisory by structure, not by squeamishness</div>
+      <div class="m">app/ml/client_profile.py</div>
+      <p>The client negotiation profile is wired to no engine, no lever default and no
+      artifact. Price-driven loss rates are <b>flat across leverage tiers</b> (34.2 / 32.5 /
+      34.8%), so posture says nothing about <em>whether</em> a deal is lost — only what it
+      settles at. Applying it automatically would mean pricing off the half of the finding that
+      does not hold.</p>
+    </div>
+
+    <div class="adr">
+      <div class="h">Honest failure over plausible output</div>
+      <div class="m">api/campaign.py · agents/validation.py · run_state.py</div>
+      <p>Provider errors map to real HTTP statuses through provider-agnostic exception bases,
+      so the mapping survives a provider swap. Infeasibility returns reason codes and
+      relaxation options rather than a partial fill. And <code>stub_stages</code> plumbing is
+      retained even though no stage is a stub and it now always returns <code>[]</code> —
+      because it is the mechanism that would surface a regression.</p>
+    </div>
+
+    <h4>Known limitations, surfaced by the system rather than hidden</h4>
+    <table>
+      <thead>
+        <tr><th style="width:26%">Limitation</th><th>How the system handles it</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Volume is schedule-derived only</td>
+          <td>No ambient or pedestrian term, so block 1 (00:00–04:00) is zero for every screen despite 8,544 real block-1 bookings. The prompt requires the agent to state that a <b>zero means "not modelled", never "nobody there"</b>.</td>
+        </tr>
+        <tr>
+          <td>Mobile screens have no demographics</td>
+          <td>Zone is undefined for a vehicle, so all 2,615 of them score 0 on the demographic components — and the demand-value model gates them out entirely rather than scoring them badly.</td>
+        </tr>
+        <tr>
+          <td>No held-out accuracy metric for the audience model</td>
+          <td>Which is precisely why no stage emits a per-screen confidence and the validator records <code>model_confidence</code> as an explicit <em>skip</em>.</td>
+        </tr>
+        <tr>
+          <td>A 30-day flight cannot deliver few exposures</td>
+          <td>At 8 loop passes per trip, one slot on a saturated pool yields ~40 exposures per person over 30 days whatever the optimizer picks. The wear-out cap therefore constrains <b>stacking</b>, not total exposure — and the OR tool discloses the figure rather than implying it was tuned.</td>
+        </tr>
+        <tr>
+          <td>No conversion model exists</td>
+          <td>A <code>conversion</code> goal weights the industry-to-POI context score as a proxy, and the agent is required to report the substitution explicitly rather than present the result as a conversion optimum.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <b>AgentIQ — Transit Media Campaign Recommendation System.</b>
+    C4 model prepared from the codebase at branch <code>mridul/demand_forecasting</code>,
+    23 August 2026. Element inventories, tool counts, view names, validation check names,
+    endpoint lists and constants in this document were read from source, not from the
+    project documentation. Full specifications: <code>SOLUTION.md</code> (architecture),
+    <code>DATASETS.md</code> (data), <code>UI.md</code> (interface),
+    <code>CLAUDE.md</code> (working rules).
+  </footer>
+
+</div>
+</body>
+</html>
