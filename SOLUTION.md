@@ -1,283 +1,131 @@
-# SOLUTION.md --- Transit Media Campaign Recommendation System
+# SOLUTION.md — Transit Media Campaign Recommendation System
 
-## Purpose
+## 1. Purpose and current architecture
 
-This document is the implementation handoff for the Transit Media
-campaign recommendation system.
+This document is the **implementation handoff and source of truth for logical consistency**.
+Coding agents should preserve the contracts, units, ownership boundaries, and non-negotiable
+rules below when changing implementation.
 
-The system should accept a natural-language campaign brief, understand
-the business requirements, identify relevant transit-media inventory,
-forecast demand, estimate pricing, optimize the available inventory
-under business constraints, and return a sales-ready recommendation with
-explanations and validation.
+The system takes a natural-language campaign brief and produces a validated, sales-ready
+transit-media recommendation:
 
-The architecture deliberately separates:
-
--   LLM-based reasoning and orchestration
--   deterministic data/feature tooling
--   ML prediction
--   mathematical optimization
--   final recommendation generation
-
-The system should **not over-agentify** the workflow. The original design
-had one Master Deep Agent supervising three specialists:
-
-1.  **Data Intelligence Agent**
-2.  **ML / Forecasting Agent**
-3.  **OR / Optimization Agent**
-
-**As built there are two specialists, not three.** The Data Intelligence
-Agent was removed: relevance scoring turned out to be a wholly
-deterministic engine, and wrapping it in an LLM shell added latency and a
-chance to paraphrase its numbers wrongly without adding any judgement. It
-is now a Master-owned tool (`app/tools/relevance_tools.py`). See section
-16.
-
-The Master Agent owns orchestration, verification, final response
-generation, and stage 2.
-
-------------------------------------------------------------------------
-
-# 0. Implementation Status
-
-This document is both the design intent and the record of what exists. It
-evolves as capabilities land. Sections carry one of four markers:
-
-  ------------------------------------------------------------------------
-  Marker             Meaning
-  ------------------ -----------------------------------------------------
-  **[BUILT]**        Implemented and exercised by the test suite. The text
-                     describes what the code actually does.
-
-  **[HEURISTIC]**    Computes a real answer from real data and honours every
-                     constraint, but makes no optimality claim.
-                     **Nothing carries this marker any more.**
-
-  **[STUB]**         A contract-shaped placeholder runs today so the
-                     pipeline is end-to-end. The text is the target design.
-                     **Nothing carries this marker any more.**
-
-  **[NOT BUILT]**    Nothing runs. The text is the target design and the
-                     wiring instructions.
-  ------------------------------------------------------------------------
-
-## Current state
-
-  --------------------------------------------------------------------------
-  Capability                            Status            Where
-  ------------------------------------- ----------------- ------------------
-  Brief intake + geography resolution   **[BUILT]**       `app/tools/master_tools.py`
-
-  Audience & context features           **[BUILT]**       `v_screen_profile`
-
-  Relevance scoring                     **[BUILT]**       `app/tools/relevance_tools.py`
-
-  Demand forecasting                    **[BUILT]**       `v_screen_demand_history`
-  (impressions / reach / frequency)
-
-  Availability & occupancy              **[BUILT]**       `app/ml/occupancy.py`
-
-  Market price band                     **[BUILT]**       `app/ml/price_band.py`
-
-  Booking probability                   **[BUILT]**       `app/ml/booking_probability.py`
-
-  Seasonality & event adjustment        **[BUILT]**       `app/ml/seasonality.py`
-
-  Price recommendation                  **[BUILT]**       `app/ml/price_optimizer.py`
-
-  Inventory optimization                **[BUILT]**       `app/optimize/` +
-                                                          `app/tools/or_agent_tools.py`
-
-  Validation layer                      **[BUILT]**       `app/agents/validation.py`
-
-  Master orchestration + 2 subagents    **[BUILT]**       `app/agents/`
-  --------------------------------------------------------------------------
-
-**Nothing carries [HEURISTIC] any more either.** The greedy value-per-dollar fill was
-replaced by a MILP (HiGHS via `scipy.optimize.milp`) in `app/optimize/`, ported from the OR
-handoff bundle. The marker is kept in the legend because it is the honest label for
-anything that computes a real answer from real data without an optimality claim, and
-because a solve that stops inside its gap is reported as `feasible` rather than
-`optimal` — a distinction the package carries in `optimization_method`.
-
-## The one thing to know
-
-**Reach is never the sum of exposures.**
-
-Screens at the same stop, or on the same corridor, see the *same people*. The
-audience engine tags each screen with a `pool_key` for exactly this reason. On a
-realistic 250-screen candidate pool, naively summing per-screen exposures
-over-counts the audience by **~23x**.
-
-The definition this system reports:
-
-``` text
-reach = SUM over (pool_key, time_block) of
-            min( gross viewed exposures bought in that group,
-                 that pool's reachable daily audience )
+```text
+Natural language brief
+        ↓
+CampaignSpec
+        ↓
+Audience / relevance engine
+        ↓
+ScreenCandidates
+        ↓
+Pricing + availability / ScreenEconomics
+        ↓
+MILP inventory optimization
+        ↓
+OptimizedPackage
+        ↓
+Deterministic validation
+        ↓
+Sales recommendation + explanations
 ```
 
-`gross_impressions_viewed` is exposures and scales with slots x days.
-`expected_reach` is distinct people and **saturates** --- buying more slots, more
-days, or more screens at the same stop raises frequency, not reach. The min()
-also guarantees `reach <= exposures` for any flight length.
+### Agent architecture
 
-Both sides are in **viewed** units. Capping viewed exposures at the undiscounted crowd
-would let a saturated plan claim every passer-by when only ~35% of them look --- an
-over-claim of ~2.9x on the one number a client actually reads.
+There are **two specialist agents**, not three:
 
-It is computed in `or_agent_tools._package_metrics`, recomputed independently in
-`validation._reach_checks`, and --- since the MILP landed --- it is also what the solver
-maximizes: `min()` of two linear functions is concave, so `R <= min(E, P)` is exactly two
-linear constraints with no free parameter (section 10). Three implementations, one
-definition, no fitted constant anywhere in it.
-
-A **second** saturation model exists and is deliberately not that definition. The handoff
-bundle bounded `P x (1 - exp(-lambda x E / P))` by its tangent lines. `REACH_LAMBDA` is
-ASSUMED with no ground truth in the 14 CSVs, so it belongs in neither a validated nor a
-client-facing figure --- and maximizing it does not maximize the reported reach: measured
-141,501--157,869 reached where the exact bound returns 261,329 on the same brief and
-budget. It survives as `curve_reach_diagnostic`, guarded by
-`curve_reach <= min(sum E, sum P)` --- a bound that holds for any lambda, which is why it
-is worth asserting.
-
-The second thing to know: **a zero audience figure means "not modelled", not
-"nobody there".** Volume is derived entirely from scheduled transit service with
-no pedestrian or ambient term, so time block 1 (00:00-04:00) reports zero for
-every screen in the network --- even though that block has 8,544 real bookings.
-
-------------------------------------------------------------------------
-
-# 1. End-to-End Architecture
-
-The logical pipeline, with current status per stage:
-
-``` text
-                         ┌─────────────────────┐
-                         │   Campaign Brief    │
-                         │       / Query       │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │  1. Brief Intake &  │  [BUILT]
-                         │     Normalization   │
-                         └──────────┬──────────┘
-                                    │
-                           CampaignSpec
-                                    │
-                                    ▼
-                    ┌─────────────────────────────┐
-                    │ 2. Audience & Context       │  [BUILT]
-                    │    Intelligence             │
-                    └─────────────┬───────────────┘
-                                  │
-                         ScreenProfiles
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │ 3. Campaign-Screen          │  [BUILT]
-                    │    Relevance Scoring        │
-                    └─────────────┬───────────────┘
-                                  │
-                      RankedScreenCandidates
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │ 4a. Demand Forecast         │  [BUILT]
-                    │     impressions / reach     │
-                    ├─────────────────────────────┤
-                    │ 4b. Pricing + Availability  │  [BUILT]
-                    │     band / occupancy / P    │
-                    └─────────────┬───────────────┘
-                                  │
-                       ScreenEconomics
-                       pricing + audience
-                       volume populated
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │ 5. Inventory / Slot         │  [BUILT]
-                    │    Optimization (MILP)      │
-                    └─────────────┬───────────────┘
-                                  │
-                       OptimizedPackage
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │ 6. Recommendation &         │  [BUILT]
-                    │    Explanation              │
-                    └─────────────┬───────────────┘
-                                  │
-                                  ▼
-                         Sales Recommendation
+```text
+                         MASTER AGENT
+                              │
+              ┌───────────────┼───────────────┐
+              ▼               ▼               ▼
+       Relevance Engine    ML Agent        OR Agent
+       deterministic       pricing         optimization
+       Master-owned        specialist      specialist
 ```
 
-Stage 4 is one business capability but two independent halves, deliberately
-decoupled so pricing could ship without demand. 4b answers *what should this
-cost and is the slot actually free*; 4a answers *how many people will see it*.
-Both exist now, but they are owned in different places: 4b is the pricing engine
-in `app/ml/`, while 4a is computed upstream by the relevance engine and only
-*unit-converted* by the ML stage. The decoupling held.
+- **Master Agent:** intake, orchestration, state, verification, final response.
+- **Relevance Engine:** deterministic; **not an LLM agent**.
+- **ML Agent:** pricing, availability, seasonality, booking-probability diagnostics, and
+  the per-screen demand-value premium.
+- **OR Agent:** mathematical optimization and tradeoff interpretation.
+- **Validation:** deterministic Python; never let an LLM decide whether a constraint passed.
 
-The six logical stages are implemented by two specialist agents plus
-deterministic tools --- stages 1, 2, 5 and 6 are Master-owned tool calls with no
-delegation at all. Do not create six independent LLM agents solely because there
-are six business stages.
+Do not create an agent for every business stage. LLMs reason and explain; tools calculate.
 
-------------------------------------------------------------------------
+---
 
-# 2. Central State Object --- CampaignSpec  **[BUILT]**
+# 2. Current implementation status
 
-Everything downstream should consume a normalized campaign
-specification.
+All major pipeline capabilities are **BUILT**:
 
-The user's input may be vague or conversational. The first stage
-converts it into a structured object.
+| Capability | Implementation |
+|---|---|
+| Brief intake + geography resolution | `app/tools/master_tools.py` |
+| Audience / screen profile | `v_screen_profile` |
+| Relevance scoring | `app/tools/relevance_tools.py` |
+| Demand history / audience volume | `v_screen_demand_history` |
+| Availability / occupancy | `app/ml/occupancy.py` |
+| Market price band | `app/ml/price_band.py` |
+| Booking probability | `app/ml/booking_probability.py` |
+| Seasonality / event adjustment | `app/ml/seasonality.py` |
+| Price recommendation | `app/ml/price_optimizer.py` |
+| Demand value / mispricing premium | `app/ml/demand_value.py` |
+| Client negotiation profile (advisory) | `app/ml/client_profile.py` |
+| Agent-tunable pricing levers | `app/ml/levers.py` |
+| MILP optimization | `app/optimize/` |
+| Reach accounting | `app/tools/or_agent_tools.py` |
+| Validation | `app/agents/validation.py` |
+| Master + ML + OR agents | `app/agents/` |
 
-Example input:
+No stage is a stub. The old greedy optimizer has been replaced by a **HiGHS MILP via
+`scipy.optimize.milp`**. Solves target a 1% relative gap and report whether the result is
+`optimal` or merely `feasible`.
 
-> "I have a \$50K budget for 30 days and want to reach young commuters
-> around the eastern metro corridor."
+---
 
-Example normalized object:
+# 3. The most important unit rule: blocks vs slots
 
-``` json
-{
-  "campaign_objective": "reach",
-  "industry_vertical": "consumer_tech",
-  "ad_type": "product_launch",
-  "target_audience": {
-    "age_range": [18, 34],
-    "commuter": true
-  },
-  "geography": {
-    "city_ids": ["LH"],
-    "zone_ids": ["LH-ZONE-010"],
-    "corridor_ids": ["LH-RT-B001"]
-  },
-  "start_date": "2026-09-01",
-  "duration_days": 30,
-  "budget": 50000,
-  "requested_num_screens": null,
-  "preferred_dayparts": [],
-  "preferred_time_blocks": [],
-  "optimization_goal": "reach",
-  "hard_constraints": {},
-  "soft_preferences": {}
-}
+A **time block is a 4-hour period**. Inside each block there are exactly **6 rotation slots**.
+
+```text
+Time block 1 = 00:00–04:00
+Time block 2 = 04:00–08:00
+...
+Time block 6 = 20:00–24:00
+
+Within ONE 4-hour block:
+
+Slot 1 → Slot 2 → Slot 3 → Slot 4 → Slot 5 → Slot 6 → Slot 1 → ...
 ```
 
-Implement this as a Pydantic model.
+The six slots rotate continuously for the entire 4-hour block; they are **seconds-level
+share-of-voice positions, not six separate hours**.
 
-``` python
+Therefore:
+
+- `slots_booked_per_day = k` means the creative occupies **k of every 6 positions in
+  every loop**.
+- Slot position has no meaning.
+- Exposure is linear in the number of slots.
+- The only meaningful diminishing return is at the **shared audience pool**, not between
+  slot 1 and slot 6.
+- The same six-slot structure repeats every day across the campaign date range.
+
+This distinction must never be lost in variables, schemas, prompts, or optimization logic.
+
+---
+
+# 4. CampaignSpec — central state contract
+
+Everything downstream consumes the normalized campaign specification.
+
+```python
 class AudienceTarget(BaseModel):
     age_range: tuple[int, int] | None = None
     income_range: tuple[float, float] | None = None
     occupations: list[str] = []
     commuter: bool | None = None
     other_attributes: dict = {}
-
 
 class CampaignSpec(BaseModel):
     campaign_objective: str
@@ -289,12 +137,11 @@ class CampaignSpec(BaseModel):
     corridor_ids: list[str] = []
 
     target_audience: AudienceTarget
-    audience_terms: list[str] = []       # closed vocabulary, see below
+    audience_terms: list[str] = []
 
     start_date: date
     duration_days: int
     budget: float
-
     requested_num_screens: int | None = None
 
     preferred_dayparts: list[str] = []
@@ -302,1160 +149,621 @@ class CampaignSpec(BaseModel):
     day_type_focus: Literal["weekday", "weekend"] | None = None
 
     optimization_goal: Literal[
-        "reach",
-        "frequency",
-        "awareness",
-        "conversion"
+        "reach", "frequency", "awareness", "conversion"
     ]
 
     hard_constraints: dict = {}
     soft_preferences: dict = {}
 ```
 
-Requirements:
+Rules:
 
--   Validate budget \> 0.
--   Validate duration \> 0.
--   Validate dates.
--   Validate referenced city/zone/corridor IDs.
--   Normalize synonyms.
--   Resolve natural-language geography into IDs.
--   Preserve the original user query for traceability.
--   Do not invent missing hard constraints.
--   Reject `audience_terms` outside the closed vocabulary.
+- budget > 0; duration > 0; dates valid.
+- Resolve natural-language geography to IDs.
+- Do not invent hard constraints.
+- Preserve original user query for traceability.
+- `audience_terms` is a **closed vocabulary**:
 
-### audience_terms --- a closed vocabulary  **[BUILT]**
-
-The relevance engine scores against six named segments and nothing else:
-
-``` text
-young_professionals   professionals   students
-families              high_income     commuters
+```text
+young_professionals
+professionals
+students
+families
+high_income
+commuters
 ```
 
-Intake's LLM picks from that list; `CampaignSpec` **rejects** anything else in
-code rather than scoring it. An invented segment would not error on its own --- it
-would silently collapse the 0.40-weighted audience component to a neutral 0.5 for
-every screen, which looks like a working answer and is not one. `AudienceTarget`
-(age range, income, occupations, commuter flag) is still captured for traceability;
-`audience_terms` is what the engine actually consumes.
+Unknown terms must be rejected, not silently scored as neutral.
 
-`day_type_focus` exists because weekday and weekend ridership differ by roughly
-6x. It affects **scoring only** --- the flight still runs every day in its window,
-and the economics stage weights the real calendar mix regardless.
+`day_type_focus` affects relevance scoring only. The campaign still runs every day in its
+date range; economics uses the actual weekday/weekend calendar mix.
 
-------------------------------------------------------------------------
+---
 
-# 3. Step 1 --- Campaign Brief Intake  **[BUILT]**
+# 5. Audience / Relevance Engine
 
-## Purpose
+## 5.1 Ownership
 
-Convert natural-language input into `CampaignSpec`.
+The audience stage is a deterministic Master-owned engine in:
 
-## Inputs
-
-``` text
-User query
-Optional client context
-Optional uploaded campaign documents
-Optional previous conversation state
+```text
+app/tools/relevance_tools.py
 ```
 
-## Potential data dependencies
+It is intentionally **not an agent**. There is no judgement that benefits from an LLM:
+geography filtering, feature computation, scoring, ranking, and audience-volume calculation
+are deterministic.
 
--   `client_facts`
--   `cities`
--   time-slot dimension data
+Primary views:
 
-The client facts contain information such as typical campaign budget,
-campaign frequency, average duration, preferred geographies, bundle
-affinity, negotiation leverage, and account status.
-
-## Processing
-
-The LLM should:
-
-1.  Extract campaign objective.
-2.  Extract industry.
-3.  Extract ad type.
-4.  Extract audience.
-5.  Extract geography.
-6.  Extract dates/duration.
-7.  Extract budget.
-8.  Extract screen requirements.
-9.  Extract daypart/time preferences.
-10. Identify hard constraints.
-11. Identify soft preferences.
-12. Identify missing information.
-13. Normalize the result.
-14. Pass the result to a deterministic validator.
-
-## Output
-
-``` text
-CampaignSpec
+```text
+v_screen_profile
+v_screen_demand_history
 ```
 
-The LLM is useful here because the input is unstructured.
+`v_screen_profile` has one row per screen for all 11,163 screens.
 
-The validator must remain deterministic.
+## 5.2 Screen profile
 
-------------------------------------------------------------------------
+Important fields include:
 
-# 4. Step 2 --- Audience & Context Intelligence  **[BUILT]**
-
-Implemented as the DuckDB view `v_screen_profile` (`app/data/db.py`), consumed by
-`app/tools/relevance_tools.py`. One row per screen for all 11,163: geography,
-zone demographics, POI context, and `pool_key`.
-
-`app/features/` stayed empty --- the engine and its tools live together in
-`app/tools/relevance_tools.py` by design decision, so the whole audience
-capability reads in one place.
-
-Do not implement this as a giant LLM-only "Audience Profile Agent." There is no
-LLM in this stage at all.
-
-Instead use:
-
-``` text
-Data processing
-    +
-Feature engineering
-    +
-ML/scoring logic
-    +
-Optional LLM interpretation
+```text
+screen_id
+city_id / zone_id / corridor_id
+location_type
+screen_type / screen_size / position / inventory_class
+pool_key
+resident_population
+population_density_per_sqkm
+median_age
+pct_age_18_34
+median_household_income
+income_index
+pct_bachelor_or_higher
+dominant_occupation
+daytime_population_multiplier
+num_nearby_pois
+weighted_nearby_footfall
+closest_poi_distance_km
+nearby_poi_types
+pool_partition_count
 ```
 
-The primary output is a screen-level feature table represented
-conceptually as `ScreenProfile[]`.
+`pool_partition_count` is 1 for stop-mounted inventory and the number of vehicles working
+the corridor for vehicle-mounted inventory. It lets the optimizer reconstruct the full
+audience pool from one vehicle's share.
 
-### What was actually built, and what was not
+### Important known limitations
 
-`v_screen_profile` carries: `city_id`, `zone_id`, `corridor_id`,
-`location_type`, `screen_type`, `screen_size`, `position`, `inventory_class`,
-`pool_key`, `city_zone`, `zone_name`, `resident_population`,
-`population_density_per_sqkm`, `median_age`, `pct_age_18_34`, `pct_age_35_54`,
-`median_household_income`, `income_index`, `pct_bachelor_or_higher`,
-`dominant_occupation`, `daytime_population_multiplier`, `num_nearby_pois`,
-`weighted_nearby_footfall` (inverse-distance weighted, `1/(km + 0.1)`),
-`closest_poi_distance_km`, `nearby_poi_types`, `pool_partition_count`.
+- Vehicle-mounted screens currently have NULL demographics because vehicles have no zone.
+  They therefore receive a scoring floor rather than a measured demographic score.
+- `daytime_population_multiplier` is carried but not currently used by relevance scoring.
+- Event features are not part of the audience profile. Events affect pricing seasonality only.
+- Volume is schedule/ridership-derived; there is no pedestrian/ambient term.
+- Time block 1 (00:00–04:00) therefore reports zero audience even though real bookings exist.
+  **Zero means “not modelled”, not “nobody there”.**
 
-`pool_partition_count` was added for the optimizer: 1 for stop-mounted screens, and
-the vehicles working the corridor for vehicle-mounted ones. `v_screen_demand_history`
-divides a corridor's ridership by that count to get one vehicle's share, so the
-optimizer needs it to recover the pool's whole crowd for the reach ceiling ---
-otherwise it under-buys in-vehicle inventory by exactly that factor. The divisor is
-defined once, in `v_corridor_vehicle_count`, and used by both views so they cannot
-drift; the reconstruction is verified exact against the corridor totals.
+## 5.3 Relevance funnel
 
-Not built: **event features**. `events` is not joined into the profile, so
-`nearby_events` and `event_attendance` below have no counterpart. Events do reach
-the pipeline, but only through the pricing engine's seasonality module.
-
-Also not built: `daytime_population_multiplier` is carried but unused by any
-score, despite being an obvious signal for a daytime commuter brief.
-
-**Mobile screens have no demographics.** A vehicle has no zone by construction,
-so all 2,615 vehicle-mounted screens hold NULL for every demographic column and
-score 0 --- a floor, not a measurement. Averaging the zones a corridor touches
-(`v_corridor_zones` already resolves them) is the obvious next improvement.
-
-## ScreenProfile
-
-Example:
-
-``` json
-{
-  "screen_id": "LH-SCR-000123",
-
-  "location": {
-    "city_id": "LH",
-    "zone_id": "LH-ZONE-005",
-    "location_type": "bus_stop"
-  },
-
-  "screen_attributes": {
-    "screen_type": "bus_stop",
-    "position": "left",
-    "screen_size": "M"
-  },
-
-  "audience": {
-    "population": 107560,
-    "density": 14480,
-    "median_age": 32.6,
-    "pct_age_18_34": 39.0,
-    "median_income": 134615,
-    "daytime_population_multiplier": 3.39
-  },
-
-  "transit": {
-    "routes_serving": 4,
-    "estimated_daily_ridership": 12000
-  },
-
-  "context": {
-    "poi_footfall": 29380,
-    "nearby_events": 2,
-    "event_attendance": 45000
-  }
-}
-```
-
-## Relevant source tables
-
-Use the table join map to construct these features.
-
-Primary relationships:
-
-``` text
-screens
-    -> locations
-    -> cities
-    -> zone_demographics
-
-screens
-    -> vehicles
-    -> route_schedules
-    -> route_stops
-    -> ridership_actuals
-
-locations
-    -> points_of_interest
-    -> events
-
-bookings
-    -> screens
-    -> clients
-    -> time blocks
-```
-
-The demographics data contains:
-
--   resident population
--   population density
--   median age
--   age bands
--   median household income
--   income index
--   education
--   dominant occupation
--   daytime population multiplier
-
-The POI data contains:
-
--   POI type
--   scale
--   estimated daily footfall
--   distance to location
--   network hub status
--   side of road
--   peak daypart
-
-Events provide:
-
--   event type
--   expected attendance
--   attendance tier
--   primary impact daypart
--   impact radius
-
-## Feature engineering requirements
-
-Create reusable deterministic feature builders:
-
-``` python
-build_screen_profiles()
-build_demographic_features()
-build_transit_features()
-build_poi_features()
-build_event_features()
-build_screen_context_features()
-```
-
-Do not make the LLM calculate these values.
-
-------------------------------------------------------------------------
-
-# 5. Step 3 --- Campaign-to-Screen Relevance Scoring  **[BUILT]**
-
-`app/tools/relevance_tools.py`. Deterministic, Master-owned, no subagent.
-
-This stage identifies promising inventory before expensive optimization.
-
-Do not send the entire inventory universe into the optimizer.
-
-Recommended funnel:
-
-``` text
+```text
 All screens
-    ↓
-Hard filtering
-    ↓
-Feasible screens
-    ↓
-Relevance scoring
-    ↓
-Top ~100–300 candidates
-    ↓
+   ↓
+Hard eligibility filters
+   ↓
+Eligible screens
+   ↓
+Relevance score
+   ↓
+Top-N candidate pool (~100–300, configurable)
+   ↓
 Optimization
 ```
 
-The exact candidate count should be configurable.
+Geography is a **HARD filter**, not a soft score.
 
-## Inputs
+Within the eligible set:
 
-``` text
-CampaignSpec
-ScreenProfile[]
+```text
+1.0 exact requested zone/corridor or city-wide brief
+0.8 mobile screen whose corridor touches requested zone
+0.6 right city but not finer requested geography
+0.0 unreachable / guard only
 ```
 
-## Output
+## 5.4 Relevance formula
 
-``` python
+```text
+relevance_score =
+    0.40 * audience_similarity
+  + 0.20 * geographic_fit
+  + 0.15 * context_fit
+  + 0.15 * time_of_day_fit
+  + 0.10 * historical_performance
+```
+
+`transit_score` is reported but **not included** in relevance. It is volume information,
+which belongs to optimization rather than audience fit.
+
+Audience score columns are normalized once over the full inventory:
+
+```text
+income_score        = min-max income_index
+professional_score  = 0.7*income_score + 0.3*white_collar_flag
+young_adult_score   = min-max pct_age_18_34, scaled 0.85
+student_score       = 0.6*young_adult_score + 0.4*university_nearby
+family_score        = (min-max pct_35_54 + 0.25*min-max pct_18_34) / 1.25
+commuter_score      = peak-block impressions / total impressions
+```
+
+Every sub-score either computes a real value or falls back to **0.5 with an explicit
+reason**. Defaults must never be hidden.
+
+`ScreenCandidate` must carry:
+
+```python
 class ScreenCandidate(BaseModel):
     screen_id: str
-
     relevance_score: float
 
-    # the five weighted components
     audience_match_score: float
     geography_score: float
     contextual_score: float
     time_of_day_score: float
     historical_performance_score: float
-
-    # reported, NOT weighted into relevance_score
-    transit_score: float                 # volume percentile in the eligible pool
+    transit_score: float
 
     reasons: list[str]
-    defaults_applied: list[str]          # sub-scores that fell back to 0.5, and why
-
+    defaults_applied: list[str]
     hard_constraints_passed: bool
 
-    # audience volume -- PEOPLE PASSING, not viewed exposures
-    pool_key: str | None                 # the reach unit
-    pool_partition_count: int            # 1 for stop-mounted; vehicles on the
-                                         # corridor for vehicle-mounted, so the
-                                         # optimizer can recover the pool's whole
-                                         # crowd from this screen's share
-    impressions_by_block: dict[str, float]   # 12 keys, "{block}_{weekday|weekend}"
+    pool_key: str | None
+    pool_partition_count: int
+
+    impressions_by_block: dict[str, float]  # 12 keys: block x weekday/weekend
     impressions_weekday: float
     impressions_weekend: float
 ```
 
-Two fields carry the load downstream. `pool_key` is the physical-audience unit
-(location for stop-mounted screens, corridor for vehicle-mounted), without which
-reach cannot be computed. `impressions_by_block` is **whole-block daily** traffic
-for that pool --- not per slot, not per campaign; the ML stage converts it.
+---
 
-Example:
+# 6. Audience volume and exposure units
 
-``` json
-{
-  "screen_id": "LH-SCR-001928",
-  "relevance_score": 0.91,
+This is the second most important part of the system.
 
-  "audience_match_score": 0.94,
-  "geography_score": 0.97,
-  "contextual_score": 0.83,
-  "transit_score": 0.89,
+There are **three different quantities**:
 
-  "reasons": [
-    "High 18-34 population",
-    "High daytime population",
-    "Strong evening commuter traffic",
-    "Located within requested corridor"
-  ],
+```text
+daily_unique_audience
+    = people PASSING the audience pool
 
-  "hard_constraints_passed": true
-}
+reachable_daily_audience
+    = people who LOOK
+    = daily_unique_audience × viewability
+    = reach ceiling
+
+viewed_exposures_per_slot_per_day
+    = viewed exposures earned by ONE slot on ONE day
+    = daily_unique_audience
+      × LOOP_PASSES_PER_TRIP / 6
+      × viewability
 ```
 
-## Scoring implementation  **[BUILT]**
+The conversion is implemented **once** in:
 
-A transparent weighted sum, as recommended --- no supervised model, because there
-are no relevance labels in this dataset to fit one against.
-
-``` text
-relevance_score =
-    0.40 * audience_similarity      demographic score columns for the audience terms
-  + 0.20 * geographic_fit           graded match inside the eligible pool
-  + 0.15 * context_fit              industry -> POI type match
-  + 0.15 * time_of_day_fit          share of traffic in the audience's target blocks
-  + 0.10 * historical_performance   completion rate of past bookings, same vertical
+```text
+app/optimize/exposure.py
 ```
 
-`transit_score` (volume percentile) is reported but **excluded** from the sum on
-purpose. Volume is the optimizer's objective quantity; folding it into relevance
-would rank a busy screen as a better *match* than a quiet one sitting in exactly
-the right zone.
+Do not duplicate the constants or conversion elsewhere.
 
-Audience score columns, min-max normalized once over the **whole** inventory at
-engine build so they stay comparable between campaigns:
+### Slot mechanics
 
-``` text
-income_score        min-max of zone income_index
-professional_score  0.7 x income_score + 0.3 x white_collar_flag
-young_adult_score   min-max of pct_age_18_34, scaled 0.85
-student_score       0.6 x young_adult_score + 0.4 x university_nearby
-family_score        (min-max pct_35_54 + 0.25 x min-max pct_18_34) / 1.25
-commuter_score      peak-block impressions / total impressions
+A 4-hour block has 6 continuously rotating slots. If a campaign owns `k` slots, it owns
+`k/6` of every loop pass. Thus viewed exposures are strictly linear in `k`.
+
+`LOOP_PASSES_PER_TRIP = 8` and `VIEWABILITY_*` are **ASSUMED constants**, not measured
+from the CSVs. They must remain centralized and clearly labelled as assumptions.
+
+At 8 loop passes:
+
+```text
+1 slot on a saturated pool = 8/6 = 1.33 viewed exposures/person/day
+30 days ⇒ unavoidable floor ≈ 40 exposures/person reached
 ```
 
-The `/ 1.25` on `family_score` is a deliberate change from the source notebook:
-the raw sum peaks at 1.25 (measured 1.140 on this inventory) and broke the
-`ScreenCandidate` 0-1 bound. Dividing by the ceiling preserves the ordering;
-clamping would have flattened the top of the distribution.
+This is why the wear-out cap is relative to flight length rather than an arbitrary absolute
+exposure count.
 
-### Geography is a HARD filter
+---
 
-`eligible_screen_ids()` runs **before** scoring. This is not the source design's
-soft geography penalty, and the change was required: the validation layer fails
-any package containing an ineligible screen, so a soft penalty produced candidate
-pools that could not pass verification (measured 109 of 250 outside the requested
-zone on the canonical brief).
+# 7. Reach: the non-negotiable definition
 
-Inside the eligible pool, `geographic_fit` grades *how well* a screen matches:
+**Reach is never the sum of exposures.**
 
-``` text
-1.0  exact match on a requested zone or corridor, or a city-wide brief
-0.8  mobile screen whose corridor passes through a requested zone --- it serves
-     the area without being sited in it
-0.6  right city, but a finer geography was requested and this is not in it
-0.0  unreachable after the hard filter; kept as a guard
+Screens at the same stop/corridor share people. Every screen has a `pool_key` identifying
+the shared physical audience.
+
+Reported reach is:
+
+```text
+For each (pool_key, time_block):
+
+    reach_pool =
+        min(
+            gross viewed exposures bought in that group,
+            reachable daily audience for that pool
+        )
+
+total reach = SUM(reach_pool)
 ```
 
-The 0.8 tier exists because `eligible_screen_ids` admits mobile inventory via
-corridor-touches-zone, and scoring those screens 0.6 alongside genuinely
-out-of-area ones would have made all 2,615 of them uncompetitive.
+Both terms are in **viewed units**.
 
-### Every default is reported, never hidden
+Consequences:
 
-Each sub-score returns either a computed value or a neutral 0.5 plus a reason.
-Pool-wide fallbacks land in the artifact summary's `defaults_applied`; per-screen
-ones (no booking history in the vertical; no demographics for a mobile screen) land
-on that row's `defaults_applied`. A 0.5 that nobody can trace is worse than a gap.
+- `gross_impressions_viewed` = exposures; scales with slots × days.
+- `expected_reach` = distinct people; saturates within a pool.
+- Buying more screens/slots at an already saturated pool mostly increases frequency.
+- `reach <= exposures` is always enforced.
+- Naively summing per-screen exposures over-counted the audience by ~23x on a realistic
+  candidate pool.
 
-The score is explainable: `reasons` cites real feature values --- zone age bands
-and income index, POI count and weighted footfall, riders/day in the target blocks
-with the share of the screen's traffic, past completion rate with its sample size,
-and how many other screens share the audience pool.
+The same definition is used by:
 
-------------------------------------------------------------------------
+1. `app/tools/or_agent_tools.py::_package_metrics`
+2. `app/agents/validation.py::_reach_checks`
+3. the MILP through `R[p] <= E[p]` and `R[p] <= P[p]`
 
-# 6. Step 4 --- Demand Forecasting & Pricing
+Do not replace this with a fitted saturation constant.
 
-Expose this as one business capability, internally separated into four
-independent pieces. All four exist, but they are not all owned here:
+A separate exponential saturation curve exists only as `curve_reach_diagnostic`. Its
+`REACH_LAMBDA` is unmeasured and must **never** become client-facing reach or the optimizer's
+objective.
 
-``` text
-Demand Forecast          [BUILT]   section 7   <-- owned UPSTREAM, by the
-                                                   relevance engine. This stage
-                                                   only converts its units.
-Availability / Occupancy [BUILT]   section 7A
-Market Price Band        [BUILT]   section 8, Model A
-Booking Probability      [BUILT]   section 8, Model B
+---
+
+# 8. Demand model
+
+Demand is currently an aggregation of observed transit ridership, not a fitted ML predictor.
+
+`v_screen_demand_history` contains average daily riders by:
+
+```text
+screen × time_block × day_type
 ```
 
-As-built architecture (`app/ml/`, assembled by `PricingEngine`):
+There are two structurally different paths.
 
-``` text
-                    PricingEngine  (process singleton, ~12s build)
-                              │
-        ┌─────────────┬───────┴───────┬──────────────┐
-        ▼             ▼               ▼              ▼
-   Occupancy     Price Band     Booking Prob.   Seasonality
-   (M1)          (M2)           (M3)            (M6)
-   bookings      bookings       bookings vs     ridership DOW
-   day-by-day    p25/p50/p90    lost_leads      + events
-        │             │               │              │
-        └─────────────┴───────┬───────┴──────────────┘
-                              ▼
-                      Price Optimizer (M4)
-                      feasibility gate, then
-                      floor + occupancy x (cap - floor)
-                              │
-                              ▼
-                       ScreenEconomics
-                              │
-                    ┌──────────┴────────────────────┐
-                    │ viewed_exposures_per_slot_per │ <-- audience volume,
-                    │ _day                          │     mapped in from the
-                    │ daily_unique_audience         │     relevance engine via
-                    │ reachable_daily_audience      │     app/optimize/
-                    │ pool_key, demand_forecast     │     exposure.py
-                    └───────────────────────────────┘
-```
+### Stop-mounted
 
-The engine is a **process-wide singleton** (`get_pricing_engine()`). Build
-costs ~12s --- loading bookings, indexing occupancy, computing the band
-groupbys, and fitting the probability model. Never construct it per request.
-
-A separate module, `app/ml/impressions.py` (M5), computes a
-`pricing_internal_reach_proxy`. It is **not** demand and is deliberately not
-wired to any exposure field. See section 7B.
-
-------------------------------------------------------------------------
-
-# 7. Demand Forecasting  **[BUILT]**
-
-Built as part of the audience relevance engine, not as a separate model. The
-DuckDB view `v_screen_demand_history` gives average daily riders per screen, per
-`dim_slot` time block, per day type (weekday/weekend) --- 111,630 rows over
-11,163 screens.
-
-## The two join paths
-
-They are structurally different, and the difference matters:
-
-``` text
-STOP-MOUNTED (8,548 screens)
-  screen -> location -> route_stops -> route -> schedules -> ridership_actuals
-  actual_ridership is PER TRIP. A screen at a stop is passed by EVERY trip in
-  the block, so:
-      1. SUM across trips within each (route, block, day_type, date)
-      2. MEAN across dates
-      3. SUM across every route serving that stop
-  Averaging at step 1 instead would describe a single vehicle rather than the
-  volume passing the stop, understating it by roughly the trip count (~42x).
-
-VEHICLE-MOUNTED (2,615 screens)
-  screen -> vehicle -> corridor -> schedules
-      corridor block total / vehicles working that corridor
-  A screen inside ONE vehicle sees only the trips THAT vehicle makes, and
-  route_schedules carries no vehicle_id --- so one vehicle's share is the
-  available approximation. This is a stated modelling judgement, not a
-  settled correction like the stop-mounted case.
-```
-
-**Consequence to keep in view:** `metro_station` median daily volume is ~380x
-`bus`. The gap is directionally real --- a station concourse is not one bus --- but
-large enough that any impressions-per-dollar ranking picks fixed inventory almost
-exclusively. Fixing the mobile unit is the highest-value next step on this model.
-
-## Degradation and provenance
-
-`ridership_actuals` is gitignored and optional. Without it the stop-mounted path
-falls back to `route_schedules.estimated_ridership` --- the same quantity the
-corridor path already uses, so units stay consistent, at lower fidelity. The
-engine reports which source is live in `demand_source`, and it is echoed on the
-artifact summary.
-
-**Data constraint that shaped the design.** `ridership_actuals` spans 2026-02-19
-to 2026-08-19 --- all in the past relative to any campaign window, with exactly two
-holiday dates. So the model deliberately works at **day-type granularity, not
-calendar date**: day-of-week, time-block and corridor features generalize to a
-future flight; date-keyed features do not. That is also why `DemandForecast` (the
-per screen/date/time-block contract in section 9) is still unpopulated --- there is
-nothing honest to put in a per-date row.
-
-## The unit chain --- three quantities, easily confused
-
-``` text
-v_screen_demand_history.daily_impressions
-    riders PASSING a screen's POOL during a 4-hour block, on a typical day
-    of that day type
-        |
-        v  weight by the flight's real weekday/weekend day counts
-ScreenCandidate.impressions_by_block
-    whole-block daily PEOPLE PASSING, per day type, 12 columns
-        |
-        +--> x viewability(screen_type)
-        |    ScreenEconomics.reachable_daily_audience
-        |        distinct people who LOOK -> the reach CEILING. Does NOT scale
-        |        with slots or days.
-        |
-        +--> x LOOP_PASSES_PER_TRIP / 6 x viewability(screen_type)
-             ScreenEconomics.viewed_exposures_per_slot_per_day
-                 viewed exposures ONE slot earns on ONE day -> scales with
-                 slots x days
-```
-
-Every step of that conversion lives in exactly one module,
-`app/optimize/exposure.py`, called from exactly one place
-(`ml_agent_tools._to_contract`). The constants are ASSUMED, so the single call site
-matters more than the values: a second copy would let two stages disagree about what an
-"impression" is without either being wrong on its own.
-
-A time block is a 4-hour window in which all 6 rotation slots cycle continuously
-(1->2->...->6->1). Slot POSITION is meaningless --- `slots_booked_per_day` is share of
-voice, never which positions --- so holding k of 6 slots puts the creative on k of every 6
-loop passes and viewed exposures are strictly **linear** in k. The only concavity in this
-system is at the audience pool.
-
-**The dwell assumption, stated plainly.** `LOOP_PASSES_PER_TRIP = 8` says a person in range
-of a screen sees eight rotations of the loop. An earlier version of this document divided by
-6 and stopped there, which is the same model with `LOOP_PASSES_PER_TRIP = 1`: exposure
-proportional to airtime, dwell short relative to one rotation. Neither is measurable --- there
-is no dwell data anywhere in the 14 CSVs, the same gap that left section 7B's `dwell_factor`
-hand-set. The 8-pass form was adopted because the alternative labels `footfall x 8` as
-"impressions" at a viewability of 1.0, an 8x over-count of people, and because a wear-out
-judgement is only meaningful in viewed units.
-
-**The consequence to state, not bury.** At 8 loop passes, one slot on a saturated pool
-delivers `8/6 = 1.33` viewed exposures per person per day, so a 30-day flight cannot deliver
-fewer than **~40 exposures per person reached** no matter what the optimizer chooses.
-Duration is the brief's, the minimum purchase is one slot, and there is no flighting. That is
-why the wear-out cap in section 10 is a multiple of that floor rather than an absolute
-number, and why it is a property of flight length rather than of selection.
-
-**A provenance note, because it was cited in support of these constants and does not hold.**
-`or_engine/config.py` justifies them with "their metro_station median of 227,981 x 0.2275 =
-51,866 against our independently derived 48,706". 0.2275 is 0.35 x 0.65 --- the static and
-in-vehicle factors multiplied together. `metro_station` is static, so that comparison should
-have used 0.35, giving 79,793 against 48,706, a 1.6x miss. The cross-check therefore
-validates a compound factor that is not shipped, and neither shipped constant is evidenced
-by it. They are held on the two arguments above, not on that arithmetic.
-
-## Not built
-
--   **Accuracy metrics.** No MAE/RMSE/MAPE, no comparison against the naive
-    `route_schedules.estimated_ridership` baseline. The model is an aggregation of
-    observed ridership rather than a fitted predictor, so there is no held-out
-    split --- but that also means there is no measured error bar, which is why no
-    stage emits a per-screen confidence and the validator still skips that check
-    (section 18). This is the same gap section 26 flags for pricing.
--   **Prediction intervals.** `DemandForecast.lower_bound` / `upper_bound` have no
-    counterpart.
--   **Any ambient/pedestrian term.** Volume is schedule-derived only, so a block
-    with no scheduled service reports exactly zero. Time block 1 (00:00-04:00) is
-    zero for all 11,163 screens despite 8,544 real block-1 bookings. A zero here
-    means "not modelled".
--   **Event and POI features in the volume model.** `weighted_nearby_footfall` is
-    computed and carried on the profile, but is not added into any impressions
-    figure. Events reach the pipeline only through pricing seasonality.
-
-## What a fitted model would add
-
-The section below is the original target design, retained because a supervised
-model on top of these aggregates is still the right next step --- it would give
-the error bars and the confidence figure this one cannot.
-
-Relevant tables:
-
-``` text
-route_schedules
-ridership_actuals
-route_stops
-vehicles
-screens
-events
-points_of_interest
-```
-
-The schedule data provides:
-
--   schedule ID
--   route ID
--   corridor
--   direction
--   day type
--   start time
--   estimated ridership
-
-The historical ridership data provides:
-
--   schedule ID
--   route ID
--   date
--   day of week
--   holiday flag
--   actual ridership
-
-## Feature pipeline
-
-``` text
+```text
 screen
-  ↓
-location
-  ↓
-routes serving location
-  ↓
-schedule
-  ↓
-historical ridership
+ → location
+ → route_stops
+ → route/schedules
+ → ridership_actuals
 ```
 
-Augment with:
+For each route/block/day/date:
 
-``` text
-day of week
-holiday
-time block
-event activity
-POI footfall
-demographics
-location characteristics
+1. SUM actual ridership across trips.
+2. MEAN across dates.
+3. SUM across routes serving the stop.
+
+Averaging trips too early would understate stop volume by roughly the trip count.
+
+### Vehicle-mounted
+
+```text
+screen → vehicle → corridor
+corridor block total / vehicles working corridor
 ```
 
-## DemandForecast
+This is an approximation because schedules do not identify vehicle IDs.
 
-``` python
-class DemandForecast(BaseModel):
-    screen_id: str
-    date: date
-    time_block_id: str
+### Data degradation
 
-    predicted_impressions: float
-    lower_bound: float
-    upper_bound: float
+`ridership_actuals` is optional/gitignored. If unavailable, stop-mounted demand falls back
+to `route_schedules.estimated_ridership`. The source is reported as `demand_source`.
 
-    demand_index: float
-    confidence: float
+Historical ridership is entirely in the past relative to future campaigns, so the model
+works at day-type granularity rather than pretending it has future date-level ground truth.
+
+### Not currently built
+
+- Held-out MAE/RMSE/MAPE/R².
+- Prediction intervals.
+- Ambient/pedestrian volume.
+- Event/POI adjustments in the volume model.
+
+Do not invent confidence values. Current contracts retain confidence fields but no stage
+produces a real confidence.
+
+---
+
+# 9. Pricing and availability
+
+The pricing engine is a **process-wide singleton**:
+
+```python
+get_pricing_engine()
 ```
 
-## Model requirements
+It loads/fits once (~12s build) and is reused across requests.
 
-The first implementation should prioritize:
+## 9.1 Availability / occupancy
 
--   strong baseline
--   interpretability
--   fast training
--   robust validation
+Capacity is exactly:
 
-Possible models:
-
-``` text
-Historical average baseline
-Seasonal baseline
-LightGBM/XGBoost
-Gradient boosting regression
+```text
+6 slots per screen × time block × day
 ```
 
-Do not introduce unnecessary deep learning unless it materially improves
-results. `lightgbm` is already a declared dependency.
+Availability is evaluated day by day over the entire requested flight:
 
-Report MAE / RMSE / MAPE / R-squared against the naive
-`route_schedules.estimated_ridership` baseline (section 26). The pricing
-half ships no accuracy metric; do not repeat that.
+```text
+occupied[day] = sum(slots_booked_per_day for overlapping bookings)
 
-------------------------------------------------------------------------
-
-# 7A. Availability & Occupancy  **[BUILT]**
-
-`app/ml/occupancy.py`. This was not a named capability in the original
-design; it turned out to be the strongest signal in the data and now drives
-both feasibility and the price itself.
-
-Capacity is a known constant: **6 slots per screen, per time block, per
-day**, confirmed empirically against `bookings`.
-
-Occupancy is not a point estimate. Existing bookings start and end on
-different dates, so every query is evaluated **day by day across the whole
-requested flight**:
-
-``` text
-for each day in [start_date, end_date]:
-    occupied[day] = sum(slots_booked_per_day
-                        for bookings overlapping that day)
-
-min_available_slots = min(6 - occupied[day])   <-- the reported figure
-avg_occupancy_rate  = mean(occupied[day] / 6)  <-- drives the price
+min_available_slots = min(6 - occupied[day])
+avg_occupancy_rate  = mean(occupied[day] / 6)
 ```
 
-`min_available_slots` --- the **tightest single day**, not an average --- is
-the availability contract. Selling against a mean would oversell the busiest
-day of the flight.
+`min_available_slots` is the contract because selling against average availability could
+oversell the tightest day.
 
-A screen with fewer free slots than the campaign needs on any single day is
-**infeasible**. Infeasible rows are returned with `feasible=False`, null
-pricing, and the occupancy diagnostics intact --- never silently dropped ---
-so the caller can distinguish a near miss from a sold-out screen.
+If required slots do not fit on any day:
 
-------------------------------------------------------------------------
-
-# 7B. Impressions Proxy --- do not use as demand  **[BUILT, quarantined]**
-
-`app/ml/impressions.py` computes:
-
-``` text
-proxy = base_traffic x dwell_factor(screen_type)
-                     x visibility(screen_size, position)
+```text
+feasible = false
+pricing = null
+diagnostics retained
 ```
 
-It is surfaced on `ScreenEconomics` as `pricing_internal_reach_proxy`, with
-`reach_owner = "audience_engine"`, and is **still deliberately not** mapped onto
-any exposure field --- those carry the relevance engine's real ridership figures,
-converted once in `app/optimize/exposure.py`. The proxy stays quarantined for pricing diagnostics.
-Two reasons, both still disqualifying:
+Never silently drop infeasible rows.
 
-1.  `dwell_factor` and `visibility` are hand-set constants. There is no
-    ground-truth exposure data in this dataset to fit them against.
-2.  **The two join paths are on different units.** Fixed screens use
-    `points_of_interest.est_daily_footfall`, which is per day. Mobile screens
-    use `route_schedules.estimated_ridership` averaged per corridor, which is
-    per *departure* (~139 departures per corridor per weekday). Measured base
-    traffic is 57--48,388 for fixed screens against 22--260 for mobile: a
-    ~36x gap that would render all 2,615 mobile screens invisible to any
-    impressions-per-dollar ranking.
+## 9.2 Market price band
 
-The unit fix is known: `SUM(estimated_ridership) GROUP BY corridor_id,
-day_type` puts mobile on a daily basis (median 2,890 weekday, comparable to
-fixed screens' 2,059--2,774). That is essentially what `v_corridor_block_demand`
-now does for the real audience model. This module was never promoted and does not
-need to be --- `reach_owner = "audience_engine"` was accurate all along; the
-audience engine now exists.
+`app/ml/price_band.py`
 
-------------------------------------------------------------------------
+Price is seller-side: what the network should quote.
 
-# 8. Pricing Model  **[BUILT]**
+Band = p25 / p50 / p90 of comparable historical
+`contracted_price_per_slot_per_day`.
 
-Historical bookings are the primary pricing dataset.
+Fallback ladder — deterministic and bounded, no free-form retries:
 
-Relevant fields include:
-
--   screen
--   client
--   industry
--   campaign objective
--   time block
--   slots per day
--   rotation type
--   duration
--   contracted price
--   line-item value
--   deal value
--   bundle status
--   booking status
-
-Model:
-
-``` text
-price_per_slot_per_day =
-    f(
-       screen,
-       city,
-       location,
-       screen_size,
-       daypart,
-       demand,
-       duration,
-       slots,
-       industry,
-       campaign_objective,
-       client characteristics,
-       inventory pressure
-    )
+```text
+Z1: screen_size × screen_type × position × zone × daypart, n >= 30
+Z2: screen_size × screen_type × position × zone,           n >= 30
+A:  screen_size × screen_type × position × city × daypart, n >= 30
+B:  screen_size × screen_type × position × city,           n >= 30
+C:  screen_size × screen_type × position,                  final floor
 ```
 
-Both models below are built. Prices are **seller-side**: what the network
-should quote for the slot.
+Level C always resolves: all 15 `(screen_size, screen_type, position)` combinations present
+in `screens` also appear in `bookings`.
 
-## Model A --- Market Price Band  **[BUILT]**
+**Zone sits above city on measurement.** Holding city, size, type and position fixed, the
+median contracted price still varies **1.87×–2.52× across zones of the same city** — DAT S
+metro_station platform runs from a 33.47 zone median to an 84.30 one over 10 zones and
+6,260 bookings. Segmenting on city alone quoted every one of those off the same blended
+band, underselling the strong zones and overselling the weak ones. Coverage supports the
+depth: 95.6% of bookings sit in a Z1 cell with n >= 30, 99.7% in a Z2 cell, and ~70% of
+screens resolve at a zone rung in practice.
 
-`app/ml/price_band.py`. Rather than predicting a point price, this emits a
-**band** --- p25 / p50 / p90 of comparable historical
-`contracted_price_per_slot_per_day` --- because the band is what the
-downstream price decision moves within.
+Zone is NULL for all 2,615 vehicle-mounted screens, so the zone rungs never match for them
+and mobile inventory falls through to the city levels. That is why there is no branch on
+inventory class in the lookup.
 
-Segmentation is by physical screen attributes first (the strongest price
-signal in the data), then city and daypart. `industry_vertical` is applied
-only as a bounded secondary adjustment, never as a primary key.
+**Each location rung is also split by deal shape** (`is_bundle`) and tried split-first.
+`is_bundle=False` deals hold exactly one screen (max 1); bundled deals a median of 20. A
+package this system produces is commercially a bundle, a single-screen quote is not, and
+they should not come off the same comparables.
 
-Deterministic fallback ladder, bounded --- no free-form retries:
+How big the effect is depends on how it is measured, and the two readings disagree:
 
-``` text
-Level Z1: screen_size x screen_type x position x ZONE x daypart  n >= 30
-Level Z2: screen_size x screen_type x position x ZONE            n >= 30
-Level A:  screen_size x screen_type x position x city x daypart  n >= 30
-Level B:  screen_size x screen_type x position x city            n >= 30
-Level C:  screen_size x screen_type x position                   final floor
+- By **mean price index** at city+daypart grain the split looks inert: 1.0617 non-bundle
+  against 1.0459 bundle, medians 0.9939 and 1.0017.
+- By the **actual band quantiles** at zone+daypart grain — the cells this ladder resolves
+  at — across the 302 cells where both shapes clear n >= 30, single-screen deals sit
+  consistently higher: floor ×1.090, target ×1.079, cap ×1.065, on a band 7.5% narrower.
+
+The quantile reading governs, for two reasons: the price decision consumes **quantiles**
+(`floor + position × (cap - floor)`), and a mean of per-booking ratios against a blended
+median is a different statistic from the quantiles of each population; and zone grain is
+where the band actually resolves. End to end the split moves a single-screen quote ~3.8%
+above a bundled one. Coverage survives it — 89.5% of bookings sit in a Z1+shape cell with
+n >= 30, 98.9% at Z2+shape.
+
+Shape is nonetheless the **first** dimension surrendered when a cell runs short, being worth
+6.5–9% against zone's 87–152%. `is_bundle=None` means "do not split" and is what a caller
+that does not know the deal shape must send — never a guess, since guessing bundle on a
+single-screen quote reads ~9% low. The rung name records which shape was used
+(`..._bundle`, `..._single_screen`, or unsuffixed for a blended fallback).
+
+**One dimension was tested and rejected**, recorded in the module so it is not re-added on
+intuition: `duration_days`. The effect is real but small once bundle is controlled, and
+exists only inside the bundle population — 1.0577 (<=14d) → 1.0648 (15–30) → 1.0425
+(31–60) → 0.9924 (61–120) → 0.9307 (>120), i.e. ~2% between the buckets most campaigns
+fall in, and non-monotone on thin non-bundle cells.
+
+Industry adjustment applies only with n >= 15 and is clamped to:
+
+```text
+[0.85, 1.20]
 ```
 
-**Zone sits above city on measurement.** Holding city, size, type and
-position fixed, the median contracted price still varies **1.87x--2.52x
-across zones of the same city** --- DAT S metro_station platform runs from a
-33.47 zone median to an 84.30 one over 10 zones and 6,260 bookings.
-Segmenting on city alone quoted every one of those from the same blended
-band, underselling the strong zones and overselling the weak ones. Coverage
-supports the depth: 95.6% of bookings sit in a Z1 cell with n >= 30, 99.7%
-in a Z2 cell, and ~70% of screens resolve at a zone rung in practice.
+`position = "not_applicable"` for the 1,400 metro-rail-coach screens.
 
-Zone is NULL for all 2,615 vehicle-mounted screens, so the zone rungs never
-match for them and mobile inventory falls through to the city levels. That
-is why there is no branch on inventory class in the lookup.
+Always segment by the **screen's own city_id**, not the campaign's city list.
 
-**Each location rung is also split by DEAL SHAPE** (`is_bundle`) and tried
-split-first. `is_bundle=False` deals hold exactly one screen (max 1); bundled
-deals a median of 20. A package this system produces is therefore commercially
-a bundle, a single-screen quote is not, and they should not come off the same
-comparables.
+## 9.3 Booking probability
 
-How big the effect is depends on how it is measured, and the two readings
-disagree:
+`app/ml/booking_probability.py`
 
--   By **mean price index** at city+daypart grain the split looks inert: 1.0617
-    non-bundle against 1.0459 bundle, medians 0.9939 and 1.0017.
--   By the **actual band quantiles** at zone+daypart grain --- the cells this
-    ladder resolves at --- across the 302 cells where both shapes clear n >= 30,
-    single-screen deals sit consistently higher: floor x1.090, target x1.079,
-    cap x1.065, on a band 7.5% narrower.
+Logistic regression on `log(price)` with screen/city/industry controls.
 
-The quantile reading governs, for two reasons. The price decision consumes
-QUANTILES (`floor + position x (cap - floor)`), and a mean of per-booking
-ratios against a blended median is a different statistic from the quantiles of
-each population. And zone grain is where the band actually resolves. End to
-end the split moves a single-screen quote ~3.8% above a bundled one. Coverage
-survives it: 89.5% of bookings sit in a Z1+shape cell with n >= 30, 98.9% at
-Z2+shape.
+Labels:
 
-Shape is nonetheless the **first** dimension surrendered when a cell runs
-short, being worth 6.5--9% against zone's 87--152%. `is_bundle=None` means "do
-not split" and is what a caller that does not know the shape must send ---
-never a guess, since guessing bundle on a single-screen quote reads ~9% low.
-The rung name records which shape was used (`..._bundle`,
-`..._single_screen`, or unsuffixed for a blended fallback).
+```text
+1 = won bookings
 
-**One dimension was tested and rejected**, recorded in the module so it is not
-re-added on intuition:
-
--   `duration_days`. Real but small once bundle is controlled, and only inside
-    the bundle population: 1.0577 (<=14d) -> 1.0648 (15--30) -> 1.0425
-    (31--60) -> 0.9924 (61--120) -> 0.9307 (>120). Between the buckets most
-    campaigns fall in, ~2%.
-
-Level C always resolves: all 15 `(screen_size, screen_type, position)`
-combinations present in `screens` appear in `bookings`. A test asserts this,
-and the code raises rather than falling through if it ever stops holding.
-
-Industry adjustment is the ratio of the (segment x industry) mean to the
-segment mean, applied only when that slice has n >= 15, and clamped to
-**[0.85, 1.20]**.
-
-The level used and every adjustment applied are recorded per row in
-`assumptions`, so any quoted price is traceable to its sample.
-
-Two data-handling rules the segmentation depends on:
-
--   `position` is null for exactly the 1,400 `metro_rail_coach` screens
-    (no entrance/back concept inside a train car). It is filled to
-    `"not_applicable"` as an explicit category rather than dropped.
--   The band is looked up against **the screen's own `city_id`**, not the
-    campaign's. `CampaignSpec.city_ids` is a list; using the campaign's city
-    would mis-segment every out-of-city screen in a multi-city brief.
-
-## Model B --- Booking Probability  **[BUILT]**
-
-`app/ml/booking_probability.py`. Logistic regression on `log(price)` with
-screen/city/industry controls.
-
-``` text
-WON  (label=1)  bookings          price = contracted_price_per_slot_per_day
-LOST (label=0)  lost_leads where  price = quoted_price_per_slot_per_day
-                loss_reason in (price_too_high, budget_mismatch)
+0 = lost leads where:
+    loss_reason ∈ {price_too_high, budget_mismatch}
 ```
 
-Only **price-driven** losses become negatives. Ghosted, competitor and
-timing losses say nothing about price elasticity.
+Only price-driven losses are negatives.
 
-`daypart` is deliberately excluded as a feature: `lost_leads` has no
-daypart or time_block column at all, so including it would either drop
-every negative example or teach the model that "unknown daypart -> always
-lost". Daypart price variation is already captured by Model A; this model
-estimates the curve *given* a price already anchored to the right band.
+Because the class imbalance is ~490:1:
 
-**Two-stage fit**, because the class imbalance is ~490:1 (191,109 won vs
-393 lost):
+1. Fit with `class_weight="balanced"`.
+2. Recalibrate on a held-out split using Platt scaling.
 
-1.  Fit with `class_weight="balanced"`. This is not optional --- an
-    unweighted fit produces a **wrong-signed** price coefficient
-    (+0.35 unweighted vs -1.18 balanced), because 393 negatives cannot
-    outweigh noise in the majority class under plain MLE.
-2.  Re-calibrate on a held-out split with Platt scaling against the true
-    label distribution, restoring absolute probabilities that balancing
-    distorted toward an artificial 50/50 prior.
+The price coefficient must be **negative**. Current fit: approximately `-1.18`, AUC ~0.82.
 
-**The one check that gates trust:** the price coefficient must be negative
-after controls. A positive coefficient means premium screens' higher prices
-and higher booking rates are not disentangled, and the model must not price
-anything. Current fit: **-1.1803**, AUC 0.822, calibrated.
+However, the true win rate is ~99.79%, so calibrated probabilities are ~1.0 for almost
+everything. Booking probability is therefore a **diagnostic**, not the price-setting signal.
 
-### Known limitation --- read before using booking_probability
+## 9.4 Price decision
 
-The true base rate is **99.79%** (191,109 won against 393 price-driven
-losses). Calibration therefore pins predicted probability near 1.0 for
-essentially every screen; the observed mean across a live run is **0.9996**.
+`app/ml/price_optimizer.py`
 
-Two consequences:
+Do **not** maximize `price × P(booked)` as the final pricing rule. It was tested and
+degenerates toward the cap because booking probability is too flat.
 
--   `expected_revenue = price x booking_probability` is currently
-    approximately equal to `price`. It carries almost no extra information.
--   Within one segment's floor-cap band, predicted P(booked) moves only
-    ~0.1--0.2%.
+Current rule — each step annotated with the lever that moves it (§9.7):
 
-The coefficient is correctly signed, so the elasticity is real --- it is
-simply far too diffuse to discriminate between prices inside a single
-segment. Booking probability is therefore **reported as a diagnostic and
-does not set the price**. See section 8A.
-
-------------------------------------------------------------------------
-
-# 8A. The Price Decision  **[BUILT]**
-
-`app/ml/price_optimizer.py`. This is where sections 7A and 8 combine.
-
-The original design (section 8, Model B) called for
-`argmax over price of [price x P(booked | price)]`. **That was implemented,
-tested, and rejected**: it degenerates to the cap price for every screen,
-for the reason given above --- P(booked) is near-flat within a segment's
-band, so the product is monotonically increasing in price.
-
-Occupancy is the signal that is strong, exact and validated against real
-bookings. It drives the recommendation instead:
-
-``` text
-1. Feasibility gate
-   occupancy.check_feasibility(screen, block, start, end, slots_needed)
-   -> infeasible: return diagnostics, no price. STOP.
-
-2. Band
-   price_band.get_price_band(screen, daypart, industry)    # screen's own city
-   -> floor, target, cap
-
-3. Seasonality (section 6, M6)
-   floor, target, cap  x=  seasonality.combined_multiplier
-
-4. Price
-   recommended_price = floor + avg_occupancy_rate x (cap - floor)
-
-   A screen with no committed slots quotes at floor; a fully committed one
-   quotes at cap. Scarcity sets the position inside the band.
-
-5. Diagnostics
-   booking_probability = P(booked | recommended_price, context)
-   expected_revenue    = recommended_price x booking_probability
-
-   The probability-only argmax is still computed and compared. If it
-   diverges >15% from the occupancy-driven price, that is recorded in
-   `assumptions` rather than silently overriding.
-
-6. Slot-count curve
-   price_by_slot_count = {1..6: recommended_price if n <= available else None}
+```text
+1. Check availability / feasibility gate.        <- NO lever reaches this
+2. Price band floor/target/cap
+     × industry adjustment                       <- industry_weight
+3. × day-of-week / holiday multiplier            <- seasonality_weight
+   × event boost                                 <- event_weight
+4. position = avg_occupancy_rate ** gamma        <- occupancy_gamma
+     or an explicit position in the band         <- band_position (overrides 4)
+5. recommended_price = floor + position × (cap - floor)
+6. × per-screen demand premium                   <- demand_premium_weight
+7. × blanket commercial adjustment               <- commercial_multiplier
+8. recommended_price = max(price, floor)         <- respect_band_floor
+9. Report booking probability as a diagnostic.
 ```
 
-**Price is flat across slot counts, by design.** Two candidate curves were
-tested and both rejected: occupancy escalation does not exist in the
-implementation (`slots_needed` never enters the price formula), and the
-apparent volume discount (1.00 -> 0.926 from 1 to 6 slots) is a composition
-confound --- larger purchases skew toward cheaper inventory. Controlling for
-the price-band segment, the residual effect is ~1.6%, inside noise. The map
-is returned explicitly so the interface states this rather than leaving
-consumers to infer it.
+Price is flat across slot counts by design. `price_by_slot_count` maps 1..6 to the same
+price where available and null where unavailable.
 
-## Model C --- Demand Value and the mispricing premium  **[BUILT]**
+Seasonality currently adjusts **price**, not demand: the day-of-week multiplier averages
+0.913 over a full week, so a whole-week flight takes a ~9% haircut off a band already built
+from actual contracted prices. `seasonality_weight = 0.0` (§9.7) is the documented way to
+drop that term without losing the event premium. Event matching uses exact anchor location or
+a damped city-zone match because there is no lat/lon data.
 
-`app/ml/demand_value.py` (M7). Models A and B both answer the same question
---- what did comparable inventory sell for --- which makes the engine a
-mirror. A screen that has always been sold cheap is quoted cheap forever, and
-no amount of history can say the history was wrong.
+---
 
-This is the second opinion, and it **never sees a price**. `merit` scores a
-screen on what it physically delivers, as a percentile within its own
-`screen_type x city`:
+## 9.5 Demand value — the one signal allowed to disagree with history
 
-``` text
-merit = 0.50 x audience volume      (v_screen_demand_history, all day types)
-      + 0.20 x zone income_index
-      + 0.15 x daytime_population_multiplier
-      + 0.15 x weighted_nearby_footfall
+`app/ml/demand_value.py`
+
+Sections 9.2 and 9.3 both answer the same question — what did comparable inventory sell
+for — which makes the engine a mirror. A screen that has always been sold cheap is quoted
+cheap forever, and no amount of history can say the history was wrong. This is the second
+opinion, and it **never sees a price**.
+
+`merit` scores a screen on what it physically delivers, as a percentile within its own
+`screen_type × city`:
+
+```text
+merit = 0.50 × audience volume      (v_screen_demand_history, all day types)
+      + 0.20 × zone income_index
+      + 0.15 × daytime_population_multiplier
+      + 0.15 × weighted_nearby_footfall
 ```
 
-Ranked within `screen_type x city` because the realized price index is
-normalized against a segment that already contains both --- ranking globally
-would reintroduce the pooling artifact this model exists to see past
-(`metro_station` median volume is ~380x `bus`, so a global volume rank is
-mostly a screen-type indicator).
+Ranked within `screen_type × city` because the realized price index is normalized against a
+segment that already contains both. Ranking globally would reintroduce the pooling artifact
+this model exists to see past — `metro_station` median volume is ~380× `bus`, so a global
+volume rank is mostly a screen-type indicator.
 
-**Why it must not be fitted to price.** A model trained to PREDICT price from
-location and audience treats the historical average as correct, so a
-systematically underpriced category is learned as correct and reports no
-mispricing at all. It can find deviation from a norm, never a wrong norm.
-Measured: bus stops in the top audience quintile carry 6.2x the riders of the
-bottom quintile and 1.59x the price. A price-trained model calls that correct.
+**It must not be fitted to price.** A model trained to *predict* price from location and
+audience treats the historical average as correct, so a systematically underpriced
+*category* is learned as correct and reports no mispricing at all. It can find deviation
+from a norm, never a wrong norm. Measured: bus stops in the top audience quintile carry 6.2×
+the riders of the bottom quintile and 1.59× the price. A price-trained model calls that
+correct.
 
-Four gates, each of which withholds real screens. 385 of 6,690 eligible
-screens end up flagged:
+Four gates, each of which withholds real screens. 385 of 6,690 eligible screens are flagged:
 
-``` text
-fixed inventory only   merit/absorption correlation is +0.37 bus_stop and
-                       +0.31 metro_station but -0.28 bus and -0.20
-                       metro_rail_coach -- a symptom of the corridor/vehicle
-                       volume artifact, not a market fact. Mobile also has no
-                       zone demographics, so 3 of 4 components are zero, which
-                       is why its merit/price-rank correlation is 0.02-0.14
-                       against ~0.5 for the fixed types.
->= 10 bookings         below that there is no reliable read on what the
-                       screen actually sells for.
-merit >= 0.50          a weak screen priced weakly is the market being right.
-                       The residual alone flags 191 below-median-merit screens.
-absorption >= 0.30     withholds 281 screens averaging 283,334 riders a day ---
-                       the HIGHEST of any bucket this model produces --- on an
-                       absorption rank of 0.166. Separates "undervalued" from
-                       "unwanted"; this is what makes the model defensible.
+```text
+fixed inventory only   merit/absorption correlation is +0.37 bus_stop and +0.31
+                       metro_station but -0.28 bus and -0.20 metro_rail_coach — a symptom
+                       of the corridor/vehicle volume artifact, not a market fact. Mobile
+                       also has no zone demographics, so 3 of 4 merit components are
+                       structurally zero, which is why its merit/price-rank correlation is
+                       0.02-0.14 against ~0.5 for the fixed types.
+>= 10 bookings         below that there is no reliable read on what the screen sells for.
+merit >= 0.50          a weak screen priced weakly is the market being right. The residual
+                       alone flags 191 below-median-merit screens.
+absorption >= 0.30     withholds 281 screens averaging 283,334 riders a day — the HIGHEST
+                       of any bucket this model produces — on an absorption rank of 0.166.
+                       Separates "undervalued" from "unwanted"; this is what makes the
+                       model defensible.
 ```
 
-**A ranking trap this hit once, recorded so it is not reintroduced.**
-`pr_price` is a percentile among screens that HAVE a price index. Ranking the
-NULL-price screens in the same window partition squeezed the 181 priced
-bus_stop/ACS screens into ranks 0.000--0.257 rather than 0.000--1.000: every
-price rank depressed, every residual inflated, and screens transacting ABOVE
-their own comparables flagged as underpriced (811 premiums against the correct
-385). Hence the extra `(price_index IS NULL)` partition key.
+**A ranking trap this hit once, recorded so it is not reintroduced.** `pr_price` is a
+percentile among screens that *have* a price index. Ranking the NULL-price screens in the
+same window partition squeezed the 181 priced bus_stop/ACS screens into ranks 0.000–0.257
+rather than 0.000–1.000: every price rank depressed, every residual inflated, and screens
+transacting *above* their own comparables flagged as underpriced (811 premiums against the
+correct 385). Hence the extra `(price_index IS NULL)` partition key.
 
-Premium ramps linearly from residual 0.20 (+0%) to 0.60 (+15%, the cap), so
-the gate is not a cliff. The cap is conservative by construction: at the
-observed mean of x1.056 the flagged set moves from an average transacted 64.51
-to 68.14, still well **below** the 88.31 of the screens the model leaves alone
-and far below the 118.23 it flags as overpriced --- it narrows a gap rather than
-closing it. Commercial risk is measured --- in `lost_leads`, deals lost to price
-wanted a third off (`price_gap_pct` 0.328 for `price_too_high`, 0.309 for
-`budget_mismatch`) against 0.025 for deals lost to a competitor.
+The premium ramps linearly from residual 0.20 (+0%) to 0.60 (+15%, the cap), so the gate is
+not a cliff. The cap is conservative by construction: at the observed mean of ×1.056 the
+flagged set moves from an average transacted 64.51 to 68.14, still well **below** the 88.31
+of the screens the model leaves alone and far below the 118.23 it flags as overpriced — it
+narrows a gap rather than closing it. Commercial risk is measured, not assumed: in
+`lost_leads`, deals lost to price wanted a third off (`price_gap_pct` 0.328 for
+`price_too_high`, 0.309 for `budget_mismatch`) against 0.025 for deals lost to a competitor.
 
-**The one adjustment that may carry a quote above the band cap**, deliberately:
-an underpriced screen's own comparables are what understate it, so clamping the
-premium back inside the band would delete exactly the correction it exists to
-make. A test asserts nothing else can exceed the cap and that the excess is
-bounded by the premium.
+**This is the only adjustment that may carry a quote above the band cap**, deliberately: an
+underpriced screen's own comparables are what understate it, so clamping the premium back
+inside the band would delete exactly the correction it exists to make. A test asserts that
+nothing else can exceed the cap and that the excess is bounded by the premium.
 
-Auto-applied at `demand_premium_weight = 1.0`, and self-correcting --- if a
-raised price stops a screen selling, occupancy falls and step 4 of section 8A
-pulls the quote back down on the next run. Measured on the canonical brief: 24
-priced lines carry a premium (mean x1.083), package cost 47,449 against 47,204,
-for **identical reach** of 288,446. Same audience delivered, more revenue.
+Auto-applied at `demand_premium_weight = 1.0`, and self-correcting — if a raised price stops
+a screen selling, occupancy falls and step 4 of §9.4 pulls the quote back down on the next
+run. Measured on the canonical brief: 24 priced lines carry a premium (mean ×1.083), package
+cost 47,449 against 47,204, for **identical reach** of 288,446. Same audience delivered,
+more revenue.
 
-There is no ground truth for what a screen is worth, so merit ships with no
-held-out accuracy metric and cannot acquire one from this dataset. Validate
-forward: do premium-flagged screens keep their occupancy after the rise?
+There is no ground truth for what a screen is worth, so merit ships with no held-out
+accuracy metric and cannot acquire one from this dataset. Validate forward: do
+premium-flagged screens keep their occupancy after the rise?
 
-------------------------------------------------------------------------
+---
 
-## Model D --- Client Negotiation Profile  **[BUILT, advisory only]**
+## 9.6 Client negotiation profile — advisory only
 
-`app/ml/client_profile.py` (M8). Wired to **no engine, no lever default and no
-artifact**. It answers one question for the salesperson holding the
-conversation: how has this client behaved on price before? Surfaced by the
-Master-owned read-only tool `get_client_negotiation_profile`, which resolves by
+`app/ml/client_profile.py`
+
+Wired to **no engine, no lever default and no artifact**. It answers one question for the
+salesperson holding the conversation: how has this client behaved on price before? Surfaced
+by the Master-owned read-only tool `get_client_negotiation_profile`, which resolves by
 `client_id` or company name and returns `ambiguous` rather than guessing.
 
-Worth building because the relationship data is dense: **96% of clients are
-repeat business** (499 of 520 have more than one deal; median 36 deals, mean
-109), and every one of the 807 lost leads with a known `client_id` belongs to a
-client who also has bookings. Every identified loss is a recorded price
-objection from a client still on the books.
+Worth building because the relationship data is dense: **96% of clients are repeat business**
+(499 of 520 have more than one deal; median 36 deals, mean 109), and every one of the 807
+lost leads with a known `client_id` belongs to a client who also has bookings. Every
+identified loss is a recorded price objection from a client still on the books.
 
-**Advisory is structural, not squeamish.** Price-driven loss rates are FLAT
-across leverage tiers --- 34.2% high, 32.5% medium, 34.8% low --- so posture says
-nothing about whether the deal is lost, only what it settles at. Applying it
-automatically would be pricing off the half of the finding that does not hold.
-`suggested_commercial_multiplier` exists, is capped to [0.90, 1.15], and only
-the rep may act on it, through `set_pricing_levers`.
+**Advisory is structural, not squeamish.** Price-driven loss rates are **flat** across
+leverage tiers — 34.2% high, 32.5% medium, 34.8% low — so posture says nothing about whether
+the deal is lost, only what it settles at. Applying it automatically would be pricing off the
+half of the finding that does not hold. `suggested_commercial_multiplier` exists, is capped to
+`[0.90, 1.15]`, and only the rep may act on it, through `set_pricing_levers`.
 
-**`negotiation_leverage` is context, never a forecast.** It looks predictive
-only under line-item weighting:
+**`negotiation_leverage` is context, never a forecast.** It looks predictive only under
+line-item weighting:
 
-``` text
+```text
 weighting                   high    medium     low
 per line item (median)    0.9651    1.0167  1.0188   <- monotone, looks clean
 per line item (mean)      1.0128    1.0640  1.0778   <- monotone
@@ -1463,707 +771,344 @@ per CLIENT (median)       1.0394    1.0129  1.0528   <- ordering breaks
 per CLIENT (mean)         1.0513    1.0823  1.0659   <- ordering breaks
 ```
 
-The label tracks ACCOUNT SIZE, not price behaviour: high-leverage clients carry
-a median 328 priced line items against 172 (low) and 165 (medium). Weighted by
-volume the big accounts dominate and do transact better; give every client one
-vote and the ordering inverts. The question here is about a client, so the
-per-client figure governs --- and it says the tier is a population reference.
+The label tracks **account size**, not price behaviour: high-leverage clients carry a median
+328 priced line items against 172 (low) and 165 (medium). Weighted by volume the big
+accounts dominate and do transact better; give every client one vote and the ordering
+inverts. The question here is about a client, so the per-client figure governs — and it says
+the tier is a population reference.
 
 **What the profile leads with instead**, both measured per client:
 
--   Their **realized price index** --- the mean of `price / its own segment
-    median` across their line items --- judged against its own STANDARD ERROR.
--   Their **objection history**: price-driven losses, the discount they asked
-    for, negotiation rounds, competitor mentions.
+- Their **realized price index** — the mean of `price ÷ its own segment median` across their
+  line items — judged against its own **standard error**.
+- Their **objection history**: price-driven losses, the discount they asked for, negotiation
+  rounds, competitor mentions.
 
-Confidence is deliberately a property of the DEPARTURE, not the sample size. A
-1.001 index on 500 line items is precisely measured and actionably meaningless,
-so it scores "weak" and suggests nothing. The gate is real: within-client spread
-averages 0.214 against a between-client spread of p10 0.956 to p90 1.239, so a
-client's index is a central tendency and a poor per-deal predictor.
+Confidence is deliberately a property of the **departure**, not the sample size. A 1.001
+index on 500 line items is precisely measured and actionably meaningless, so it scores
+"weak" and suggests nothing. The gate is real: within-client spread averages 0.214 against a
+between-client spread of p10 0.956 to p90 1.239, so a client's index is a central tendency
+and a poor per-deal predictor.
 
 Two data traps handled explicitly:
 
--   `price_gap_pct` is not populated on every price-driven lead. A missing gap
-    reads "discount asked not recorded", never "asking for 0% off", which would
-    tell a rep the exact opposite of the truth.
--   The segment medians include the client's own bookings, so a client holding a
-    large share of a thin segment is partly measured against themselves. That
-    pulls their index toward 1.0 --- conservative rather than wrong --- and is
-    recorded as a known limitation rather than corrected.
+- `price_gap_pct` is not populated on every price-driven lead. A missing gap reads "discount
+  asked not recorded", never "asking for 0% off", which would tell a rep the exact opposite
+  of the truth.
+- The segment medians include the client's own bookings, so a client holding a large share of
+  a thin segment is partly measured against themselves. That pulls their index toward 1.0 —
+  conservative rather than wrong — and is recorded as a known limitation rather than
+  corrected.
 
-------------------------------------------------------------------------
+---
 
-### Pricing levers --- the decision is parameterized  **[BUILT]**
+## 9.7 Pricing levers — the decision is parameterized
 
-`app/ml/levers.py`. Steps 2, 3 and 4 above used to be derived once and applied on
-every run, so a second agent turn could not act on anything the sales rep said.
-Each is now a bounded parameter on the run:
+`app/ml/levers.py`
 
-``` text
-    1. feasibility gate                          <- NO lever reaches this
-    2. band x industry adjustment                <- industry_weight
-    3. x day-of-week / holiday multiplier        <- seasonality_weight
-       x event boost                             <- event_weight
-    4. position = occupancy ** gamma             <- occupancy_gamma
-       or an explicit position                   <- band_position (overrides 4)
-    5. price = floor + position x (cap - floor)
-    6. x per-screen demand premium               <- demand_premium_weight
-    7. x commercial adjustment                   <- commercial_multiplier
-    8. price = max(price, floor)                 <- respect_band_floor
+Steps 2, 3, 4, 6, 7 and 8 of §9.4 used to be derived once and applied on every run, so a
+second agent turn could not act on anything the sales rep said. Each is now a bounded
+run-scoped parameter:
+
+```text
+seasonality_weight     [0.0, 2.0]   day-of-week / holiday multiplier
+event_weight           [0.0, 2.0]   event-overlap boost
+industry_weight        [0.0, 2.0]   industry band adjustment
+demand_premium_weight  [0.0, 2.0]   the §9.5 premium
+occupancy_gamma        [0.25, 4.0]  occupancy -> position in band
+band_position          [0.0, 1.0]   fixed position, overrides occupancy
+commercial_multiplier  [0.70, 1.30] blanket negotiation adjustment
+respect_band_floor     bool         hold the quote at or above the band floor
+note                   free text    the rep's reason, carried onto the artifact
 ```
 
 Four invariants, each pinned by `tests/test_pricing_levers.py`:
 
--   **All defaults are identity**, where identity means "use the model's derived
-    value" --- `seasonality_weight = 1.0` applies the derived seasonality
-    multiplier. Only `demand_premium_weight` *does* something at its default,
-    because Model C is auto-applied by design; 0.0 returns the engine to pricing
-    purely off historical comparables.
--   **Clamped in code, not in the prompt.** `clamp()` bounds and reports rather
-    than raising, because a rejected tool call in an agent loop becomes a retry
-    against a per-minute rate limit. `industry_weight` is re-clamped after
-    weighting, so Model A's [0.85, 1.20] guarantee holds at any weight.
--   **No lever reaches feasibility.** Availability and occupancy are inventory
-    truth; a sold-out screen stays sold out.
--   **Weights dial influence, not magnitude.**
-    `effective_multiplier(m, w) = 1 + w(m-1)`, so `w=0` means exactly "off"
-    whichever side of 1.0 the multiplier sits on.
+- **All defaults are identity**, where identity means "use the model's derived value" —
+  `seasonality_weight = 1.0` applies the derived seasonality multiplier. Only
+  `demand_premium_weight` *does* something at its default, because §9.5 is auto-applied by
+  design; 0.0 returns the engine to pricing purely off historical comparables.
+- **Clamped in code, not in the prompt.** `clamp()` bounds and *reports* rather than raising,
+  because a rejected tool call in an agent loop becomes a retry against a per-minute rate
+  limit to arrive at the number clamping returns directly. `industry_weight` is re-clamped
+  after weighting, so §9.2's `[0.85, 1.20]` guarantee holds at any weight.
+- **No lever reaches feasibility.** Availability, occupancy and the band's comparables are
+  inventory truth; a sold-out screen stays sold out.
+- **Weights dial influence, not magnitude.** `effective_multiplier(m, w) = 1 + w(m-1)`, so
+  `w=0` means exactly "term off" whichever side of 1.0 the multiplier sits on. Scaling would
+  turn a 1.15 event premium into 0.0.
 
-The two seasonality terms are weighted **separately** and only then multiplied, so
-a rep can keep the event premium while dropping the weekday haircut. That makes
-`seasonality_weight = 0.0` the documented answer to the double-count in the next
-section. `SeasonalityAdjustment.combined_multiplier` is the *unweighted* product
-and is no longer what the engine applies;
-`ScreenEconomics.seasonality_multiplier` reports the figure the price was actually
-computed from.
+The two seasonality terms are weighted **separately** and only then multiplied, so a rep can
+keep the event premium while dropping the weekday haircut. That makes
+`seasonality_weight = 0.0` the documented answer to the price-vs-demand double count noted in
+§9.4 and §21. `SeasonalityAdjustment.combined_multiplier` is the *unweighted* product and is
+no longer what the engine applies; `ScreenEconomics.seasonality_multiplier` reports the figure
+the price was actually computed from.
 
-Levers live on the run, set by `master_tools.set_pricing_levers` and read by
-`estimate_screen_economics` --- never passed through a delegation message, per the
-"run handles, not payloads" rule in section 19. They surface in
-`get_active_run`'s `campaign_inputs` (so moving one is a REBUILD), on the
-`screen_economics` artifact summary, and in `inspect_package`: a quote a human
-moved is a different claim from a quote the model derived, and the recommendation
-must say which one it is.
+Levers live on the **run**, set by `master_tools.set_pricing_levers` and read by
+`estimate_screen_economics` — never passed through a delegation message, per the "run handles,
+not payloads" rule in §15. A float that has to survive an LLM paraphrase is a float that will
+eventually arrive wrong. They surface in `get_active_run`'s `campaign_inputs` (so moving one
+is a REBUILD, not a question), on the `screen_economics` artifact summary, and in
+`inspect_package`: a quote a human moved is a different claim from a quote the model derived,
+and the recommendation must say which one it is.
 
-### Seasonality --- two caveats carried forward
+---
 
-`app/ml/seasonality.py` applies `day_of_week_holiday_multiplier x
-event_boost` to the **price**, not to demand. Two things to revisit when the
-demand model lands:
+# 10. ScreenEconomics contract
 
--   Ridership day-of-week factors run Friday 1.21 down to Sunday 0.32, and
-    the mean over a full week is **0.913**. Every campaign spanning whole
-    weeks therefore takes a ~9% haircut off a band already derived from
-    actual contracted prices --- which arguably double-counts a
-    weekday/weekend mix the band already reflects. A weekend-only flight
-    prices at ~0.37x.
--   The holiday multiplier is **inert**: `ridership_actuals` holds two
-    holiday dates, both before 2026-08-19, so no future flight can match one.
+One row per:
 
-Event matching has no lat/lon anywhere in the dataset, so `impact_radius_km`
-cannot be honoured. It uses exact `anchor_location_id` match as a strong
-signal and `city_zone` name match, damped 0.5, as a weak one. Mobile screens
-report `not_applicable` rather than a silent 1.0, so callers can tell "no
-event nearby" from "cannot check for this screen type".
+```text
+candidate screen × time block
+```
 
-------------------------------------------------------------------------
+Infeasible rows are retained.
 
-# 9. ScreenEconomics  **[BUILT]**
-
-The consolidated object the optimizer receives. **One row per candidate
-screen per time block.**
-
-Rows with no purchasable slot are **retained** with `feasible=False` and
-`pricing=None`, not dropped, so the caller can see what was excluded and
-why. Always branch on `feasible` before reading `pricing`.
-
-As implemented in `app/models/economics.py`:
-
-``` python
-class PricingRecommendation(BaseModel):
-    floor: float
-    target: float
-    cap: float
-    recommended_price: float
-    booking_probability: float
-    confidence: float = 0.5          # not populated -- see below
-
-
-class DemandForecastSummary(BaseModel):
-    viewed_exposures_per_slot_per_day: float
-    demand_index: float
-    confidence: float = 0.5
-
-
+```python
 class ScreenEconomics(BaseModel):
     screen_id: str
     time_block_id: str
-
     feasible: bool = True
 
-    # --- availability -------------------------------------------------
-    availability: list[TimeSlotAvailability] = []   # empty by design
-    max_slots_per_day: int = 0        # tightest single day of the flight
-    occupancy_rate: float | None = None             # window mean, 0-1
+    max_slots_per_day: int = 0
+    occupancy_rate: float | None = None
     price_by_slot_count: dict[int, float | None] = {}
 
-    # --- audience volume, mapped in from the relevance engine ----------
+    viewed_exposures_per_slot_per_day: float = 0.0
+    daily_unique_audience: float = 0.0
+    reachable_daily_audience: float = 0.0
+    viewability_factor: float | None = None
+    pool_key: str | None = None
+
     demand_forecast: DemandForecastSummary | None = None
-    viewed_exposures_per_slot_per_day: float = 0.0   # scales with slots x days
-    daily_unique_audience: float = 0.0    # people PASSING -- not the ceiling
-    reachable_daily_audience: float = 0.0 # people who LOOK -- the reach ceiling
-    viewability_factor: float | None = None          # which factor was applied
-    pool_key: str | None = None           # the dedup unit
-
-    # --- pricing ------------------------------------------------------
-    pricing: PricingRecommendation | None = None    # None when infeasible
+    pricing: PricingRecommendation | None = None
     expected_revenue: float = 0.0
-    confidence: float = 0.5
 
-    # --- diagnostics, for explainability ------------------------------
     seasonality_multiplier: float | None = None
     event_match_type: str | None = None
-    pricing_internal_reach_proxy: float | None = None   # NOT reach
+
+    pricing_internal_reach_proxy: float | None = None
+
+    # demand value / mispricing, from app/ml/demand_value.py
+    demand_value_index: float | None = None      # merit percentile, price-blind
+    historical_price_index: float | None = None  # what it actually transacted at
+    demand_premium: float | None = None          # 1.0 = none
+    demand_value_reason: str | None = None
+
     reach_owner: str = "audience_engine"
     assumptions: list[str] = []
 ```
 
-Field notes:
+Key interpretation:
 
--   THREE AUDIENCE FIGURES, AND THE UNIT IS IN THE NAME.
-    `daily_unique_audience` is people PASSING --- upstream truth, carried for
-    traceability. `reachable_daily_audience` is the subset who LOOK
-    (`x viewability`) and is the reach ceiling the optimizer and validator cap
-    against. `viewed_exposures_per_slot_per_day` is what one slot earns on one day
-    and scales with slots x days. The single conversion between them lives in
-    `app/optimize/exposure.py`. Never sum exposures across a shared `pool_key` and
-    call the result reach --- see section 0.
--   `demand_forecast.demand_index` is **relative**: this line's daily audience over
-    the median across the priced pool. 1.0 is a typical line, 3.0 is three times
-    the typical audience.
--   `max_slots_per_day` **is** the availability contract. `availability` is
-    left empty deliberately: a per-date list would restate the same number
-    once per day. Nothing consumes it.
--   `confidence` is retained in the contract but **not populated** by any
-    stage. The validation layer skips its check rather than passing on a
-    defaulted 0.5 (section 18). Neither model ships a held-out accuracy metric:
-    the price band is descriptive (quantiles of comparables) and the audience
-    model is an aggregation of observed ridership, so neither has an error bar to
-    turn into a confidence. Trust signals are expressed instead as per-row
-    `assumptions` (which fallback level, which adjustments), the model-wide
-    price-coefficient sign check, and the audience model's `defaults_applied`.
--   `price_by_slot_count` keys are ints 1--6; the value is the absolute
-    price, null beyond availability.
+- `daily_unique_audience`: people passing; **not reach**.
+- `reachable_daily_audience`: people who look; **reach ceiling**.
+- `viewed_exposures_per_slot_per_day`: one slot's viewed exposures on one day.
+- `pool_key`: deduplication unit.
+- `max_slots_per_day`: tightest-day availability.
+- `pricing=None` means infeasible.
+- `demand_value_index`: merit, computed **without ever seeing a price** (§9.5).
+- `demand_premium`: the **only** adjustment permitted to carry `recommended_price` above
+  `pricing.cap`. `None` or `1.0` means no premium, and `demand_value_reason` says which gate
+  stopped it — the screens *without* a premium are the interesting case.
 
-Real example (feasible row):
+The old `pricing_internal_reach_proxy` is quarantined. It uses hand-set dwell/visibility
+factors and mismatched mobile/fixed units; it must not populate demand or reach fields.
 
-``` json
-{
-  "screen_id": "LH-SCR-006059",
-  "time_block_id": "2",
-  "feasible": true,
+---
 
-  "max_slots_per_day": 2,
-  "occupancy_rate": 0.39,
-  "price_by_slot_count": {"1": 97.13, "2": 97.13, "3": null,
-                          "4": null, "5": null, "6": null},
+# 11. MILP optimization
 
-  "pool_key": "LH-LOC-0025",
-  "viewed_exposures_per_slot_per_day": 13497.4,
-  "daily_unique_audience": 28923.0,
-  "reachable_daily_audience": 10123.1,
-  "viewability_factor": 0.35,
-  "demand_forecast": {"viewed_exposures_per_slot_per_day": 13497.4,
-                      "demand_index": 1.34},
+The optimizer is deterministic and lives in:
 
-  "pricing": {
-    "floor": 75.11,
-    "target": 91.11,
-    "cap": 131.72,
-    "recommended_price": 97.13,
-    "booking_probability": 0.998
-  },
-  "expected_revenue": 96.94,
-
-  "seasonality_multiplier": 0.8771,
-  "event_match_type": "none",
-  "reach_owner": "audience_engine",
-  "assumptions": [
-    "industry adjustment applied: x1.05",
-    "seasonality/event multiplier applied: x0.877",
-    "probability-only argmax (131.72) diverges >15% from occupancy-driven price (97.13)"
-  ]
-}
+```text
+app/optimize/
 ```
 
-Real example (retained infeasible row):
+Solver: **HiGHS via `scipy.optimize.milp`**, target relative gap 1%.
 
-``` json
-{
-  "screen_id": "LH-SCR-001448",
-  "time_block_id": "2",
-  "feasible": false,
-  "max_slots_per_day": 0,
-  "occupancy_rate": 1.0,
-  "pricing": null,
-  "assumptions": ["infeasible: only 0 slots available, 1 needed"]
-}
+The OR wrapper is:
+
+```text
+app/tools/or_agent_tools.py
 ```
 
-------------------------------------------------------------------------
+## 11.1 Decision variables
 
-# 10. Step 5 --- Inventory Optimization  **[BUILT]**
+For candidate cell `i = (screen, time_block)`:
 
-The optimization layer must be mathematical, not LLM-based. It is both.
+```text
+y[i,k] binary   cell gets at least k+1 slots, k=0..5
+z[s]   binary   screen s is used
 
-**What runs today:** a MILP in `app/optimize/`, HiGHS via `scipy.optimize.milp`,
-solved to a 1% relative gap and reported as
-`optimization_method = "milp_highs_pooled_reach_min[<objective>,gap<=1%,<status>]"`.
-`app/tools/or_agent_tools.py` is a thin wrapper: it maps run state onto the solver
-and the solve back onto the Pydantic contracts, and holds the reach accounting.
-Ported from an OR handoff bundle; every change made on the way in is documented at
-its site in `app/optimize/solver.py`.
+E[p]   continuous   viewed exposures in pool p
+R[p]   continuous   reach in pool p
 
-Formulation, per candidate cell `i = (screen, time block)`:
-
-``` text
-y[i,k]  binary      "cell i gets at least k+1 rotation slots", k = 0..5
-z[s]    binary      "screen s is used"
-E[p]    continuous  viewed exposures in audience pool p
-R[p]    continuous  reach in pool p,  R <= min(E[p], P[p])
-c[g]    continuous  shortfall on elastic coverage group g
-w[p]    continuous  shortfall on the wear-out cap in pool p
-
-max  w_reach*sum(R) + w_freq*sum(E) + w_conv*sum(conv_fit*E)
-     - coverage_penalty*sum(c) - wear_out_penalty*sum(w) - tie_breaker*cost
-
-hard:     budget, per-day availability, slot ordering, screen count,
-          required time blocks, min_zone_coverage
-elastic:  coverage groups, wear-out cap
+c[g]   continuous   coverage shortfall
+w[p]   continuous   wear-out shortfall
 ```
 
-**Slots are linear; only the pool is concave.** All 6 rotation slots loop
-continuously through the block, so slot position is meaningless and the k-th slot
-is worth exactly what the first is. The bundle originally modelled a per-pass
-notice probability as `(1-p)^(K x slots)`, which treated extra slots as extra loop
-passes --- buying more slots does not make the loop run faster. Diminishing returns
-are real and live at the audience pool.
+Slot ordering:
 
-**Reach enters as `R <= min(E, P)`, exactly.** `min()` of two linear functions is
-concave, so as an upper bound on a maximized variable it is two linear constraints
-with no parameter and no piecewise error. Decisively, it makes the solver maximize
-the *same* quantity `_package_metrics` reports and `validation._reach_checks`
-recomputes. The bundle instead bounded `P x (1 - exp(-lambda E / P))` by six
-tangent lines per pool; that curve is a different function, so maximizing it left
-audience on the table --- measured 141,501--157,869 reached where the exact bound
-returns 261,329 at the same budget, and it turned a 0.1s solve into a 30s timeout.
-
-**No spend floor is invented.** The bundle enforced `MIN_SPEND_FRAC = 0.90` as a
-hard constraint. No campaign spec declares a minimum utilisation, and section 2
-forbids inventing hard constraints; where it binds it forces leftover budget into
-depth, which on a reach brief buys repetition rather than people. A brief that
-genuinely requires utilisation says so via
-`hard_constraints["min_budget_utilization"]`, and that *is* enforced as hard and
-reported as a conflict with the achievable figure if it cannot be met. (Measured
-honestly: with the current formulation the floor is inert on the canonical brief ---
-floor 0.0 and 0.90 return identical plans, because the reach-optimal package
-already uses 99.4% of budget.)
-
-**The screen count counts screens.** The bundle summed the level-1 binary over all
-(screen x block) cells, so a screen bought in three blocks counted three times and
-`min_screens=8` could return five screens. `requested_num_screens` is validated
-against distinct screen ids, so this needed an explicit `z[s]` indicator.
-
-### Wear-out, and why the cap is relative
-
-`E[p] <= F_max x R[p] + w[p]`, with `w` penalized above any exposure reward, so it
-binds like a hard constraint but yields rather than manufacturing an infeasibility.
-
-`F_max` is a **multiple of the flight's unavoidable exposure floor**, not an
-absolute exposure count. At `LOOP_PASSES_PER_TRIP = 8` one slot on a saturated pool
-delivers `8/6` viewed exposures per person per day, so a 30-day flight cannot go
-below ~40 exposures per person whatever the optimizer does (section 7). An absolute
-cap below that is satisfiable by no plan at all --- gating on one withheld every
-package rather than the bad ones. What the cap does do is stop **stacking**: piling
-slots and screens into a pool the plan has already saturated. A breach means a hard
-constraint forced it, and it is reported.
-
-### What survives any future rewrite
-
-`_package_metrics` is **not** part of the solver. It is the definition of reach this
-system reports, `validation._reach_checks` recomputes it independently, and the
-formulation now agrees with both. Replace the model; keep the accounting.
-
-Sections 11--12 are the design this implements.
-
-The OR Agent should:
-
-1.  Interpret campaign objective.
-2.  Construct decision variables.
-3.  Construct objective function.
-4.  Add constraints.
-5.  Call an optimization solver.
-6.  Diagnose infeasibility.
-7.  Generate alternatives where necessary.
-8.  Return a structured solution.
-
-The LLM should formulate and interpret the problem; the solver should
-perform the actual optimization.
-
-------------------------------------------------------------------------
-
-# 11. Optimization Decision Variables  **[BUILT]**
-
-The original target was one integer variable per screen and time block:
-
-``` text
-x[s,t] = number of slots purchased on screen s during time block t
+```text
+y[i,k+1] <= y[i,k]
+slots_i = SUM(y[i,k])
 ```
 
-**As built** that integer is expanded into six "at least k slots" binaries, because
-the expansion is what lets each slot carry its own marginal cost and lets the
-availability limit be a bound rather than a branch:
+`z[s]` is required because screen count means **distinct screens**, not screen×block cells.
 
-``` text
-y[i,k]  binary      cell i = (screen, time block) gets at least k+1 slots
-                    with y[i,k+1] <= y[i,k], so slots_i = sum_k y[i,k]
-```
+## 11.2 Objective profiles
 
-Slots are linear in value (section 7), so every `y[i,k]` carries the same marginal
-audience; the ordering constraints exist for the cost curve and availability, not
-for diminishing returns. Four further variable families were added, each for a
-reason the target list anticipated:
-
-``` text
-z[s]    binary      screen s is used            -> screen COUNT constraints
-E[p]    continuous  exposures in pool p         -> frequency
-R[p]    continuous  reach in pool p             -> reach, R <= min(E[p], P[p])
-c[g]    continuous  coverage shortfall          -> geography coverage, elastic
-w[p]    continuous  wear-out shortfall          -> frequency ceiling, elastic
-```
-
-`z[s]` is not redundant with `y[i,0]`: a screen can appear in several time blocks,
-so a count over cells is not a count over screens (section 10).
-
-Not built, from the target list: **campaign duration** is fixed by the brief rather
-than chosen (there is no flighting, which is what makes the wear-out floor in
-section 10 unavoidable), and **bundle selection** is not modelled at all even though
-71% of historical bookings are bundled deals --- every line is treated as
-independent.
-
-------------------------------------------------------------------------
-
-# 12. Optimization Objectives and Constraints  **[BUILT]**
-
-Objective should depend on `CampaignSpec.optimization_goal`.
-
-**As built,** the goal selects the objective's weight blend
-(`app/optimize/solver.py::PROFILES`):
-
-``` text
+```text
              w_reach  w_freq  w_conv
-reach          1.00    0.00    0.00   breadth: distinct people, nothing else
-awareness      0.70    0.30    0.00   breadth with some repetition
-frequency      0.20    0.80    0.00   depth against a smaller group
-conversion     0.40    0.20    0.40   weights conv_fit -- see below
+reach          1.00    0.00    0.00
+awareness      0.70    0.30    0.00
+frequency      0.20    0.80    0.00
+conversion     0.40    0.20    0.40
 ```
 
-Both terms are normalized by their natural ceiling (total pool population, and that
-times an effective frequency) so the weights are true shares. Unnormalized, the
-bundle measured a nominal 70/30 reach/frequency split actually delivering 28/72.
+Weights are normalized by natural ceilings.
 
-`objective_value` is deduplicated reach for `reach` and `conversion`, gross viewed
-exposures for `awareness` and `frequency`.
+- `reach`: distinct people.
+- `awareness`: breadth + repetition.
+- `frequency`: depth.
+- `conversion`: uses `conv_fit`, an audience-engine industry→POI context proxy.
 
-**`awareness` and `frequency` no longer share a ranking.** Measured on the canonical
-brief: awareness 182,402 reached at 102x frequency, frequency 170,762 at 109x. That
-closes the gap this section used to flag.
+**Conversion is not a true conversion model.** There is no conversion data. The system
+must disclose this whenever conversion is requested.
 
-**The reach profile carries no exposure weight, and that is a change from the
-bundle.** It used `w_freq = 0.05` because pure reach maximisation gave its LP
-relaxation no guidance --- reach entered only through tangent-bounded variables. The
-exact `min(E, P)` bound removes that problem at the source, so the crutch became
-harmful: it made the reach profile spend budget on depth. Measured, same brief:
-`w_freq = 0.05` returned 227,119 reached at 76x, `w_freq = 0.00` returns 261,329 at
-40x, and solves in 0.1s instead of timing out.
+Cost is only a tiny tie-breaker among otherwise equal solutions. It must not materially
+sacrifice reach.
 
-**`conversion` is still not a conversion model.** `conv_fit` is the audience
-engine's industry-to-POI context score --- a proxy. This system has no conversion
-data of any kind. The substitution is recorded in the solver log and the OR agent's
-prompt requires reporting it, rather than presenting the result as a conversion
-optimum.
+## 11.3 Reach formulation
 
-Cost enters only as a tie-breaker (`1e-6`, normalized by budget): at equal reach
-prefer the cheaper package, and stop buying once there is nobody left to reach. The
-magnitude matters --- at `1e-3` it silently cost 2,042 people (0.9% of reach) on an
-80-candidate brief, because the solver was then reporting "optimal" against an
-objective that was no longer pure reach.
+For every audience pool:
 
-## Reach
-
-Maximize:
-
-``` text
-total expected unique impressions
+```text
+R[p] <= E[p]
+R[p] <= P[p]
 ```
 
-## Awareness
+where:
 
-Maximize:
+- `E[p]` = viewed exposures allocated to the pool.
+- `P[p]` = reachable population ceiling.
 
-``` text
-weighted expected impressions
+Maximizing `R[p]` therefore gives:
+
+```text
+R[p] = min(E[p], P[p])
 ```
 
-## Frequency
+This is the exact same definition used by reporting and validation.
 
-Maximize:
+Do not reintroduce the exponential `lambda` curve into the main objective.
 
-``` text
-expected frequency
+## 11.4 Hard constraints
+
+Enforced by the solver and independently checked by validation:
+
+```text
+total cost <= budget
+purchased slots <= tightest-day availability
+campaign dates valid
+geographically eligible screens only
+requested/min/max distinct screen count
+allowed screen types
+required time blocks
+min_zone_coverage
+min_budget_utilization only if explicitly declared by the brief
 ```
 
-subject to a minimum reach constraint where applicable.
+## 11.5 Elastic constraints
 
-## Conversion
+Penalized and reported rather than automatically failing:
 
-Maximize:
-
-``` text
-expected conversions
+```text
+coverage groups
+wear-out frequency cap
 ```
 
-if a suitable conversion model is available.
+If a hard constraint forces an elastic breach, return the package and disclose the breach.
 
-## Core constraints
+**Never invent a minimum budget-utilization requirement.**
 
-These **are** enforced today, in the MILP, and independently re-checked by the
-validation layer (section 18):
+---
 
-``` text
-HARD, in the solver and re-checked by the validator
-[BUILT] Total cost <= budget
-[BUILT] Purchased slots <= available slots   (tightest day of the flight)
-[BUILT] Campaign dates are valid
-[BUILT] Only eligible geography is selected  (hard-filtered in stage 2)
-[BUILT] requested_num_screens / min_screens / max_screens   (distinct SCREENS)
-[BUILT] allowed_screen_types, required_time_blocks
-[BUILT] min_zone_coverage       cardinality over distinct zones, not over cells
-[BUILT] min_budget_utilization  only when the brief declares it
+# 12. Wear-out
 
-ELASTIC, penalized and reported rather than failing the solve
-[BUILT] coverage groups          -> unmet_coverage
-[BUILT] wear-out frequency cap   -> wear_out_exposures_over_cap
+Wear-out is expressed relative to the flight's unavoidable exposure floor:
+
+```text
+E[p] <= F_max × R[p] + w[p]
 ```
 
-The elastic pair is penalized above any reward it could earn, so both behave as
-hard unless another hard constraint forces a breach --- in which case the plan is
-still returned and the breach is reported rather than hidden. `min_zone_coverage`
-is hard because the validator fails a package that misses it; a shortfall there
-would be a package that cannot pass verification.
+At `LOOP_PASSES_PER_TRIP = 8`, a saturated pool receives:
 
-There is deliberately **no** default minimum budget utilisation. See section 10.
-
-At minimum:
-
-``` text
-Total cost <= budget
+```text
+8/6 viewed exposures/person/day
 ```
 
-``` text
-Purchased slots <= available slots
-```
+so a 30-day flight has an unavoidable floor of ~40 exposures/person reached.
 
-``` text
-Campaign dates are valid
-```
+Therefore an absolute cap below that floor would make the campaign mathematically
+infeasible for reasons unrelated to selection. The cap should limit **additional stacking**
+within already saturated pools, not pretend it can eliminate the flight's structural floor.
 
-``` text
-Only eligible geography is selected
-```
+---
 
-Additional constraints should include:
+# 13. OptimizedPackage contract
 
-``` text
-requested_num_screens
-minimum/maximum screens
-minimum geographic coverage
-preferred dayparts
-inventory availability
-screen-type restrictions
-```
-
-Different campaigns may have different hard and soft constraints.
-
-------------------------------------------------------------------------
-
-# 13. OptimizedPackage  **[BUILT]**
-
-``` python
+```python
 class Allocation(BaseModel):
     screen_id: str
     time_block_id: str
-
     slots_per_day: int
     duration_days: int
-
     price_per_slot_per_day: float
-
-    viewed_exposures: float          # gross, = per_slot_per_day x slots x days
+    viewed_exposures: float
     expected_revenue: float
-
 
 class OptimizedPackage(BaseModel):
     allocations: list[Allocation]
 
     total_cost: float
-    gross_impressions_viewed: float  # exposures. NEVER a count of people
-    expected_reach: float            # distinct people, deduplicated + capped
+    gross_impressions_viewed: float
+    expected_reach: float
     expected_frequency: float
 
     budget_utilization: float
-
     constraint_status: dict[str, bool]
-
     objective_value: float
-
     optimization_method: str
 
-    # --- solver diagnostics, additive and never load-bearing ---------------
     curve_reach_diagnostic: float | None = None
     unmet_coverage: dict[str, float] = {}
     wear_out_exposures_over_cap: float = 0.0
 ```
 
-Example:
+Interpretation:
 
-``` json
-{
-  "total_cost": 48750,
-  "gross_impressions_viewed": 1250000,
-  "expected_reach": 875000,
-  "expected_frequency": 1.43,
-  "budget_utilization": 0.975,
-
-  "allocations": [
-    {
-      "screen_id": "LH-SCR-001928",
-      "time_block_id": "5",
-      "slots_per_day": 2,
-      "duration_days": 30,
-      "price_per_slot_per_day": 76,
-      "viewed_exposures": 552000,
-      "expected_revenue": 4560
-    }
-  ],
-
-  "constraint_status": {
-    "budget": true,
-    "inventory": true,
-    "geography": true,
-    "campaign_dates": true
-  },
-
-  "objective_value": 1250000,
-  "optimization_method": "MILP"
-}
+```text
+gross_impressions_viewed = gross exposures
+expected_reach            = deduplicated people
+expected_frequency        = exposures / reached people
 ```
 
-The exact numerical values above are illustrative only.
+Never call gross exposures “reach”.
 
-## As produced today
+`optimization_method` must identify MILP/HiGHS, objective profile, gap and solver status.
 
-A real run: \$50k, 30 days from 2026-10-01, Downtown Core, young commuters,
-technology vertical, `optimization_goal = "reach"`.
+---
 
-``` json
-{
-  "total_cost": 49707.9,
-  "budget_utilization": 0.9942,
+# 14. Recommendation generation
 
-  "gross_impressions_viewed": 10453140.0,
-  "expected_reach": 261329.0,
-  "expected_frequency": 40.0,
-
-  "objective_value": 261328.5,
-  "optimization_method": "milp_highs_pooled_reach_min[reach,gap<=1%,optimal]",
-  "curve_reach_diagnostic": 261329.0,
-
-  "constraint_status": {
-    "budget": true,
-    "inventory": true,
-    "geography": true,
-    "campaign_dates": true,
-    "requested_num_screens": true,
-    "coverage": true
-  }
-}
-```
-
-25 screens, 27 lines, across **18 audience pools**. Proven optimal within the 1%
-gap, in 0.1s. Read the figures correctly:
-
--   10.45M is **gross viewed exposures**; 261k is **distinct people**. Cost per
-    person reached is \$0.19.
--   The 40.0x ratio is frequency, and it is exactly the floor for a 30-day flight:
-    `LOOP_PASSES_PER_TRIP / 6 x 30 = 40` (section 7). Every pool saturated and the
-    plan bought **no** depth beyond that --- which is what a reach objective should
-    do, and what it did not do before the exposure weight came off it.
--   `objective_value` is the deduplicated reach, matching `expected_reach`.
--   `curve_reach_diagnostic` coincides here because every pool saturated; it is not
-    generally equal, and it is never the reported figure.
--   `Allocation.viewed_exposures` is per-line gross exposures and sums to
-    `gross_impressions_viewed` --- the validator checks this. `expected_revenue` is
-    `price x slots x days`.
-
-**The composition changed, and the reason is worth understanding.** 16
-`metro_station` + 9 `bus_stop`, in 1 zone (geography is a hard filter, so one
-requested zone means one zone). The greedy version bought 16 screens, all
-`metro_station`. Bus stops now earn their place because reach saturates per pool:
-once a station pool is covered, a cheap *distinct* pool is worth more than more
-depth on an expensive one. The ~380x fixed/mobile volume gap from section 7 is still
-there in the underlying model --- this is the optimizer routing around it, not a fix.
-
-For the same brief, `compare_objectives` returns:
-
-``` text
-objective    spend     screens  pools  reach     frequency  cost/person
-reach        49,882    25       18     260,245   40.0       0.19
-awareness    49,679    15        6     182,402  101.8       0.27
-frequency    49,679    10        6     170,762  109.0       0.29
-```
-
-260,000 people 40 times, or 171,000 people 109 times. That is a media planner's
-judgement, and the OR agent's prompt requires presenting it rather than resolving it
-silently.
-
-`InfeasibilityReport` is fully implemented, with reason codes drawn from a
-fixed vocabulary in `app/models/optimization.py`:
-
-``` text
-BUDGET_CONSTRAINT            TOO_MANY_SCREENS_REQUESTED
-INSUFFICIENT_INVENTORY       DAYPART_UNAVAILABLE
-GEOGRAPHY_UNAVAILABLE        CONFLICTING_HARD_CONSTRAINTS
-DATES_UNAVAILABLE            NO_CANDIDATES
-```
-
-`OptimizationResult` is a discriminated union --- exactly one of `package`
-or `infeasibility` is set. There is no third state in which a partial or
-speculative package is returned.
-
-------------------------------------------------------------------------
-
-# 14. Step 6 --- Recommendation Generator  **[BUILT]**
-
-The Recommendation Agent receives analytical outputs and converts them
-into a sales-ready recommendation.
-
-It must **not recalculate analytical values**.
+The Master/Recommendation layer must **not recalculate analytical values**.
 
 Inputs:
 
-``` text
+```text
 CampaignSpec
 ScreenCandidates
 ScreenEconomics
@@ -2171,1643 +1116,608 @@ OptimizedPackage
 Validation results
 ```
 
-Output:
+Output should contain:
 
-``` python
-class ScreenExplanation(BaseModel):
-    screen_id: str
-    explanation: str
-    supporting_factors: list[str]
-
-
-class AlternativePackage(BaseModel):
-    name: str
-    description: str
-    package: OptimizedPackage
-    tradeoffs: list[str]
-
-
-class CampaignRecommendation(BaseModel):
-    executive_summary: str
-
-    recommended_package: OptimizedPackage
-
-    key_recommendations: list[str]
-
-    screen_explanations: list[ScreenExplanation]
-
-    pricing_explanation: str
-
-    audience_explanation: str
-
-    optimization_explanation: str
-
-    risks: list[str]
-
-    alternatives: list[AlternativePackage]
+```text
+executive_summary
+recommended_package
+key_recommendations
+screen_explanations
+pricing_explanation
+audience_explanation
+optimization_explanation
+risks
+alternatives
 ```
 
-Example final language:
+Explanations must cite real values/features.
 
-> Recommended package: 18 screens across 4 locations for 30 days at
-> \$48,750.
+Bad:
 
-Then explain:
+> This screen is highly relevant.
 
--   why the locations fit the audience
--   why particular time blocks were selected
--   why the price is appropriate
--   how the package uses the budget
--   what the expected reach/impressions are
--   what tradeoffs exist
+Good:
 
-------------------------------------------------------------------------
+> This screen ranks highly because the zone has a high 18–34 population share,
+> strong daytime population uplift, and high evening transit demand.
 
-# 15. Agent Architecture
+---
 
-Do not create an agent for every small function.
+# 15. Master / specialist interfaces
+
+All agent boundaries use `run_id`, not large payloads.
+
+Run state contains:
+
+```text
+CampaignSpec
+artifact references
+optimization result
+validation result
+```
+
+Candidate tables and price tables never enter LLM context directly.
+
+## Master tools
+
+`app/tools/master_tools.py`
+
+```python
+get_active_run(session_id)
+resolve_geography_terms(terms)
+create_campaign_spec(...)
+get_run_state(run_id)
+get_client_negotiation_profile(client)
+set_pricing_levers(run_id, ...)
+verify_package(run_id)
+inspect_package(run_id, limit=10)
+check_explanations(run_id, explained_screen_ids)
+```
+
+`set_pricing_levers` (§9.7) and `get_client_negotiation_profile` (§9.6) are Master-owned
+because both serve the conversation with the sales rep rather than a pipeline stage. Neither
+is mapped to a stage in the UI's stage rail, and neither creates a run — the client profile is
+read-only and touches no package, which a test pins.
+
+`get_active_run` is what makes a follow-up turn cheap: it returns the session's latest run
+plus a `campaign_inputs` dict of exactly what the optimizer consumed — pricing levers
+included — so the Master can decide ANSWER (read the existing package) vs REBUILD (an input
+changed) rather than re-running the pipeline on every message.
+
+## Relevance tools
+
+`app/tools/relevance_tools.py`
+
+```python
+describe_inventory(run_id)
+build_screen_candidates(run_id, top_n=None)
+describe_relevance_model(run_id)
+```
+
+## ML tools
+
+`app/tools/ml_agent_tools.py`
+
+```python
+estimate_screen_economics(run_id, time_blocks=None, slots_needed=1)
+describe_pricing_model(run_id)
+```
+
+The ML agent does not own demand/reach. Audience-volume fields are mapped from candidates
+and converted through the single exposure module.
+
+## OR tools
+
+`app/tools/or_agent_tools.py`
+
+```python
+optimize_package(run_id, slots_per_day_cap=3)
+compare_objectives(run_id, objectives=None)
+```
+
+The OR agent must state:
+
+- gross viewed exposures vs distinct reach,
+- optimization objective,
+- solver status/gap,
+- wear-out disclosure,
+- unmet coverage if any.
+
+---
+
+# 16. Shared artifacts
+
+Do not pass huge DataFrames between agents.
+
+Use durable artifacts:
+
+```text
+CampaignSpec
+ScreenProfiles
+ScreenCandidates
+ScreenEconomics
+OptimizedPackage / InfeasibilityReport
+CampaignRecommendation
+```
+
+Specialists receive:
+
+```text
+artifact reference
++ schema
++ concise summary
++ task
+```
+
+rather than raw rows.
+
+Any lever a human moved must travel with the artifact it affected: the `screen_economics`
+summary carries the active `PricingLevers`, so a quote is always traceable to whether the
+model derived it or a rep moved it.
+
+`provenance` must be preserved on artifact references. Current pipeline should report:
+
+```text
+stub_stages = []
+```
+
+---
+
+# 17. Data layer
 
 Use:
 
-``` text
-                   ┌──────────────────┐
-                   │   MASTER AGENT   │
-                   │    / MANAGER     │
-                   └────────┬─────────┘
-                            │
-          ┌─────────────────┼──────────────────┐
-          ▼                 ▼                  ▼
-    DATA AGENT          ML AGENT           OR AGENT
-          │                 │                  │
-          ▼                 ▼                  ▼
-     Data Tools          ML Tools          OR Tools
-          │                 │                  │
-          └─────────────────┼──────────────────┘
-                            ▼
-                    Shared Artifacts
-```
-
-As built --- **two** specialists, one module each, so either can be replaced
-without touching the other:
-
-``` text
-app/agents/
-  master.py        create_deep_agent(...) + shared rate limiter
-  prompts.py       MASTER_SYSTEM_PROMPT only
-  ml_agent.py      NAME + DESCRIPTION + PROMPT + build()
-  or_agent.py      NAME + DESCRIPTION + PROMPT + build()
-  subagents.py     assembles the two in pipeline order
-  validation.py    deterministic verification, Master-owned
-
-app/tools/
-  master_tools.py     intake, geography, verify, inspect
-  relevance_tools.py  THE AUDIENCE ENGINE + its tools -- Master-owned, no subagent
-  ml_agent_tools.py   thin wrapper over app/ml/
-  or_agent_tools.py   thin wrapper over app/optimize/ + the reach accounting
-app/ml/            the pricing engine (section 6)
-app/optimize/      the MILP (section 10)
-  config.py          every constant, tagged STRUCTURAL / ASSUMED / SOLVER
-  exposure.py        people passing -> viewed exposures. ONE implementation
-  contract.py        input validation, naming the component that owns each column
-  pooled.py          pool population + the saturation curve (diagnostic only)
-  solver.py          the formulation
-app/features/      empty -- the audience engine lives in tools/relevance_tools.py
-```
-
-### Why there is no Data Intelligence subagent
-
-The original design (and section 31.1) called for three specialists. The Data one
-was removed, deliberately.
-
-Stage 2 turned out to have **no judgement in it**. Given a campaign spec, the
-candidate pool is a pure function: hard-filter the geography, compute five
-weighted sub-scores, rank, take the top N. An LLM sitting in front of that could
-only do two things --- decide *when* to call it, which the Master already does, and
-restate its numbers in prose, which is a chance to get them wrong. It also cost
-model calls against a per-minute rate limit.
-
-So stage 2 is a Master-owned tool. This trades section 31.1 ("exactly three
-specialists") against 31.2 ("LLMs reason; tools calculate"), and 31.2 wins:
-delegation is now reserved for the two stages where a specialist genuinely reasons
-about its own output --- the ML agent choosing what to say about price credibility,
-and the OR agent interpreting a solve or an infeasibility.
-
-The general rule this leaves behind: **prefer a Master-owned tool over a subagent
-whenever a stage does not actually reason.**
-
-Each remaining subagent file holds its own system prompt and is a thin delegation
-shell: the tools do the work, so integrating a real implementation means replacing
-a tool module and its engine package, not rewiring the agent graph.
-
-------------------------------------------------------------------------
-
-# 16. Audience Relevance Engine  **[BUILT]** --- formerly the Data Agent
-
-`app/tools/relevance_tools.py`. **Not an agent.** See section 15 for why. The
-responsibilities below are all still discharged; they are just discharged by a
-deterministic engine the Master calls, plus the DuckDB view layer beneath it.
-
-## Responsibilities
-
--   campaign data interpretation      -> reads `CampaignSpec` from run state
--   database exploration / table joins -> `v_screen_profile`,
-                                          `v_screen_demand_history` (section 20)
--   filtering                          -> hard geography + `hard_constraints`
--   feature engineering                -> section 4
--   audience analysis                  -> six normalized demographic scores
--   screen profiling                   -> one row per screen, all 11,163
--   relevance scoring                  -> section 5
--   data quality checks                -> `defaults_applied`, per row and per pool
-
-## Tools
-
-The Master's own tool surface for this stage:
-
-``` python
-describe_inventory(run_id) -> dict
-    Eligible screen count in the requested geography, by type and by
-    fixed/mobile class. Cheap; call it to confirm the geography resolves.
-
-build_screen_candidates(run_id, top_n=None) -> dict
-    Runs the engine. Writes the screen_candidates artifact and returns a
-    reference plus aggregates. Everything it needs comes from the spec, so the
-    same spec always yields the same pool.
-
-describe_relevance_model(run_id) -> dict
-    How relevance and audience volume are computed, and the six known
-    limitations verbatim. This is what lets the Master state the model's limits
-    accurately instead of guessing at them.
-```
-
-## Input
-
-``` text
-run_id
-```
-
-That is the whole input. `audience_terms`, `day_type_focus`, geography,
-`industry_vertical` and `hard_constraints` are all read from the spec, so no
-caller can desync them from what intake recorded.
-
-## Output
-
-``` text
-ScreenCandidate[]  as an artifact reference (parquet), ranked best-first
-+ aggregates: eligible_screens, candidates, relevance min/mean/max,
-              preferred_time_blocks, day_type_focus, audience_terms,
-              distinct_audience_pools, pooled_daily_audience,
-              naive_daily_audience, demand_source, defaults_applied
-```
-
-`preferred_time_blocks` on that summary is load-bearing: the pricing stage reads
-it to price the blocks this campaign's audience is actually in, so the
-audience-to-blocks mapping has exactly one authoritative copy.
-
-Never returns raw DataFrames --- the artifact reference is the handoff.
-
-------------------------------------------------------------------------
-
-# 17. ML / Pricing Agent  **[BUILT]**
-
-Defined in `app/agents/ml_agent.py`. Renamed from "ML / Forecasting" because
-it forecasts nothing --- it prices.
-
-The original design had this agent training models at request time and
-reasoning over their metrics. That was rejected. Models are fitted **once at
-engine build** and are deterministic thereafter; a per-request retrain would
-make identical briefs return different prices and cost ~12s each time. The
-agent's job is to invoke the engine and report faithfully, not to do model
-selection in the loop.
-
-## Responsibilities
-
-**Owns:**
-
--   market price band (p25/p50/p90, segmented, with a bounded fallback ladder)
--   the price decision --- occupancy-driven position within that band
--   booking probability, reported as a diagnostic
--   slot availability and feasibility, day by day across the flight
--   seasonality and event adjustment
--   per-row explainability: which fallback fired, which adjustments applied
-
-**Explicitly does not own:** demand, impressions, reach, frequency, CPM,
-demand index, per-screen confidence. The prompt requires it to say so rather
-than substitute a proxy.
-
-## Input
-
-``` text
-run_id
-```
-
-That is the entire input. The agent reads `CampaignSpec` and the
-`screen_candidates` artifact reference from run state itself. Candidate rows,
-price tables and DataFrames never enter LLM context.
-
-## Tools
-
-``` python
-estimate_screen_economics(run_id, time_blocks=None, slots_needed=1) -> dict
-describe_pricing_model(run_id) -> dict
-```
-
-`estimate_screen_economics` writes the `screen_economics` artifact and
-returns a reference plus aggregates. `describe_pricing_model` reports how the
-models were fitted --- sample sizes, price coefficient and its sign check,
-AUC, calibration --- so the agent can justify *why* a price is credible, and
-so a failed sign check surfaces rather than hiding.
-
-`app/tools/ml_agent_tools.py` is a thin wrapper. All decision logic lives in
-`app/ml/`. Tools map contracts; they do not calculate.
-
-## Internal logic flow
-
-``` text
-estimate_screen_economics(run_id)
-    │
-    ├── prerequisite check: screen_candidates artifact present?
-    │      └── no -> return {"status": "prerequisite_missing"}   (recoverable)
-    │
-    ├── read CampaignSpec + candidate screen_ids from run state
-    ├── resolve time blocks: explicit arg
-    │                        else spec.preferred_time_blocks
-    │                        else ("2", "3", "5")   commuter peaks + midday
-    ├── validate blocks against dim_slot -> reject unknown ids
-    ├── end_date = start_date + duration_days - 1   (inclusive)
-    │
-    ├── get_pricing_engine()        <-- process singleton, built once
-    │
-    └── for each time_block:
-           daypart = dim_slot.nearest_daypart[block]   (derived, not passed)
-           for each candidate screen:
-               seasonality  = M6.get_adjustment(screen, start, end)
-               pricing      = M4.price_screen(..., city = screen's own,
-                                              price_multiplier = seasonality)
-               -> map to ScreenEconomics                (section 8A)
-    │
-    ├── all rows infeasible? -> status "no_availability" + relaxation options
-    └── write artifact (provenance="computed") -> return reference + aggregates
-```
-
-Two signature decisions worth preserving:
-
--   **`daypart` is derived, never passed.** In `bookings`, `time_block_id`
-    and `daypart` are a strict 1:1 function of each other (blocks 1 and 6
-    both map to `night`). Accepting both as free parameters lets a caller
-    desync them and silently segment the price band on the wrong daypart.
--   **`city_id` comes from the screen, not the campaign.**
-    `CampaignSpec.city_ids` is a list.
-
-## Output
-
-``` text
-ScreenEconomics[]   as an artifact reference (parquet)
-                    one row per candidate x time block,
-                    infeasible rows retained
-+ aggregates: screens_priced, lines_feasible, lines_infeasible,
-              price min/mean/max, occupancy_mean, booking_probability_mean,
-              viewed_exposures_per_slot_per_day_mean,
-              demand_model="transit_ridership (relevance engine)"
-```
-
-The audience fields on each row (`viewed_exposures_per_slot_per_day`,
-`daily_unique_audience`, `reachable_daily_audience`, `pool_key`,
-`demand_forecast`) are **mapped through** from the candidate artifact, not
-modelled here. The only arithmetic this stage does on them is the unit conversion
-in section 7: weight the block's daily people-passing by the flight's real
-weekday/weekend day counts, then call `app/optimize/exposure.py` --- the one
-module that turns people into exposures.
-
-Do not force the LLM to perform numerical calculations itself.
-
-------------------------------------------------------------------------
-
-# 18. OR Agent + Master Agent + Shared Artifact Architecture
-
-## OR Agent  **[BUILT]**
-
-`app/agents/or_agent.py`. See section 10 for the formulation. Its prompt's main job
-is the reach-vs-exposures distinction: it must quote both, never add exposures
-together and call the result reach, never quote `curve_reach_diagnostic` as the
-campaign's reach, and say whether the solve proved optimality or stopped inside the
-gap. It also has to pass up the wear-out disclosure and any unmet coverage verbatim.
-
-Responsibilities:
-
--   interpret optimization objective
--   formulate decision variables
--   construct constraints
--   solve optimization
--   diagnose infeasibility
--   generate alternatives
--   explain tradeoffs
-
-Tools, as built --- two, not five:
-
-``` python
-optimize_package(run_id, slots_per_day_cap=3) -> dict
-compare_objectives(run_id, objectives=None) -> dict
-```
-
-The five-tool surface above collapsed into these. Model building, solving and
-feasibility checking are one deterministic call, not three an LLM sequences;
-`analyze_solution` is what the returned payload already is. `compare_objectives` is
-`generate_alternative_solution` made specific: same brief, different objective,
-plans side by side.
-
-It **withholds** rather than returns a plan whose exposures per person exceed the
-wear-out cap, reporting the measured figures and the reason. Nothing silently
-surfaces a plan that is past the point of usefulness. The campaign's own stated
-objective is never withheld or substituted --- it is served and disclosed.
-
-The handoff bundle shipped four further tools --- `budget_sensitivity`, `diagnose`,
-`scenario_reoptimize`, `explain_last_plan`. They are not wired in: each costs a
-solve plus model calls against a per-minute rate limit, and `diagnose` mostly
-produces narration that then has to be defended. `budget_sensitivity` is the one
-worth revisiting, since "20% more budget adds N people at \$X each" is a real sales
-answer.
-
-The OR solver is deterministic. HiGHS via `scipy.optimize.milp`; CP-SAT was
-available in the bundle and is not needed --- the formulation solves in 0.1s.
-
-------------------------------------------------------------------------
-
-## Master Agent  **[BUILT]**
-
-`app/agents/master.py`. The only component responsible for end-to-end
-orchestration. It owns stages 1, 5 and 6 itself and delegates 2--4 through
-the built-in `task` tool.
-
-Its tools: `resolve_geography_terms`, `create_campaign_spec`,
-`get_run_state`, `verify_package`, `inspect_package`, `check_explanations`.
-
-**Run handles, not payloads.** Every tool takes a `run_id`. The spec,
-artifact references, optimization result and validation live in run state and
-the artifact store, so candidate lists and price tables never enter an LLM's
-context.
-
-**Stages are strictly sequential.** Each consumes the previous stage's
-artifact. A supervisor can still try to delegate two stages in one turn, so
-dependent tools check their input and return a recoverable
-`prerequisite_missing` result naming the producing stage --- they never crash.
-
-Workflow:
-
-``` text
-USER
- │
- ▼
-MASTER
- │
- ├── Understand Campaign
- │
- ├── Run the relevance engine   (own tool, no delegation, no LLM)
- │      │
- │      └── ScreenCandidates
- │
- ├── Ask ML Agent
- │      │
- │      └── ScreenEconomics  (pricing only)
- │
- ├── Ask OR Agent
- │      │
- │      └── OptimizedPackage  or  InfeasibilityReport
- │
- ├── VERIFY
- │      │
- │      ├── Budget ✓
- │      ├── Inventory ✓
- │      ├── Dates ✓
- │      ├── Geography ✓
- │      ├── Reach (recomputed from pool_key groups) ✓
- │      ├── Model confidence — SKIPPED (no stage emits one)
- │      └── Reconciliation ✓
- │
- └── FINAL RECOMMENDATION
-```
-
-The Master Agent must not blindly trust subagents.
-
-It should validate:
-
-``` text
-1. Is the package within budget?
-2. Are all selected screens available?
-3. Are dates valid?
-4. Are all screens geographically eligible?
-5. Are requested hard constraints satisfied?
-6. Are model outputs sufficiently confident?
-7. Is the optimizer solution feasible?
-8. Do allocation totals reconcile?
-9. Do cost calculations reconcile?
-10. Are explanations consistent with underlying values?
-```
-
-### As implemented --- `app/agents/validation.py`
-
-Every check runs in Python against reference data. An LLM never decides
-whether a constraint was met and cannot reason a violation away. Checks
-report `pass` / `fail` / `skipped`; any `fail` fails the package.
-
-`verify_package` runs 18 checks on a typical brief --- 16 pass, 2 skip:
-
-``` text
-package_non_empty              budget_respected
-cost_reconciles                budget_utilization_reconciles
-impressions_reconcile          reach_not_above_impressions
-frequency_reconciles           reach_reconciles
-curve_reach_bounded            screens_exist
-time_blocks_valid              no_duplicate_allocations
-geography_eligible             duration_within_campaign
-start_date_not_in_past         inventory_availability
-
-hard_constraints               SKIPPED  (none declared on this spec)
-model_confidence               SKIPPED  (no stage emits one)
-```
-
-Three audience checks became live once reach existed. `reach_not_above_impressions`
-and `frequency_reconciles` had been skipping on a zero reach; `reach_reconciles` is
-the important one --- see below.
-
-`curve_reach_bounded` arrived with the MILP. It does **not** re-derive the solver's
-saturation curve: that formula's only real unknown is `REACH_LAMBDA`, so
-reimplementing it here would validate nothing about it. It asserts the two things
-that hold for any lambda --- reach exceeds neither the exposures bought nor the
-people available to be reached --- which is exactly the over-count class worth
-catching.
-
-Conditional checks, added only when the spec declares the constraint:
-
-``` text
-requested_num_screens   min_screens          max_screens
-allowed_screen_types    required_time_blocks min_zone_coverage
-```
-
-`explanations_consistent` is a 16th check, run separately by the
-`check_explanations` tool once the Master has drafted its screen-level
-claims. It rejects any explanation naming a screen not in the package.
-
-One deviation from the checklist above:
-
--   **Check 6 (`model_confidence`) is skipped, not evaluated.** No stage
-    emits a per-screen confidence, because neither the pricing band nor the
-    audience aggregation has a held-out error bar to derive one from. Gating on
-    the contract's defaulted 0.5 would report a pass that means nothing. Restore
-    the gate when a stage produces a real confidence.
-
-The validator **recomputes rather than trusting**, in two places specifically
-because they are the two numbers an optimizer can most plausibly overstate:
-
--   `cost_reconciles` re-derives `sum(price x slots x days)` from the allocations
-    and compares it against the reported `total_cost`.
--   `reach_reconciles` re-derives deduplicated reach from the `pool_key` groups,
-    each capped at its **reachable** daily audience, and compares it against the
-    reported `expected_reach`. Summing per-screen exposures and calling it reach
-    over-counts ~23x and looks entirely reasonable on the way past --- so it gets an
-    independent second implementation, deliberately not sharing code with
-    `or_agent_tools._package_metrics`.
--   `curve_reach_bounded` bounds the solver's saturation diagnostic without
-    re-deriving it: `curve_reach <= min(sum E, sum P)` holds for any value of
-    `REACH_LAMBDA`, so it tests the pool bookkeeping rather than the constant. See
-    section 31.8b for why re-deriving it here would have been the wrong move.
-
-Tests tamper with a package on both axes (understated cost, inflated exposures,
-reach claimed equal to gross exposures) to confirm the validator catches it.
-
-------------------------------------------------------------------------
-
-# 19. Shared Artifact Architecture  **[BUILT]**
-
-Do **not** pass huge pandas DataFrames directly between agents.
-
-Instead, specialist agents should create durable artifacts.
-
-Example:
-
-``` text
-Agent A
-   │
-   │ writes
-   ▼
-screen_candidates.parquet
-   │
-   ▼
-artifact metadata
-```
-
-Example artifact metadata:
-
-``` json
-{
-  "artifact": "screen_candidates.parquet",
-  "rows": 250,
-  "columns": [
-    "screen_id",
-    "relevance_score",
-    "audience_match_score",
-    "geography_score",
-    "contextual_score",
-    "transit_score"
-  ],
-  "summary": {
-    "min_relevance": 0.61,
-    "max_relevance": 0.97,
-    "mean_relevance": 0.81
-  }
-}
-```
-
-Agent B should receive:
-
-``` text
-artifact reference
-+
-schema
-+
-summary
-+
-task
-```
-
-rather than hundreds/thousands of rows in its LLM context.
-
-This is especially important for Deep Agents because specialist agents
-should perform detailed work internally and return concise structured
-results to the supervisor.
-
-------------------------------------------------------------------------
-
-# 20. Data Layer  **[BUILT]**
-
-Use a clean data-access layer beneath the agents.
-
-Recommended conceptual architecture:
-
-``` text
-                 MASTER DEEP AGENT
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
-   DATA AGENT       ML AGENT          OR AGENT
-        │               │                │
-        └───────────────┼────────────────┘
-                        │
-                 DOMAIN TOOL LAYER
-                        │
-       ┌────────────────┼────────────────┐
-       │                │                │
-   SQL/Pandas       Python/ML        OR Solver
-       │                │                │
-       └────────────────┼────────────────┘
-                        ▼
-                 DATA / ARTIFACTS
-```
-
-Recommended initial data storage:
-
-``` text
-CSV files
-   ↓
+```text
+CSV
+ ↓
 DuckDB
-   ↓
-SQL views / feature tables
-   ↓
+ ↓
+SQL views
+ ↓
 Python / ML / optimization tools
 ```
 
-Do not make agents manually manipulate CSV files wherever possible.
+`app/data/db.py` registers the 14 source CSVs as DuckDB views, including the large
+`ridership_actuals` without materializing it.
 
-Create stable views such as:
+Important derived views:
 
-``` text
+```text
+v_screen_geography
+v_corridor_zones
 v_screen_profile
-v_screen_availability
 v_screen_demand_history
-v_historical_pricing
-v_campaign_inventory
+v_screen_poi
+v_schedule_block
+v_route_block_demand
+v_corridor_block_demand
+v_corridor_vehicle_count
 ```
 
-**As built** --- `app/data/db.py` registers all 14 source CSVs as DuckDB
-views (streaming, so the 124 MB `ridership_actuals` is never materialized)
-plus two derived views:
+There are no separate `v_historical_pricing` or `v_campaign_inventory` materializations;
+pricing reads explicit projected columns through `app/ml/loaders.py`.
 
-``` text
-[BUILT] v_screen_geography   resolves the fixed/mobile split for every screen.
-                             Fixed: screen -> location -> zone.
-                             Mobile: screen -> vehicle -> corridor, zone NULL.
-                             Does NOT fan out to route_stops -- that would
-                             multiply one screen into every stop on its corridor.
-[BUILT] v_corridor_zones     corridor -> distinct zones, for geography filters
+### Core joins
+
+```text
+bookings.screen_id              → screens.screen_id
+bookings.client_id              → client_facts.client_id
+bookings.time_block_id          → dim_slot.time_block_id
+
+screens.location_id             → locations.location_id
+screens.vehicle_id              → vehicles.vehicle_id
+
+vehicles.corridor_id            → route_schedules.corridor_id
+vehicles.corridor_id            → route_stops.corridor_id
+
+route_schedules.schedule_id     → ridership_actuals.schedule_id
+route_schedules.route_id        → route_stops.route_id
+
+locations.zone_id               → zone_demographics.zone_id
+locations.city_id               → cities.city_id
+
+events.poi_id                   → points_of_interest.poi_id
+events.anchor_location_id       → locations.location_id
+points_of_interest.anchor_location_id → locations.location_id
 ```
 
-The audience engine added the rest of the originally-named layer:
+Avoid accidental many-to-many explosions; verify expected cardinality for every join.
 
-``` text
-[BUILT] v_screen_profile         one row per screen: geography, zone demographics,
-                                 POI context (inverse-distance weighted footfall),
-                                 and pool_key. Section 4.
-[BUILT] v_screen_demand_history  avg daily riders per screen x time block x day
-                                 type, 111,630 rows. Section 7.
-[BUILT] v_screen_poi             POI aggregates per screen, feeding the profile
-[BUILT] v_schedule_block         departures tagged with their dim_slot block
-[BUILT] v_route_block_demand     route x block x day_type, from ridership_actuals
-                                 (falls back to scheduled estimates without it)
-[BUILT] v_corridor_block_demand  corridor x block x day_type / vehicles on corridor
-[BUILT] v_corridor_vehicle_count vehicles working each corridor. Defined once and
-                                 used by BOTH v_corridor_block_demand (as the
-                                 divisor) and v_screen_profile (as
-                                 pool_partition_count), so the two cannot disagree
+---
+
+# 18. Validation
+
+Validation is deterministic Python in:
+
+```text
+app/agents/validation.py
 ```
 
-`v_historical_pricing` and `v_campaign_inventory` were never created: the pricing
-engine reads through `app/ml/loaders.py`, which issues explicit column-projected
-SQL against the base views rather than materializing wide feature tables.
+Every check returns `pass`, `fail`, or `skipped`. Any `fail` fails the package.
 
-Views are created in dependency order --- DuckDB binds a view at definition time,
-so a view cannot reference one that does not exist yet.
+Core checks:
 
-`ridership_actuals` is gitignored and **optional**: `has_ridership_actuals()`
-reports whether it was provisioned, and the seasonality module degrades to a
-neutral 1.0 multiplier rather than crashing when it is absent.
-
-------------------------------------------------------------------------
-
-# 21. Important Table Relationships
-
-The implementation should preserve the existing join map.
-
-Core relationships:
-
-``` text
-Commercial
-──────────
-bookings.booking_id
-bookings.client_id       -> client_facts.client_id
-bookings.screen_id       -> screens.screen_id
-bookings.time_block_id   -> dim_slot.time_block_id
-
-lost_leads.client_id     -> client_facts.client_id
-lost_leads.anchor_screen_id -> screens.screen_id
-
-
-Inventory
-─────────
-screens.location_id      -> locations.location_id
-screens.vehicle_id       -> vehicles.vehicle_id
-
-vehicles.corridor_id     -> route_schedules.corridor_id
-vehicles.corridor_id     -> route_stops.corridor_id
-
-
-Transit Network
-───────────────
-route_schedules.schedule_id -> ridership_actuals.schedule_id
-route_schedules.route_id    -> route_stops.route_id
-
-route_stops.location_id     -> locations.location_id
-
-
-Geography
-─────────
-locations.zone_id       -> zone_demographics.zone_id
-locations.city_id       -> cities.city_id
-
-
-Context
-───────
-events.poi_id           -> points_of_interest.poi_id
-events.anchor_location_id -> locations.location_id
-
-points_of_interest.anchor_location_id -> locations.location_id
+```text
+package_non_empty
+budget_respected
+cost_reconciles
+budget_utilization_reconciles
+impressions_reconcile
+reach_not_above_impressions
+frequency_reconciles
+reach_reconciles
+curve_reach_bounded
+screens_exist
+time_blocks_valid
+no_duplicate_allocations
+geography_eligible
+duration_within_campaign
+start_date_not_in_past
+inventory_availability
+hard_constraints
+model_confidence
 ```
 
-The implementation should avoid accidental many-to-many row explosions.
-Every join must be checked for expected cardinality.
+`model_confidence` is currently **SKIPPED** because no stage has a real held-out confidence.
 
-------------------------------------------------------------------------
+Conditional checks apply only when declared:
 
-# 22. Canonical Artifacts
-
-The system should standardize these six business artifacts:
-
-  --------------------------------------------------------------------------
-  Stage                   Input                   Output
-  ----------------------- ----------------------- --------------------------
-  Brief Intake            User query + optional   `CampaignSpec`
-                          client context          
-
-  Audience Intelligence   `CampaignSpec` + raw    `ScreenProfile[]`
-                          tables                  
-
-  Relevance Scoring       `CampaignSpec` +        `ScreenCandidate[]`
-                          `ScreenProfile[]`       
-
-  Demand & Pricing        `CampaignSpec` +        `ScreenEconomics[]`
-                          candidates + historical 
-                          data                    
-
-  Optimization            `CampaignSpec` +        `OptimizedPackage` or
-                          economics               
-
-  Recommendation          All previous artifacts  `CampaignRecommendation`
-  --------------------------------------------------------------------------
-
-These are the interfaces that should remain stable even if internal
-models are replaced.
-
-## Status per artifact
-
-  --------------------------------------------------------------------------
-  Artifact                Status              Note
-  ----------------------- ------------------- ------------------------------
-  `CampaignSpec`          **[BUILT]**         validated, geography resolved
-
-  `ScreenProfile[]`       **[BUILT]**         `v_screen_profile`, all 11,163
-                                              screens
-
-  `ScreenCandidate[]`     **[BUILT]**         weighted relevance + audience
-                                              volume + pool_key,
-                                              `provenance="computed"`
-
-  `ScreenEconomics[]`     **[BUILT]**         pricing, availability and
-                                              audience volume;
-                                              `provenance="computed"`
-
-  `OptimizedPackage`      **[BUILT]**         real constraints, real reach
-                                              objective, MILP solve
-
-  `CampaignRecommendation` **[BUILT]**        assembled by the Master
-  --------------------------------------------------------------------------
-
-`provenance` is carried on every artifact reference and propagated into
-`run_state.stub_stages()`. The Master's prompt requires it to disclose any stub
-stage at the top of its answer. A current run reports `stub_stages: []` --- nothing
-is a stub. The plumbing stays because it is the mechanism that would surface a
-regression.
-
-------------------------------------------------------------------------
-
-# 23. Recommended Tool Interfaces
-
-The coding implementation should expose narrow, deterministic tools.
-
-Example:
-
-``` python
-def query_database(sql: str) -> QueryResult:
-    ...
-
-
-def build_screen_profiles(
-    campaign_spec: CampaignSpec
-) -> ArtifactReference:
-    ...
-
-
-def score_screens(
-    campaign_spec: CampaignSpec,
-    screen_profiles: ArtifactReference
-) -> ArtifactReference:
-    ...
-
-
-def forecast_demand(
-    campaign_spec: CampaignSpec,
-    screen_candidates: ArtifactReference
-) -> ArtifactReference:
-    ...
-
-
-def estimate_pricing(
-    campaign_spec: CampaignSpec,
-    screen_candidates: ArtifactReference,
-    demand_forecasts: ArtifactReference
-) -> ArtifactReference:
-    ...
-
-
-def optimize_inventory(
-    campaign_spec: CampaignSpec,
-    screen_economics: ArtifactReference
-) -> OptimizedPackage:
-    ...
-
-
-def validate_package(
-    campaign_spec: CampaignSpec,
-    optimized_package: OptimizedPackage
-) -> ValidationResult:
-    ...
+```text
+requested_num_screens
+min_screens
+max_screens
+allowed_screen_types
+required_time_blocks
+min_zone_coverage
 ```
 
-## As implemented
+The validator independently recomputes:
 
-Every tool takes a `run_id` instead of inlined artifacts --- the spec and
-artifact references live in run state, so nothing bulky crosses an agent
-boundary. Every tool returns a JSON-safe dict, never a DataFrame.
+1. **Cost:** `sum(price × slots × days)`.
+2. **Reach:** pool-level deduplicated reach using `pool_key`.
+3. Exposure/reach/frequency reconciliation.
 
-``` python
-# Master   app/tools/master_tools.py                          [BUILT]
-resolve_geography_terms(terms: list[str]) -> dict
-create_campaign_spec(...) -> dict                  # returns run_id
-get_run_state(run_id) -> dict
-verify_package(run_id) -> dict
-inspect_package(run_id, limit=10) -> dict
-check_explanations(run_id, explained_screen_ids) -> dict
+Do not share the same implementation between solver accounting and validation; the
+independent implementation is intentional.
 
-# Relevance  app/tools/relevance_tools.py -- MASTER-OWNED, no subagent  [BUILT]
-describe_inventory(run_id) -> dict
-build_screen_candidates(run_id, top_n=None) -> dict
-describe_relevance_model(run_id) -> dict
+---
 
-# ML       app/tools/ml_agent_tools.py                         [BUILT]
-estimate_screen_economics(run_id,
-                          time_blocks=None,
-                          slots_needed=1) -> dict
-describe_pricing_model(run_id) -> dict
+# 19. Infeasibility
 
-# OR       app/tools/or_agent_tools.py                         [BUILT]
-optimize_package(run_id, slots_per_day_cap=3) -> dict
-compare_objectives(run_id, objectives=None) -> dict
+Never fabricate a package.
+
+Fixed reason codes:
+
+```text
+BUDGET_CONSTRAINT
+TOO_MANY_SCREENS_REQUESTED
+INSUFFICIENT_INVENTORY
+DAYPART_UNAVAILABLE
+GEOGRAPHY_UNAVAILABLE
+CONFLICTING_HARD_CONSTRAINTS
+DATES_UNAVAILABLE
+NO_CANDIDATES
 ```
 
-Note there is no separate `forecast_demand` / `estimate_pricing` split.
-`estimate_screen_economics` is the single stage-4 entry point, and demand
-populates the reserved fields on that same artifact --- which is exactly how the
-audience model landed, with no new stage and no signature change.
+Return either:
 
-Nor is there a `build_screen_profiles` tool: the profile is a DuckDB view built
-once inside the engine singleton, not a per-request call.
-
-The LLM agents should decide **when and why** to call these tools.
-
-The tools should decide **how** to perform the calculations.
-
-------------------------------------------------------------------------
-
-# 24. Error Handling and Infeasibility  **[BUILT]**
-
-The system must not fabricate a recommendation when the optimization
-problem is infeasible.
-
-Possible reasons:
-
-``` text
-Budget too low
-No inventory available
-Requested geography unavailable
-Requested dates unavailable
-Too many screens requested
-Required daypart unavailable
-Conflicting hard constraints
+```text
+OptimizationResult.package
 ```
 
-The OR Agent should return something like:
+or:
 
-``` json
-{
-  "status": "infeasible",
-  "reason_codes": [
-    "INSUFFICIENT_INVENTORY",
-    "BUDGET_CONSTRAINT"
-  ],
-  "explanation": "No feasible package satisfies the requested screen count within the specified budget.",
-  "relaxation_options": [
-    "Increase budget",
-    "Reduce number of screens",
-    "Extend campaign duration",
-    "Allow additional geography"
-  ]
-}
+```text
+OptimizationResult.infeasibility
 ```
 
-The Master Agent can then either:
+never a speculative partial package.
 
-1.  ask the user to relax a constraint, or
-2.  automatically generate an alternative if the user has permitted
-    flexibility.
+Relaxation options must include actionable numbers whenever possible.
 
-## As built
+Known upstream issue: top-N relevance selection is not coverage-aware. A candidate pool
+can contain only one of two required zones, making `min_zone_coverage` impossible before
+the solver sees it. If changing candidate selection, preserve hard geography filtering
+and make coverage-aware selection explicit rather than weakening the solver constraint.
 
-`InfeasibilityReport` draws its codes from the fixed vocabulary in
-`app/models/optimization.py` (section 13), and `OptimizationResult` is a
-discriminated union --- exactly one of `package` / `infeasibility` is set, with no
-third state in which a partial fill is returned.
+---
 
-The diagnosis distinguishes causes rather than blaming the budget for everything:
+# 20. Evaluation and test invariants
 
-``` text
-cheapest line > budget                 -> BUDGET_CONSTRAINT
-exact screen count unreachable         -> TOO_MANY_SCREENS_REQUESTED
-   (established by RE-SOLVING without the count: if a package exists at a lower
-    count, the constraint binds, not the money -- and the achievable count is
-    named in the explanation)
-candidate pool spans too few zones     -> CONFLICTING_HARD_CONSTRAINTS
-                                          + GEOGRAPHY_UNAVAILABLE
-declared min_budget_utilization unmet  -> CONFLICTING_HARD_CONSTRAINTS
-   (with the utilisation that IS achievable, so the number in the relaxation
-    option is real)
-no purchasable line in the window      -> INSUFFICIENT_INVENTORY
-required_time_blocks excludes all      -> CONFLICTING_HARD_CONSTRAINTS
-nothing priced at all                  -> NO_CANDIDATES
+Tests should protect **invariants**, not merely restate implementation.
+
+## Audience / relevance
+
+Must hold:
+
+```text
+all scores ∈ [0,1]
+12 impression columns exist and contain no NaNs
+pool_key never null
+block 1 remains the known zero-audience gap
+all audience terms map to real score columns/blocks
+geography is hard-filtered
+allowed screen types are enforced
+different audience terms can change blocks and ranking
+unknown audience terms are rejected
+missing data is recorded in defaults_applied
+reasons cite real values
+pooled audience < naive screen sum
+real weekday/weekend calendar mix is used
+exposure conversion occurs exactly once
+candidates are ranked best-first
 ```
 
-Every relaxation option carries the figure that would make it work, because
-"increase budget" without a number is not an action.
+## Pricing
 
-One gap worth naming: a `min_zone_coverage` conflict can be created **upstream**.
-Stage 2 takes the top N by relevance with no awareness of coverage constraints, so
-on a two-zone brief the top 80 of 2,230 eligible screens can be 80/80 in one zone
-and the constraint becomes unsatisfiable before the solver sees it. The optimizer
-reports it honestly; the fix belongs in stage 2's candidate selection.
+Must hold:
 
-------------------------------------------------------------------------
+```text
+price coefficient < 0
+calibration matches true base rate
+probability decreases with price
+probabilities ∈ [0,1]
+negative class = price-driven losses only
+floor <= target <= cap at every rung
+industry adjustment within clamp at any industry_weight
+every screen attribute combination has a band
+recommended price lies within band, EXCEPT for the demand premium
+availability never exceeds capacity
+tightest day defines availability
+infeasible rows retained
 
-# 25. Explainability Requirements
+zone rungs carry most of the inventory
+mobile screens fall through the zone rungs with no branch on inventory class
+the zone band differs from the city blend it replaced
+deal shape is omitted by default and reproduces the blended band
+single-screen comparables price above bundled ones
+the rung name discloses which deal shape was used
+deal shape is surrendered before zone
 
-Every important recommendation should have traceable reasons.
+merit weights sum to 1, and merit is computed with no price input
+price rank is ranked only among screens that HAVE a price
+mobile inventory never receives a demand premium
+a screen that does not sell is withheld however good it looks
+a cheap but weak screen is not called underpriced
+the premium ramps from the gate rather than jumping at it
+ONLY the demand premium can carry a quote above the band cap
+disabling the premium returns the engine to comparables only
+the premium does not change what is purchasable
 
-For a screen:
-
-``` text
-Why selected?
+every lever default is identity and reports no changes
+out-of-range levers are bounded, not rejected
+no lever can make a sold-out screen feasible
+levers do not change occupancy
+band_position beats occupancy_gamma when both are set
+seasonality_weight=0 leaves only the event term
+a client suggestion never escapes its own bound
+a thin or noisy client history suggests no change at all
+the leverage tier is never presented as a forecast
+the client profile tool creates no run and touches no package
 ```
 
-For a price:
+## Optimization / validation
 
-``` text
-Why this price?
+Must hold:
+
+```text
+budget respected
+inventory respected
+geography respected
+dates respected
+distinct screen count respected
+all four objectives produce feasible validated packages
+MILP reaches at least independent greedy baseline on reach
+reach <= min(total exposures, total reachable population)
+gross exposures cannot be reported as reach
+declared spend floor is enforced/reported
+wear-out cap is relative to the flight floor
 ```
 
-For a time block:
+Also protect the known adversarial case:
 
-``` text
-Why this time?
+```text
+A package claiming gross exposures as reach MUST fail validation.
 ```
 
-For the package:
-
-``` text
-Why this combination?
-```
-
-For rejected screens:
-
-``` text
-Why not selected?
-```
-
-Explanations must reference actual features or model outputs.
-
-Avoid generic statements such as:
-
-> "This screen is highly relevant."
-
-Instead:
-
-> "This screen ranks highly because the surrounding zone has a high
-> 18--34 population share, strong daytime population uplift, and high
-> transit demand during the selected evening period."
-
-------------------------------------------------------------------------
-
-# 26. Evaluation Framework
-
-Build evaluation into the implementation rather than adding it at the
-end.
-
-## Data layer
-
-Test:
-
-``` text
-Join correctness
-Null handling
-Duplicate handling
-Expected row counts
-Referential integrity
-```
-
-## ML
-
-Evaluate:
-
-``` text
-MAE
-RMSE
-MAPE where appropriate
-R²
-Calibration for booking probability
-Baseline comparison
-```
-
-**Current coverage.** `backend/tests/test_pricing_engine.py` (26 tests)
-asserts the invariants the pricing models must hold:
-
-``` text
-[BUILT] price coefficient is negative          the gate on trusting Model B
-[BUILT] calibration matches the true base rate within 0.01
-[BUILT] probability curve decreases with price
-[BUILT] probabilities stay in [0,1] at extreme prices
-[BUILT] negative class is only price-driven losses
-[BUILT] floor <= target <= cap for every screen
-[BUILT] industry adjustment stays inside its clamp
-[BUILT] every screen attribute combination has a band
-[BUILT] recommended price sits inside the band, positioned by occupancy
-[BUILT] slot capacity is never exceeded
-[BUILT] availability is the tightest day, not the average
-[BUILT] infeasible rows retained with diagnostics
-[BUILT] the fast occupancy index matches a plain groupby
-```
-
-**Audience coverage.** `backend/tests/test_relevance_engine.py` (18 tests) pins
-the invariants that were actually broken or dangerous during integration, rather
-than restating the implementation:
-
-``` text
-[BUILT] every score stays inside its 0-1 contract bound   family_score hit 1.140
-[BUILT] all 12 impression columns exist, no NaNs
-[BUILT] pool_key is never null, and there are exactly 1,004 pools
-[BUILT] block 1 is empty -- the known gap, asserted so it cannot change silently
-[BUILT] every audience term maps to a real score column and to blocks
-[BUILT] geography is a HARD filter: every candidate is in the eligible set
-[BUILT] allowed_screen_types is enforced before scoring
-[BUILT] different audience terms give different blocks AND a different ranking
-[BUILT] an off-vocabulary audience term is rejected, not scored as 0.5
-[BUILT] a missing audience term is reported in defaults_applied
-[BUILT] reasons cite real numbers, never "highly relevant"
-[BUILT] pooled audience is far below the naive sum (dedupe is doing work)
-[BUILT] the flight's weekday/weekend day mix is counted from real dates
-[BUILT] the exposure model is applied exactly once, and both sides of the
-        reach min() are in viewed units
-[BUILT] candidates are ranked best-first
-```
-
-Plus, in `test_pipeline_smoke.py`, the adversarial one: **a package claiming
-gross exposures as reach must fail validation.**
-
-**Gaps that remain, both the same shape:** neither model ships a held-out accuracy
-metric. The price band is descriptive (quantiles of comparables), so MAE/RMSE
-against a held-out set was never computed. The audience model is an aggregation of
-observed ridership rather than a fitted predictor, so it has no held-out split
-either --- and no comparison against the naive
-`route_schedules.estimated_ridership` baseline that section 7 asks for. That
-absence is exactly why no stage emits a per-screen confidence. A supervised model
-on top of these aggregates is the next step that would close it.
-
-## Optimization
-
-Target list, and what `backend/tests/test_optimizer.py` plus
-`test_pipeline_smoke.py` actually assert:
-
-``` text
-[BUILT] Budget constraint          validator recomputes sum(price x slots x days)
-[BUILT] Inventory constraint       purchased slots <= tightest-day availability
-[BUILT] Geography constraint       every allocated screen in the eligible set
-[BUILT] Date constraint            no line outruns the flight; start not in past
-[BUILT] Requested screen count     exact count returns exactly that many DISTINCT
-                                   screens -- the bug this test was written for
-[BUILT] Objective improvement      MILP reach >= an independent greedy baseline
-                                   re-implemented in the test at equal budget
-[BUILT] Solution feasibility       validator accepts every package the pipeline
-                                   produces, for all four optimization goals
-```
-
-Also asserted, because each was a real defect or a real hazard:
-
-``` text
-[BUILT] a pool with no resolvable population RAISES rather than defaulting to 1
-[BUILT] the curve diagnostic stays within min(sum E, sum P) -- a bound that holds
-        for any saturation constant, so it tests the bookkeeping and not lambda
-[BUILT] no spend floor is invented, and a declared one is reported as a conflict
-[BUILT] the wear-out cap is reachable: cap(days) > floor(days) for every flight
-[BUILT] compare_objectives withholds a stacked plan, shows the rest, and the
-        breadth-first plan really does reach more people than the depth-first one
-[BUILT] the exposure model is applied exactly once, in one module
-[BUILT] a package claiming gross exposures as reach fails validation
-```
-
-Not tested: solve time. It is 0.1s on the canonical brief at a 1% gap, but nothing
-guards against a formulation change making it 40s again --- which the tangent version
-did.
-
-## End-to-end
-
-Create fixed test scenarios:
-
-### Scenario A --- Reach
-
-``` text
-High budget
-Broad geography
-Reach objective
-```
-
-### Scenario B --- Budget constrained
-
-``` text
-Low budget
-High screen requirement
-```
-
-### Scenario C --- Geography constrained
-
-``` text
-Specific zone
-Specific corridor
-```
-
-### Scenario D --- Time constrained
-
-``` text
-Evening only
-Limited inventory
-```
-
-### Scenario E --- Infeasible
-
-``` text
-Impossible budget + inventory combination
-```
-
-The final system should clearly explain why Scenario E cannot be
-fulfilled rather than generating a plausible-looking package.
-
-------------------------------------------------------------------------
-
-# 27. Implementation Sequence
-
-Do not implement the entire multi-agent layer first.
-
-Implement in this order:
-
-## Phase 1 --- Data
-
-``` text
-1. Load CSVs
-2. Create DuckDB database
-3. Validate schemas
-4. Validate relationships
-5. Create SQL views
-6. Build reusable data-access functions
-```
-
-## Phase 2 --- Features
-
-``` text
-7. Build screen profiles
-8. Build transit features
-9. Build demographic features
-10. Build POI/event features
-11. Build historical demand features
-12. Build historical pricing features
-```
-
-## Phase 3 --- Models
-
-``` text
-13. Build screen relevance model
-14. Build demand baseline
-15. Build demand ML model
-16. Build price model
-17. Build booking probability model
-```
-
-## Phase 4 --- Optimization
-
-``` text
-18. Implement deterministic optimizer    <-- MILP, HiGHS via scipy. app/optimize/
-19. Add campaign objectives              <-- four weight profiles, section 12
-20. Add hard constraints                 <-- section 12
-21. Add soft preferences                 <-- elastic coverage + wear-out cap
-22. Add infeasibility handling           <-- section 24
-```
-
-Built last, as the sequence intended: the deterministic pipeline ran end to end
-under a greedy fill for the whole of the rest of the build, which is what made
-replacing it a contained change --- one tool module and one new package, no agent
-rewiring.
-
-## Phase 5 --- Agents
-
-``` text
-23. Implement Data Agent          <-- NOT DONE, deliberately. Stage 2 is a
-                                      deterministic Master-owned tool; see s15.
-24. Implement ML Agent
-25. Implement OR Agent
-26. Implement Master Agent
-```
-
-## Phase 6 --- Product
-
-``` text
-27. Implement structured recommendation
-28. Add explanations
-29. Add validation report
-30. Add API/UI
-31. Add test scenarios
-32. Add logging/tracing
-```
-
-------------------------------------------------------------------------
-
-# 28. Two-Day Hackathon Prioritization
-
-If implementation time is extremely limited, prioritize the following.
-
-## Day 1
-
-### Data layer
-
-``` text
-CSV → DuckDB
-```
-
-Create:
-
-``` text
-v_screen_profile
-v_screen_availability
-v_screen_demand_history
-v_historical_pricing
-```
-
-Implement:
-
-``` text
-build_screen_profiles()
-calculate_availability()
-build_demand_features()
-build_pricing_features()
-```
-
-### Basic relevance scoring
-
-Start with transparent weighted scoring.
-
-### Basic demand model
-
-Start with a strong historical baseline.
-
-### Basic pricing model
-
-Start with historical comparable pricing.
-
-------------------------------------------------------------------------
-
-# 29. Day 2
-
-Build:
-
-``` text
-Campaign parser
-        ↓
-Screen scoring
-        ↓
-Demand forecast
-        ↓
-Pricing
-        ↓
-OR optimizer
-        ↓
-Recommendation
-```
-
-Then wrap these components in the Deep Agent architecture.
-
-The first working system should prioritize:
-
-``` text
-Correctness
-+
-Explainability
-+
-Reliable constraints
-+
-Good demo experience
-```
-
-over sophisticated agent-to-agent behavior.
-
-------------------------------------------------------------------------
-
-# 30. Final Target Architecture
-
-The completed system should conceptually look like:
-
-``` text
-                              USER
-                                │
-                                ▼
-                    ┌─────────────────────┐
-                    │    MASTER AGENT     │
-                    │                     │
-                    │ Orchestration       │
-                    │ State               │
-                    │ Verification        │
-                    │ Final response      │
-                    └──────────┬──────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-     ┌────────────────┐ ┌───────────────┐ ┌────────────────┐
-     │ RELEVANCE      │ │ ML AGENT      │ │ OR AGENT       │
-     │ ENGINE [BUILT] │ │      [BUILT]  │ │      [BUILT]   │
-     │ (a tool, not   │ │ Price band    │ │ Formulation    │
-     │  an agent)     │ │ Occupancy     │ │ Constraints    │
-     │ Joins/Features │ │ Booking prob. │ │ MILP solve     │
-     │ Audience       │ │ Seasonality   │ │ Reach dedupe   │
-     │ Volume/Reach   │ │ Unit mapping  │ │ Objectives     │
-     └───────┬────────┘ └───────┬───────┘ └───────┬────────┘
-             │                  │                 │
-             ▼                  ▼                 ▼
-      ┌────────────┐     ┌────────────┐    ┌────────────┐
-      │ SQL / Data │     │ Python /   │    │ OR Solver  │
-      │ Tools      │     │ ML Tools   │    │ Tools      │
-      └─────┬──────┘     └─────┬──────┘    └─────┬──────┘
-            │                  │                 │
-            └──────────────────┼─────────────────┘
-                               ▼
-                     ┌──────────────────┐
-                     │ SHARED ARTIFACTS │
-                     │                  │
-                     │ CampaignSpec     │
-                     │ ScreenProfiles   │
-                     │ Candidates       │
-                     │ Economics        │
-                     │ OptimizedPackage │
-                     └────────┬─────────┘
-                              │
-                              ▼
-                    ┌─────────────────────┐
-                    │ VALIDATION LAYER    │
-                    │            [BUILT]  │
-                    │ Budget              │
-                    │ Inventory           │
-                    │ Geography           │
-                    │ Dates               │
-                    │ Reach (recomputed)  │
-                    │ Model confidence    │ <- skipped, none emitted
-                    │ Reconciliation      │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ SALES RECOMMENDATION│
-                    │                     │
-                    │ Package             │
-                    │ Price               │
-                    │ Screens             │
-                    │ Occupancy           │
-                    │ Reach       ✓ dedup │
-                    │ Impressions ✓ gross │
-                    │ Frequency   ✓       │
-                    │ Reasons             │
-                    │ Risks               │
-                    │ Alternatives        │
-                    └─────────────────────┘
-```
-
-------------------------------------------------------------------------
-
-# 31. Non-Negotiable Design Principles
-
-The coding agent should follow these rules throughout implementation.
+---
+
+# 21. Known limitations — do not silently “fix” these by changing definitions
+
+The following are known model limitations and should remain explicit until the underlying
+data/model changes:
+
+1. `LOOP_PASSES_PER_TRIP` and `VIEWABILITY_*` are assumptions without ground truth.
+2. `REACH_LAMBDA` is diagnostic-only and not used for reported reach.
+3. Demand has no held-out accuracy metric or confidence interval.
+4. Vehicle-mounted screens lack demographic data and currently receive a scoring floor.
+5. Block 1 has zero modelled audience despite real bookings.
+6. No ambient/pedestrian audience term.
+7. Events affect pricing, not demand.
+8. Booking probability is highly saturated because the historical win rate is ~99.79%;
+   it is diagnostic, not price-setting.
+9. Seasonality currently adjusts price, not demand.
+10. No true conversion model exists; conversion uses a POI-context proxy.
+11. No flighting model exists; duration is fixed by the brief.
+12. Historical bundle selection is not modeled.
+13. Candidate top-N selection is not coverage-aware.
+14. No confidence is emitted because there are no held-out error bars.
+15. `budget_sensitivity` is not currently wired.
+16. The pricing impressions proxy is quarantined and must not become demand/reach.
+17. Fixed/mobile audience units have different modelling paths; preserve the explicit
+    `pool_partition_count` logic.
+18. `merit` (§9.5) has no held-out accuracy metric and cannot acquire one from this data —
+    there is no ground truth for what a screen is worth. Validate it forward by tracking
+    whether premium-flagged screens keep their occupancy.
+19. The demand premium is restricted to fixed inventory. Mobile screens have no zone
+    demographics, so 3 of 4 merit components are structurally zero for them.
+20. `negotiation_leverage` tracks account size, not price behaviour. It is population
+    context and must never be presented as a per-deal forecast.
+21. Client price indices are measured against segment medians that include the client's own
+    bookings, which pulls the index toward 1.0. Conservative, uncorrected, deliberate.
+22. `price_gap_pct` is not populated on every price-driven lead. A missing value means "not
+    recorded", never 0%.
+23. `duration_days` was tested as a price-band dimension and rejected (~2% between the
+    buckets most campaigns fall in, non-monotone on thin cells). Do not re-add it on
+    intuition.
+
+---
+
+# 22. Non-negotiable design principles
 
 ### 1. Do not over-agentify
-
-Use one manager plus a specialist agent for each stage that genuinely *reasons*.
-
-As built that is **two**: ML and OR. The Data specialist was dropped once it was
-clear stage 2 has no judgement in it --- see section 15. The principle held; the
-count was never the point. Prefer a Master-owned tool over a subagent whenever a
-stage is a pure function of its inputs.
+Use agents only where reasoning/delegation is valuable. The relevance engine is a
+Master-owned deterministic tool.
 
 ### 2. LLMs reason; tools calculate
+No LLM numerical optimization, audience aggregation, pricing arithmetic, or constraint
+checking.
 
-Do not ask an LLM to perform numerical optimization or large-scale
-calculations.
+### 3. Preserve units
+Always distinguish:
 
-### 3. Keep business artifacts structured
-
-Use Pydantic models for inter-agent contracts.
-
-### 4. Do not pass huge DataFrames through agent context
-
-Use artifact references.
-
-### 5. Separate prediction from optimization
-
-ML predicts demand/pricing; OR chooses the package.
-
-### 6. Separate optimization from explanation
-
-The solver generates the answer; the LLM explains it.
-
-### 7. Hard constraints are deterministic
-
-Never allow an LLM to "interpret" a hard budget or availability
-violation away.
-
-### 8. Every recommendation must be explainable
-
-Store supporting factors alongside scores. `ScreenCandidate.reasons` cites real
-feature values and `defaults_applied` records every neutral fallback, per row and
-per pool --- an untraceable 0.5 is worse than an acknowledged gap.
-
-### 8a. Reach is never the sum of exposures
-
-Deduplicate on `pool_key` first. Screens at one stop see the same people, and
-naively summing over-counts the audience ~23x on a realistic pool. Any new
-consumer of audience numbers must respect this.
-
-### 8b. A validated number may not depend on an assumed constant
-
-If a figure the validation layer checks moves with a constant nobody can measure,
-the check validates everything except the one thing that is actually uncertain.
-This is why `REACH_LAMBDA` reaches only `curve_reach_diagnostic` while the reported
-reach is the lambda-free `min()`, and why `curve_reach_bounded` asserts
-`reach <= min(sum E, sum P)` --- true for any lambda --- instead of re-deriving the
-curve in a second place.
-
-The corollary for the exposure model: `LOOP_PASSES_PER_TRIP` and `VIEWABILITY_*` are
-also assumed, and they *do* scale a reported figure. They are tolerable only because
-they live in one module with one call site (`app/optimize/exposure.py`), are named in
-the fields they produce, and are stated as assumptions wherever those fields are
-explained. An assumed constant in two places is a defect waiting to happen.
-
-### 9. Infeasibility must be explicit
-
-Never fabricate a feasible-looking solution.
-
-### 10. Models are replaceable
-
-The artifact contracts must not depend on a particular ML model.
-
-### 11. Validate every agent result
-
-The Master Agent should verify specialist outputs before producing the
-final answer.
-
-### 12. Build the deterministic pipeline first
-
-The agent layer should orchestrate a working analytical system, not
-compensate for an incomplete one.
-
-------------------------------------------------------------------------
-
-# 32. Final Implementation Goal
-
-## Where the experience stands today
-
-``` text
-User:
-"I have $50K to promote a new product to young commuters
- in Downtown Core for 30 days."
-                    ↓
-Master Agent -> CampaignSpec                              [BUILT]
-   budget, dates, geography resolved to LH / LH-ZONE-001
-   audience_terms: [young_professionals, commuters]
-                    ↓
-Relevance    -> "1,601 eligible screens, kept top 250      [BUILT]
-engine           across 23 audience pools. Relevance
-(own tool,       0.649-0.749. Target blocks 2 and 5.
- no LLM)         Pooled daily audience 1.15M; the naive
-                 sum would say 26.9M. No defaults fired."
-                    ↓
-ML Agent     -> "250 screens priced across blocks 2 and 5. [BUILT]
-                 375 lines purchasable, 125 sold out.
-                 Prices $41.97-$177.88, mean $100.13.
-                 Mean occupancy 24%.
-                 16,553 viewed exposures per slot per day."
-                    ↓
-OR Agent     -> "25 screens, $49,707.90, 99.4% of          [BUILT]
-                 budget. Reach 261,329 people;
-                 10,453,140 gross viewed exposures;
-                 frequency 40.0. MILP, proven optimal
-                 within a 1% gap, 0.1s."
-                    ↓
-Master Agent -> "Validated: 18 checks, 16 pass,            [BUILT]
-                 2 skipped, 0 fail."
-                    ↓
-User receives:
-  Recommended package        ✓
-  Price + why                ✓  band, occupancy, adjustments
-  Selected screens           ✓
-  Budget utilization         ✓
-  Expected reach             ✓  261,329 deduplicated people
-  Viewed exposures           ✓  10.45M gross exposures
-  Expected frequency         ✓  40.0x, with the wear-out disclosure
-  Objective trade-off        ✓  reach vs awareness vs frequency
-  Rationale                  ✓  demographics, POI, ridership, price
-  Risks                      ✓
-  Alternative packages       ✓
+```text
+4-hour time block
+6 rotating slots
+people passing
+people who look
+viewed exposures
+distinct reach
 ```
 
-Every stage of the pipeline is now real and traceable end to end.
+### 4. Reach is never exposures
+Deduplicate by `pool_key`; cap by reachable pool population.
 
-**What is still honestly imperfect, and said out loud rather than hidden:**
+### 5. Slots are linear
+All six slots rotate continuously through the same block. Buying more slots increases
+share of voice; it does not make the loop run faster.
 
--   40 viewed exposures per person is past the point of usefulness, and no
-    allocation can lower it: `LOOP_PASSES_PER_TRIP / 6 x days` is a floor set by
-    the flight length, and there is no flighting model. The wear-out cap stops
-    stacking beyond that; it cannot fix the floor. Dwell data would.
--   `LOOP_PASSES_PER_TRIP`, `VIEWABILITY_*` and `REACH_LAMBDA` are all ASSUMED,
-    with no ground truth anywhere in the 14 CSVs. The first two scale every
-    exposure figure this system quotes; the third reaches only a diagnostic.
--   That package is 16 `metro_station` + 9 `bus_stop` in 1 zone. The ~380x
-    fixed/mobile volume gap (section 7) is still in the model --- pool saturation
-    is what makes cheap bus-stop pools competitive, not a fix to the gap.
--   Time block 1 sells but models as zero audience, so a reach objective will
-    never buy it.
--   No stage emits a confidence, because no model has a held-out error bar.
--   Relevance never enters the objective. Geography and `hard_constraints` filter
-    the pool, then the top-N cut is by relevance; after that the solver optimizes
-    audience and cost alone. That is defensible --- but it means a declared
-    `min_zone_coverage` can be made unsatisfiable by the top-N cut, since stage 2
-    ranks with no awareness of it (pinned by a test).
--   The bundle's `budget_sensitivity` tool is not wired in, so "20% more budget
-    buys N more people" is not yet an answer the system can give.
+### 6. Hard constraints are deterministic
+Budget, inventory, geography, dates, screen count, required blocks, and declared hard
+constraints cannot be “explained away”.
 
-## The target
+### 7. Do not invent constraints
+In particular, do not introduce a minimum budget utilization unless the campaign spec
+explicitly declares one.
 
-The original target, retained for reference. The pipeline above now reaches it,
-with the caveats listed there. The one structural difference: "Data Agent" is a
-Master-owned deterministic tool, not a delegated specialist.
+### 8. Keep artifacts structured
+Use Pydantic contracts and artifact references.
 
-``` text
-User:
-"I have $50K to promote a new product to young commuters
-in the eastern part of the city for 30 days."
+### 9. Keep calculations centralized
+Exposure conversion belongs in one module. Reach accounting has one reporting definition
+and an independent validation implementation.
 
-                    ↓
+### 10. Assumptions must be visible
+A number affected by an assumed constant must identify that assumption.
 
-Master Agent
+### 11. Models are replaceable
+Keep business artifact contracts stable when replacing ML/OR internals.
 
-                    ↓
+### 12. Validate independently
+The Master must verify specialist output before final recommendation.
 
-CampaignSpec
+### 13. Infeasibility must be explicit
+Return a structured infeasibility report rather than a plausible-looking package.
 
-                    ↓
+### 14. Build deterministic systems first
+Agent orchestration must sit on top of working analytical components.
 
-Relevance engine
-"These 250 screens are relevant."
+---
 
-                    ↓
+# 23. Canonical tool/file ownership
 
-ML Agent
-"These screens have the strongest expected demand and
-these are the expected prices."
+```text
+app/agents/
+  master.py
+  ml_agent.py
+  or_agent.py
+  validation.py
 
-                    ↓
+app/tools/
+  master_tools.py
+  relevance_tools.py
+  ml_agent_tools.py
+  or_agent_tools.py
 
-OR Agent
-"This package maximizes expected reach under the $50K
-budget and inventory constraints."
+app/ml/
+  occupancy.py
+  price_band.py
+  booking_probability.py
+  seasonality.py
+  price_optimizer.py
+  demand_value.py       # merit vs realized price -> mispricing premium
+  client_profile.py     # advisory only; no engine, no lever default
+  levers.py             # the agent-tunable parameter surface
+  engine.py             # process singleton
+  impressions.py        # quarantined diagnostic only
+  loaders.py
 
-                    ↓
+app/optimize/
+  config.py
+  exposure.py           # ONE people→viewed-exposure conversion
+  contract.py
+  pooled.py             # diagnostic saturation curve
+  solver.py
 
-Master Agent
-"Validated: all constraints satisfied."
-
-                    ↓
-
-User receives:
-
-Recommended package
-+ price
-+ selected screens
-+ expected reach
-+ expected impressions
-+ rationale
-+ risks
-+ alternative packages
+app/data/
+  db.py
 ```
 
-The key outcome is not simply an "AI agent that recommends screens."
+When changing a rule, update the owning module and its contract/tests rather than
+duplicating the logic in prompts or downstream agents.
 
-The system should demonstrate a complete decision pipeline:
+---
 
-``` text
+# 24. Canonical end-to-end workflow
+
+```text
+1. Master parses user brief.
+2. Create and validate CampaignSpec.
+3. Resolve geography.
+4. Run deterministic relevance engine.
+5. Store ScreenCandidates artifact.
+6. ML Agent prices candidates and checks availability.
+7. Store ScreenEconomics artifact.
+8. OR Agent solves MILP.
+9. Return OptimizedPackage or InfeasibilityReport.
+10. Master runs deterministic validation.
+11. If valid, generate sales recommendation.
+12. Explain:
+      - selected screens
+      - time blocks
+      - price
+      - gross viewed exposures
+      - distinct reach
+      - frequency
+      - budget utilization
+      - risks
+      - alternatives
+13. Never recompute or reinterpret numerical metrics in prose.
+```
+
+The core product promise is:
+
+```text
 Natural language
-      ↓
-Structured business intent
-      ↓
+    ↓
+Structured intent
+    ↓
 Data-driven audience understanding
-      ↓
+    ↓
 Inventory relevance
-      ↓
-Demand prediction
-      ↓
-Dynamic pricing
-      ↓
+    ↓
+Audience volume
+    ↓
+Pricing + availability
+    ↓
 Mathematical optimization
-      ↓
-Constraint validation
-      ↓
+    ↓
+Independent validation
+    ↓
 Explainable sales recommendation
 ```
 
-That is the architecture the coding agent should implement.
+This document is intentionally compact. When implementation details conflict with this
+document, preserve the **business definitions, units, ownership boundaries, artifact
+contracts, and validation rules** first; then update this document to reflect the new
+source of truth.
