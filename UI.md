@@ -57,11 +57,29 @@
     *   `D2: Relevance`: Campaign-Screen Relevance Scorer.
     *   `D3: Pricing`: Demand Forecasting & Dynamic Pricing Guardrails.
     *   `D4: Optimizer`: Impressions & Rotation Loop Optimizer.
+*   **Type scale**: the inspector uses the **same scale as the sidebar and chat feed** —
+    12px card titles, 11px body, 10px meta. It previously ran 12-14px, which read as a
+    separate application bolted to the right-hand side.
+*   **Audience**: this panel is read by a sales rep, not by whoever built the models.
+    Anything that reports on a *model* rather than on the *campaign* belongs in logs.
+    Removed on that basis: relevance mean/range, the D1 impressions chart, pool-wide
+    pricing aggregates, the solver log, and the 17-check validation list. The validator
+    still runs and still gates the answer — it is just not sales material.
 *   **Tab Content Views**:
-    *   **D1 Tab**: Proximity tags (Business Hubs <100m, Transit Interchanges, Retail Corridors) + footfall density sparkline chart across 24-hour time blocks.
-    *   **D2 Tab**: Ranked candidate screen list with percentage fit pills (e.g., `96.4% Fit` in `bg-violet-950`).
-    *   **D3 Tab**: Price range guardrail horizontal gauge (Floor: $28, Target: $42, Cap: $65) + 6-block time occupancy grid (`dim_slot`).
-    *   **D4 Tab**: 6-slot rotation loop allocation matrix showing active partial rotation choices (Slot 1 & Slot 2 selected).
+    *   **D1 Tab**: Resolved brief, the candidate-pool counts (eligible vs shortlisted) with
+        a plain sentence on how the shortlist was made, and the inventory mix as
+        screen-type tags.
+    *   **D2 Tab**: The screens the **optimizer recommended** — not the ranked pool. Each
+        row leads with the place name, carries a `% Fit` pill (`bg-violet-950`), and expands
+        to its verbatim reasons plus the fit breakdown. Audience size is shown apart from
+        the breakdown and labelled as not feeding the score.
+    *   **D3 Tab**: One row per recommended screen: the low/typical/high range comparable
+        screens have sold for, a marker for where this quote landed, and two or three plain
+        sentences on what put it there (demand, timing, under-pricing correction). A quote
+        above the high mark is drawn in amber — the demand-value premium is allowed to
+        exceed the cap by design.
+    *   **D4 Tab**: What the plan buys in campaign terms, the brief's requirements as
+        pass/fail chips in plain names, and the 6-slot rotation loop allocation matrix.
 
 ### Settings Modal (Panel 1 → gear)
 

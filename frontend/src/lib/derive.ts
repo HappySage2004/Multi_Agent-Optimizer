@@ -263,51 +263,6 @@ export function timeBlockRollups(
   });
 }
 
-// -------------------------------------------------------------- price guardrail
-
-export interface PriceGuardrail {
-  floor: number;
-  target: number;
-  cap: number;
-  /** Volume-weighted mean price the optimizer actually paid, if a package exists. */
-  paid: number | null;
-  /** Where `paid` sits between floor and cap, 0-1. Null when it lands outside. */
-  paidPosition: number | null;
-  screensPriced: number;
-  meanBookingProbability: number | null;
-}
-
-/**
- * Mean floor/target/cap across the priced inventory — the band the optimizer had to
- * work inside, which is what the D3 gauge shows.
- */
-export function priceGuardrail(
-  economics: ScreenEconomics[],
-  allocations: Allocation[] = [],
-): PriceGuardrail | null {
-  // Only feasible rows have a band; sold-out rows carry `pricing: null`.
-  const priced = economics.filter((e) => e.feasible && e.pricing !== null);
-  if (priced.length === 0) return null;
-
-  const floor = mean(priced.map((e) => e.pricing!.floor));
-  const target = mean(priced.map((e) => e.pricing!.target));
-  const cap = mean(priced.map((e) => e.pricing!.cap));
-  if (floor === null || target === null || cap === null) return null;
-
-  const slots = allocations.reduce((sum, a) => sum + a.slots_per_day * a.duration_days, 0);
-  const paid = slots > 0 ? allocations.reduce((sum, a) => sum + lineCost(a), 0) / slots : null;
-
-  return {
-    floor,
-    target,
-    cap,
-    paid,
-    paidPosition: paid !== null && cap > floor ? clamp01((paid - floor) / (cap - floor)) : null,
-    screensPriced: new Set(priced.map((e) => e.screen_id)).size,
-    meanBookingProbability: mean(priced.map((e) => e.pricing!.booking_probability)),
-  };
-}
-
 // --------------------------------------------------- per-screen pricing (D3)
 
 export interface PricingLine {

@@ -1,6 +1,13 @@
 "use client";
 
-/** Shared card chrome for the inspector tabs, so the four tabs stay visually identical. */
+/**
+ * Shared card chrome for the inspector tabs, so the four tabs stay visually identical.
+ *
+ * The type scale here is deliberately the same one the sidebar and the chat feed use —
+ * 11px body, 10px meta, 12px only for a card title. The inspector used to run a notch
+ * larger (12-14px) than every other panel, which read as a different application bolted
+ * to the right-hand side.
+ */
 
 export function InspectorCard({
   title,
@@ -16,14 +23,16 @@ export function InspectorCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-zinc-200/50 bg-white p-4 shadow-xs">
-      <div className="space-y-1.5">
+    <div className="space-y-2.5 rounded-xl border border-zinc-200/50 bg-white p-3 shadow-xs">
+      <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[14px] font-bold tracking-wider text-zinc-700 uppercase">{title}</span>
+          <span className="text-[12px] font-bold tracking-wider text-zinc-700 uppercase">
+            {title}
+          </span>
           {badge ? <Badge tone={badgeTone}>{badge}</Badge> : null}
         </div>
         {description ? (
-          <p className="text-[13px] leading-relaxed text-zinc-400">{description}</p>
+          <p className="text-[11px] leading-relaxed text-zinc-400">{description}</p>
         ) : null}
       </div>
       {children}
@@ -41,8 +50,8 @@ export function InspectorSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-zinc-200/50 bg-white p-4 shadow-xs">
-      <div className="flex items-baseline justify-between gap-2 text-[13px]">
+    <div className="space-y-2.5 rounded-xl border border-zinc-200/50 bg-white p-3 shadow-xs">
+      <div className="flex items-baseline justify-between gap-2 text-[11px]">
         <span className="font-bold text-zinc-600">{title}</span>
         {meta ? <span className="font-medium text-zinc-400">{meta}</span> : null}
       </div>
@@ -66,7 +75,7 @@ export function Badge({
   } as const;
   return (
     <span
-      className={`shrink-0 rounded px-2 py-0.5 text-[12px] font-semibold whitespace-nowrap ${tones[tone]}`}
+      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap ${tones[tone]}`}
     >
       {children}
     </span>
@@ -79,9 +88,9 @@ export function Badge({
  */
 export function AwaitingStage({ stage, detail }: { stage: string; detail?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-zinc-200 bg-white/60 p-6 text-center">
-      <p className="text-[13px] font-semibold text-zinc-500">Awaiting {stage}</p>
-      <p className="mt-1 text-[12px] leading-relaxed text-zinc-400">
+    <div className="rounded-xl border border-dashed border-zinc-200 bg-white/60 p-5 text-center">
+      <p className="text-[11px] font-semibold text-zinc-500">Awaiting {stage}</p>
+      <p className="mt-1 text-[10px] leading-relaxed text-zinc-400">
         {detail ?? "Run a campaign brief to populate this panel."}
       </p>
     </div>
@@ -91,7 +100,7 @@ export function AwaitingStage({ stage, detail }: { stage: string; detail?: strin
 /** Flags a panel whose numbers came from an unimplemented specialist. */
 export function StubNotice({ stage }: { stage: string }) {
   return (
-    <p className="rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-800">
+    <p className="rounded-lg border border-amber-200/70 bg-amber-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-amber-800">
       {stage} is a stub. These are deterministic placeholders derived from screen IDs, not
       analysis of the data.
     </p>
@@ -102,7 +111,7 @@ export function StubNotice({ stage }: { stage: string }) {
 export function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+      <span className="w-20 shrink-0 text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
         {label}
       </span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
@@ -111,9 +120,24 @@ export function ScoreBar({ label, value }: { label: string; value: number }) {
           style={{ width: `${Math.round(Math.min(1, Math.max(0, value)) * 100)}%` }}
         />
       </div>
-      <span className="w-8 shrink-0 text-right font-mono text-[11px] text-zinc-500">
+      <span className="w-7 shrink-0 text-right font-mono text-[10px] text-zinc-500">
         {value.toFixed(2)}
       </span>
+    </div>
+  );
+}
+
+/**
+ * The small label/value tile the tabs use for headline figures. One implementation, so a
+ * figure in D1 is the same size as a figure in D4.
+ */
+export function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-zinc-50/80 px-2 py-1.5">
+      <span className="block text-[10px] font-medium tracking-wide text-zinc-400 uppercase">
+        {label}
+      </span>
+      <span className="text-[11px] font-semibold text-zinc-700">{value}</span>
     </div>
   );
 }

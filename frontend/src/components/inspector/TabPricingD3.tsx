@@ -1,245 +1,161 @@
 "use client";
 
 /**
- * D3: Demand Forecasting & Dynamic Pricing Guardrails (UI.md §2 Panel 3).
+ * D3: how each recommended screen was priced (UI.md §2 Panel 3).
  *
- * The gauge shows the floor/target/cap band the ML Agent produced, averaged over the
- * priced inventory, with a marker for the price the optimizer actually paid. The
- * six-block grid is real `dim_slot` occupancy: slots bought over slots forecast
- * available, for the screens in the package.
+ * The tab used to lead with pool-wide aggregates — mean price, mean occupancy, mean
+ * booking probability across 750 rows. None of that survives contact with a client, who
+ * asks about one screen: *why is this one $103 and that one $75?* So the aggregates are
+ * gone and the tab is a per-screen answer instead.
+ *
+ * Each row shows the range comparable screens have actually sold for, where this quote
+ * landed inside it, and the two or three things that put it there. The band comes from the
+ * ML agent's price model; nothing is re-derived here.
  */
 
 import {
   AwaitingStage,
   InspectorCard,
   InspectorSection,
-  StubNotice,
 } from "@/components/inspector/InspectorShell";
-import { type PriceGuardrail, type TimeBlockRollup } from "@/lib/derive";
-import { formatCompact, formatCurrency, formatNumber, formatPercent } from "@/lib/format";
-import type { ArtifactReference, ScreenEconomicsSummary } from "@/lib/types";
+import { type PricingLine } from "@/lib/derive";
+import { formatCurrency } from "@/lib/format";
+import type { ArtifactReference } from "@/lib/types";
 
 export function TabPricingD3({
-  guardrail,
-  rollups,
+  lines,
   economicsRef,
+  hasAllocations,
   loading,
 }: {
-  guardrail: PriceGuardrail | null;
-  rollups: TimeBlockRollup[];
+  lines: PricingLine[];
   economicsRef: ArtifactReference | undefined;
+  hasAllocations: boolean;
   loading: boolean;
 }) {
   if (!economicsRef) {
     return (
       <AwaitingStage
-        stage="the ML Agent (stage 3)"
-        detail="Demand forecasting and pricing produce the screen_economics artifact this panel reads."
+        stage="pricing (stage 3)"
+        detail="Each shortlisted screen is priced against its own market comparables before the package is built."
       />
     );
   }
 
-  const summary = (economicsRef.summary ?? {}) as ScreenEconomicsSummary;
+  if (!hasAllocations) {
+    return (
+      <AwaitingStage
+        stage="the optimizer (stage 4)"
+        detail="Screens have been priced, but this tab reports the quotes for the screens actually recommended."
+      />
+    );
+  }
+
+  const total = lines.reduce((sum, line) => sum + line.lineCost, 0);
 
   return (
     <>
       <InspectorCard
-        title="Pricing Guardrails"
-        badge="Floor / Target / Cap"
+        title="How Each Screen Is Priced"
+        badge={`${lines.length} ${lines.length === 1 ? "line" : "lines"}`}
         badgeTone="dark"
-        description="Price boundaries per screen and time block, from the demand forecast and market price model."
-      >
-        {economicsRef.provenance === "stub" ? (
-          <StubNotice stage="Demand and pricing (ML Agent)" />
-        ) : null}
-      </InspectorCard>
+        description="Every quote is anchored to what comparable screens in the same area, of the same type and daypart, have actually sold for."
+      />
 
-      <InspectorSection
-        title="Pricing Aggregates"
-        meta={`${formatNumber(economicsRef.rows)} rows`}
-      >
-        <div className="grid grid-cols-2 gap-2 text-[13px]">
-          <Stat
-            label="Screens priced"
-            value={
-              summary.screens_priced !== undefined ? formatNumber(summary.screens_priced) : "—"
-            }
-          />
-          <Stat
-            label="Mean price"
-            value={summary.price_mean !== undefined ? formatCurrency(summary.price_mean, 2) : "—"}
-          />
-          <Stat
-            label="Mean occupancy"
-            value={
-              summary.occupancy_mean !== undefined
-                ? formatPercent(summary.occupancy_mean, 0)
-                : "—"
-            }
-          />
-          <Stat
-            label="Mean booking prob."
-            value={
-              summary.booking_probability_mean !== undefined
-                ? summary.booking_probability_mean.toFixed(3)
-                : "—"
-            }
-          />
-        </div>
-        {summary.viewed_exposures_per_slot_per_day_mean !== undefined ? (
-          <p className="text-[12px] text-zinc-400">
-            Audience volume comes from the relevance engine&rsquo;s transit ridership model:
-            a block&rsquo;s daily riders passing, weighted by this flight&rsquo;s
-            weekday/weekend mix, then converted to viewed exposures for one slot on one day.
-            Reach is deduplicated by audience pool downstream, capped at the people who
-            actually look, and is never the sum of exposures.
-          </p>
-        ) : null}
-        {summary.time_blocks && summary.time_blocks.length > 0 ? (
-          <p className="text-[12px] text-zinc-400">
-            Priced blocks: {summary.time_blocks.join(", ")}
-          </p>
-        ) : null}
-      </InspectorSection>
-
-      {loading && !guardrail ? (
-        <InspectorSection title="Slot Price Guardrail">
-          <p className="text-[12px] text-zinc-400">Loading economics rows…</p>
+      {loading && lines.length === 0 ? (
+        <InspectorSection title="Screen Pricing">
+          <p className="text-[10px] text-zinc-400">Loading pricing detail…</p>
         </InspectorSection>
       ) : null}
 
-      {guardrail ? <GuardrailGauge guardrail={guardrail} /> : null}
+      {lines.length > 0 ? (
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between px-1 text-[10px]">
+            <span className="font-bold tracking-wider text-zinc-400 uppercase">
+              Highest cost first
+            </span>
+            <span className="font-medium text-zinc-400">{formatCurrency(total)} total</span>
+          </div>
 
-      <OccupancyGrid rollups={rollups} />
+          {lines.map((line) => (
+            <PricingRow key={`${line.screenId}-${line.timeBlockLabel}`} line={line} />
+          ))}
+        </div>
+      ) : null}
     </>
   );
 }
 
-function GuardrailGauge({ guardrail }: { guardrail: PriceGuardrail }) {
-  // The band is split floor->target->cap, so segment widths mirror the real spread.
-  const span = guardrail.cap - guardrail.floor;
-  const targetPct = span > 0 ? ((guardrail.target - guardrail.floor) / span) * 100 : 50;
-
+function PricingRow({ line }: { line: PricingLine }) {
   return (
-    <InspectorSection
-      title="Slot Price Guardrail"
-      meta={`${formatCurrency(guardrail.target, 2)} target`}
-    >
-      <div className="relative pt-2 pb-1">
-        <div className="flex h-2 overflow-hidden rounded-full bg-zinc-100">
-          <div className="bg-zinc-200" style={{ width: `${targetPct}%` }} />
-          <div className="bg-violet-950" style={{ width: `${Math.max(100 - targetPct, 0)}%` }} />
-        </div>
-
-        {guardrail.paidPosition !== null ? (
-          <div
-            className="absolute top-0 flex -translate-x-1/2 flex-col items-center"
-            style={{ left: `${guardrail.paidPosition * 100}%` }}
-            title={`Volume-weighted price paid: ${formatCurrency(guardrail.paid ?? 0, 2)}`}
-          >
-            {/* A rule marking the price paid on the band — a mark, so it stays near-black. */}
-            <span className="h-4 w-0.5 rounded bg-zinc-900" />
+    <div className="space-y-2 rounded-xl border border-zinc-200/50 bg-white p-2.5 shadow-xs">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate text-[11px] font-bold text-zinc-700">{line.place}</div>
+          <div className="mt-0.5 truncate text-[10px] text-zinc-400">
+            {line.timeBlockLabel} • {line.slotsPerDay}
+            {line.maxSlotsPerDay !== null ? ` of ${line.maxSlotsPerDay}` : ""} slots/day •{" "}
+            {line.screenId}
           </div>
-        ) : null}
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="text-[11px] font-bold text-zinc-800">
+            {formatCurrency(line.lineCost)}
+          </div>
+          <div className="text-[10px] text-zinc-400">
+            {formatCurrency(line.paid, 2)}/slot/day
+          </div>
+        </div>
       </div>
 
-      <div className="flex justify-between text-[12px] font-medium text-zinc-400">
-        <span>Floor: {formatCurrency(guardrail.floor, 0)}</span>
-        <span className="font-bold text-violet-950">
-          Target: {formatCurrency(guardrail.target, 0)}
+      <BandBar line={line} />
+
+      <ul className="space-y-0.5 text-[10px] leading-relaxed text-zinc-500">
+        {line.drivers.map((driver) => (
+          <li key={driver} className="flex gap-1.5">
+            <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-zinc-300" />
+            <span>{driver}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Where this quote sits in the range comparable screens have sold for.
+ *
+ * A quote above the cap is drawn pinned to the right rather than off the end, and labelled
+ * — the demand-value premium is allowed to exceed the cap by design (an under-priced
+ * screen's own comparables are what understate it), so this is a real state, not a bug.
+ */
+function BandBar({ line }: { line: PricingLine }) {
+  return (
+    <div>
+      <div className="relative pt-1.5 pb-1">
+        <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
+          <div
+            className="h-full rounded-full bg-violet-950/15"
+            style={{ width: `${line.paidPosition * 100}%` }}
+          />
+        </div>
+        <div
+          className="absolute top-0.5 -translate-x-1/2"
+          style={{ left: `${line.paidPosition * 100}%` }}
+        >
+          <span
+            className={`block h-3.5 w-0.5 rounded ${line.aboveCap ? "bg-amber-500" : "bg-violet-950"}`}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between text-[10px] text-zinc-400">
+        <span>Low {formatCurrency(line.floor, 0)}</span>
+        <span>Typical {formatCurrency(line.target, 0)}</span>
+        <span className={line.aboveCap ? "font-semibold text-amber-700" : undefined}>
+          High {formatCurrency(line.cap, 0)}
         </span>
-        <span>Cap: {formatCurrency(guardrail.cap, 0)}</span>
       </div>
-
-      <dl className="grid grid-cols-2 gap-2 border-t border-zinc-100 pt-2 text-[12px]">
-        <div>
-          <dt className="text-zinc-400">Weighted price paid</dt>
-          <dd className="font-semibold text-zinc-700">
-            {guardrail.paid !== null ? formatCurrency(guardrail.paid, 2) : "No package yet"}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-zinc-400">Mean booking probability</dt>
-          <dd className="font-semibold text-zinc-700">
-            {guardrail.meanBookingProbability !== null
-              ? formatPercent(guardrail.meanBookingProbability)
-              : "—"}
-          </dd>
-        </div>
-      </dl>
-
-      <p className="text-[11px] leading-relaxed text-zinc-400">
-        Band is the mean floor/target/cap across the{" "}
-        {formatNumber(guardrail.screensPriced)} screens in this package. The marker is total
-        spend over total slots bought. Pool-wide mean price is shown above.
-      </p>
-    </InspectorSection>
-  );
-}
-
-/** The 6-block occupancy grid. Always all six real `dim_slot` blocks. */
-function OccupancyGrid({ rollups }: { rollups: TimeBlockRollup[] }) {
-  const anyPriced = rollups.some((r) => r.marketOccupancy !== null || r.selected);
-
-  return (
-    <InspectorSection title="6-Block Time Occupancy" meta="dim_slot">
-      <div className="grid grid-cols-3 gap-1.5 text-center text-[12px] font-medium">
-        {rollups.map((rollup) => {
-          const label =
-            rollup.occupancy !== null
-              ? formatPercent(rollup.occupancy, 0)
-              : rollup.marketOccupancy !== null
-                ? `mkt ${formatPercent(rollup.marketOccupancy, 0)}`
-                : "—";
-          return (
-            <div
-              key={rollup.id}
-              title={describeBlock(rollup)}
-              className={`rounded p-2 ${
-                rollup.selected
-                  ? "bg-violet-950 font-bold text-white"
-                  : rollup.marketOccupancy !== null
-                    ? "bg-zinc-100 text-zinc-700"
-                    : "bg-zinc-100/60 text-zinc-400"
-              }`}
-            >
-              <span className="block">{rollup.label}</span>
-              <span className="block text-[11px] opacity-80">{label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <p className="text-[11px] leading-relaxed text-zinc-400">
-        {anyPriced
-          ? "Violet = bought by the optimizer, showing slots bought over slots available. Grey with an index = priced but not bought."
-          : "No blocks priced yet."}
-      </p>
-    </InspectorSection>
-  );
-}
-
-function describeBlock(rollup: TimeBlockRollup): string {
-  const parts = [rollup.label];
-  if (rollup.isPeak) parts.push("commuter peak");
-  if (rollup.selected) {
-    parts.push(`${rollup.screens} screens`, `${rollup.slotsPerDay} slots/day`);
-    parts.push(`${formatCompact(rollup.impressions)} impressions`);
-    parts.push(formatCurrency(rollup.cost));
-  } else {
-    parts.push("not bought");
-  }
-  if (rollup.meanPrice !== null) parts.push(`mean price ${formatCurrency(rollup.meanPrice, 2)}`);
-  return parts.join(" • ");
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg bg-zinc-50/80 px-2.5 py-2">
-      <span className="block text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
-        {label}
-      </span>
-      <span className="font-semibold text-zinc-700">{value}</span>
     </div>
   );
 }

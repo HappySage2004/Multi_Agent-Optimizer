@@ -4073,5 +4073,143 @@
     "stub_stages": [],
     "pricing_levers": null,
     "updated_at": "2026-08-23T17:45:57"
+  },
+  {
+    "id": "run-546c8e531ca4",
+    "created_at": "2026-08-23T18:49:44",
+    "session_id": "ses-3f38f08a9f52",
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "Brand Awareness & Test-Drive Bookings",
+      "industry_vertical": "auto",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-005"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": [
+          28,
+          50
+        ],
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "professionals",
+        "high_income",
+        "commuters"
+      ],
+      "start_date": "2027-01-01",
+      "duration_days": 45,
+      "budget": 40000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [
+        "morning",
+        "evening"
+      ],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "awareness",
+      "screen_type_mix": [],
+      "hard_constraints": {
+        "max_slots_per_day": 1,
+        "excluded_screen_types": [
+          "bus_rear"
+        ],
+        "excluded_zone_ids": [
+          "LH-ZONE-003"
+        ]
+      },
+      "soft_preferences": {
+        "premium_business_district_platforms": true,
+        "auto_retail_arterial_corridors": true,
+        "static_motion_hybrid": true
+      },
+      "original_query": "Customer Campaign Briefs\nDigital Out-of-Home Campaign Portfolio\nCLIENT BRIEF 1: ZEPHYR EV \u2014 THE FUTURE HAS NO TAILPIPE\n1. Executive Summary & Objective\nVoltaic Motors is launching the Zephyr EV, its first mass-premium electric sedan, in Las Hackland ahead of a citywide dealership rollout. The campaign must build credible brand presence in a category where commuters default to established fuel-vehicle brands, while driving measurable test-drive bookings through a QR-linked scheduling flow. The creative direction favors calm, premium confidence over aggressive discounting.\n2. Target Audience & Persona\nThe target buyer is a homeowner or senior professional currently driving a fuel vehicle, financially comfortable enough to consider an upgrade but requiring reassurance on range, charging convenience, and resale value before committing. They commute by car during peak hours but pass through metro and business-district transit corridors regularly for meetings, meaning transit advertising still reaches them even though they don't ride transit daily. They research heavily before buying and respond to clean, factual messaging over hype.\n3. Digital Screen Selection & Location Requirements\nHigh-Dwell Business-District Platforms: Metro platform boards in the city's primary commercial and financial districts, where affluent professional commuters typically spend three to six minutes waiting on the platform.\nAuto-Retail Arterial Corridors: Roadside-adjacent transit screens on major arterial routes with a dense concentration of car dealerships, positioned to intercept shoppers already actively comparing vehicles.\nExclusion Criteria: Exclude bus-rear screens and value-tier inventory in high-density residential areas \u2014 the campaign is intentionally not mass-market and should avoid diluting the premium positioning.\n4. Visual / Mockup Details & Slot Parameters\nVoltaic Motors will supply a premium static/motion hybrid asset. The creative features matte charcoal and electric-blue gradients, a single hero product shot of the Zephyr EV silhouette, and minimal copy. Layout is optimized for an ultra-wide 16:9 digital display to read clearly from across platform tracks. Leasing structure requested: 1 rotating slot (15 seconds per minute) on digital screens only.\nReference Mockup A \u2014 Premium Minimalist \u2014 Matte Charcoal & Electric Blue\nReference Mockup B \u2014 16:9 Metro Platform Wide-Screen Display\n5. RFP Requirements (Sales Team Response)\nTo accept this campaign brief, the Urban Media commercial intelligence agent must generate a formalized response containing:\n1. A curated shortlist of screens across the premium business-district platforms and auto-retail arterial corridors described above, ranked by affluent-commuter affinity.\n2. An optimal price recommendation reflecting premium-node demand, platform dwell time, and proximity to competing dealerships.\n3. Projected weekly impressions and test-drive-booking potential, with logical justification for each recommended location.\nCompany Name\tVoltaic Motors Inc. (Brand: Zephyr EV)\nIndustry Vertical\tAUTOMOTIVE / ELECTRIC VEHICLES\nCampaign Objective\tBrand Awareness & Test-Drive Bookings\nTarget Audience\tUrban professionals and eco-conscious upgraders (Ages 28-50)\nCampaign Budget\tUSD 40,000\nCampaign Duration\t45 Days (Proposed: Q1 2027 \u2014 pre-monsoon launch window)",
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-e98e7a7215b9",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-e98e7a7215b9.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "impressions_block_1_estimated",
+          "nearby_ambient_footfall",
+          "city_id",
+          "zone_id",
+          "location_name",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2260,
+          "candidates": 250,
+          "relevance_min": 0.8051,
+          "relevance_mean": 0.8212,
+          "relevance_max": 0.8407,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "professionals",
+            "high_income",
+            "commuters"
+          ],
+          "distinct_audience_pools": 26,
+          "pooled_daily_audience": 104046.6,
+          "naive_daily_audience": 1743840.2,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [],
+          "pool_composition_by_screen_type": {
+            "metro_station": 227,
+            "bus_stop": 23
+          },
+          "eligible_by_screen_type": {
+            "metro_rail_coach": 884,
+            "metro_station": 845,
+            "bus": 381,
+            "bus_stop": 150
+          },
+          "screen_type_mix_requested": [],
+          "screen_type_mix_unfilled": {},
+          "constant_subscores": []
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T18:49:58.436011"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T18:49:58"
   }
 ]

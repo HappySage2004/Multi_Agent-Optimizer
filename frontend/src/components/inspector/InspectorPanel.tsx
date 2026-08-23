@@ -13,7 +13,7 @@ import { TabPricingD3 } from "@/components/inspector/TabPricingD3";
 import { TabRelevanceD2 } from "@/components/inspector/TabRelevanceD2";
 import { WarningIcon } from "@/components/ui/Icon";
 import type { RunData } from "@/hooks/useCampaignRun";
-import { priceGuardrail, rotationRows, timeBlockRollups } from "@/lib/derive";
+import { pricingLines, rotationRows } from "@/lib/derive";
 
 export const INSPECTOR_TABS = [
   { id: "d1", label: "D1: Audience" },
@@ -38,16 +38,16 @@ function ArtifactErrors({ errors }: { errors: RunData["artifactErrors"] }) {
 
   return (
     <div className="space-y-1.5 rounded-lg border border-amber-200/70 bg-amber-50 p-3">
-      <div className="flex items-center gap-1.5 text-[13px] font-bold text-amber-800">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-800">
         <WarningIcon className="h-3.5 w-3.5 shrink-0" />
         Stored data could not be read
       </div>
       {entries.map(([kind, detail]) => (
-        <p key={kind} className="text-[12px] leading-relaxed text-amber-800">
+        <p key={kind} className="text-[10px] leading-relaxed text-amber-800">
           <span className="font-mono font-semibold">{kind}</span>: {detail}
         </p>
       ))}
-      <p className="text-[12px] leading-relaxed text-amber-700">
+      <p className="text-[10px] leading-relaxed text-amber-700">
         The figures below are therefore incomplete — they are not zeroes.
       </p>
     </div>
@@ -67,8 +67,9 @@ export function InspectorPanel({
     runData;
   const allocations = run?.optimization?.package?.allocations ?? [];
 
-  const rollups = timeBlockRollups(allocations, economics);
-  const guardrail = priceGuardrail(economics, allocations);
+  // Both tabs describe the screens the optimizer actually bought, so both are built
+  // from `allocations` rather than from the ranked pool.
+  const pricing = pricingLines(allocations, economics, packagedCandidates);
   const rotation = rotationRows(allocations, economics, packagedCandidates);
 
   return (
@@ -87,7 +88,7 @@ export function InspectorPanel({
               aria-selected={active}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 rounded-lg py-2 text-[13px] transition-all ${
+              className={`flex-1 rounded-lg py-1.5 text-[11px] transition-all ${
                 active
                   ? "bg-violet-950 font-bold text-white shadow-xs"
                   : "font-medium text-zinc-500 hover:bg-zinc-100/60"
@@ -99,7 +100,7 @@ export function InspectorPanel({
         })}
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4 text-[14px]">
+      <div className="flex-1 space-y-3 overflow-y-auto p-3 text-[11px]">
         <ArtifactErrors errors={artifactErrors} />
 
         {activeTab === "d1" ? (
@@ -107,13 +108,12 @@ export function InspectorPanel({
             spec={run?.campaign_spec ?? null}
             candidates={candidates}
             candidatesRef={run?.artifacts.screen_candidates}
-            rollups={rollups}
           />
         ) : null}
 
         {activeTab === "d2" ? (
           <TabRelevanceD2
-            candidates={candidates}
+            recommended={packagedCandidates}
             candidatesRef={run?.artifacts.screen_candidates}
             allocations={allocations}
             loading={loadingArtifacts}
@@ -122,19 +122,15 @@ export function InspectorPanel({
 
         {activeTab === "d3" ? (
           <TabPricingD3
-            guardrail={guardrail}
-            rollups={rollups}
+            lines={pricing}
             economicsRef={run?.artifacts.screen_economics}
+            hasAllocations={allocations.length > 0}
             loading={loadingArtifacts}
           />
         ) : null}
 
         {activeTab === "d4" ? (
-          <TabOptimizerD4
-            optimization={run?.optimization ?? null}
-            validation={run?.validation ?? null}
-            rows={rotation}
-          />
+          <TabOptimizerD4 optimization={run?.optimization ?? null} rows={rotation} />
         ) : null}
       </div>
     </aside>

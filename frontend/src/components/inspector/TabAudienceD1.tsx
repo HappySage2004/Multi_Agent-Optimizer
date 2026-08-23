@@ -3,22 +3,26 @@
 /**
  * D1: Audience Profiling Engine (UI.md §2 Panel 3).
  *
- * The mockup's "proximity clusters" and 24-hour footfall sparkline come from the POI and
- * ridership features the relevance engine builds. What the API exposes today is the
- * resolved spec, the candidate-pool aggregates, and per-time-block audience volume from
- * the economics rows — so the chart plots impression share by real `dim_slot` block, and
- * the cluster tags reflect the inventory mix actually in the candidate pool.
+ * What the rep needs from this tab is "who did we aim at, and what did that leave us to
+ * work with" — the resolved brief, how much inventory survived it, and what kind of
+ * inventory that is.
+ *
+ * Two things were removed as reporting on the model rather than on the campaign: the
+ * mean/range of the relevance score (a 0-1 number with no scale a client understands, and
+ * nothing the rep can act on), and the forecast-impressions-by-time-block chart, which
+ * duplicated D4's allocation view a stage too early.
  */
 
 import {
   AwaitingStage,
   InspectorCard,
   InspectorSection,
+  Stat,
   StubNotice,
 } from "@/components/inspector/InspectorShell";
 import { BuildingIcon, InterchangeIcon, RetailIcon } from "@/components/ui/Icon";
-import { audienceLabel, geographyLabel, type TimeBlockRollup } from "@/lib/derive";
-import { formatCompact, formatCurrency, formatDate, formatNumber, titleCase } from "@/lib/format";
+import { audienceLabel, geographyLabel } from "@/lib/derive";
+import { formatCurrency, formatDate, formatNumber, titleCase } from "@/lib/format";
 import type {
   ArtifactReference,
   CampaignSpec,
@@ -30,12 +34,10 @@ export function TabAudienceD1({
   spec,
   candidates,
   candidatesRef,
-  rollups,
 }: {
   spec: CampaignSpec | null;
   candidates: ScreenCandidate[];
   candidatesRef: ArtifactReference | undefined;
-  rollups: TimeBlockRollup[];
 }) {
   if (!spec) {
     return (
@@ -54,15 +56,13 @@ export function TabAudienceD1({
         title="Audience Profiling"
         badge={candidatesRef ? "Active" : "Pending"}
         badgeTone={candidatesRef ? "active" : "neutral"}
-        description="Inferred from the resolved brief, the eligible inventory, and per-time-block transit ridership."
+        description="Who the campaign is aimed at, and the inventory that reaches them."
       />
 
       <InspectorSection title="Resolved Brief" meta={spec.optimization_goal.toUpperCase()}>
-        <dl className="space-y-1.5 text-[13px]">
+        <dl className="space-y-1 text-[11px]">
           <Row label="Objective" value={spec.campaign_objective} />
-          {spec.industry_vertical ? (
-            <Row label="Vertical" value={spec.industry_vertical} />
-          ) : null}
+          {spec.industry_vertical ? <Row label="Vertical" value={spec.industry_vertical} /> : null}
           <Row label="Audience" value={audienceLabel(spec)} />
           <Row label="Geography" value={geographyLabel(spec)} />
           <Row
@@ -73,11 +73,11 @@ export function TabAudienceD1({
         </dl>
 
         {spec.missing_information.length > 0 ? (
-          <div className="rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-2">
-            <span className="text-[12px] font-bold tracking-wider text-amber-800 uppercase">
+          <div className="rounded-lg border border-amber-200/70 bg-amber-50 px-2.5 py-1.5">
+            <span className="text-[10px] font-bold tracking-wider text-amber-800 uppercase">
               Not specified in the brief
             </span>
-            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12px] text-amber-700">
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[10px] text-amber-700">
               {spec.missing_information.map((item) => (
                 <li key={item}>{item}</li>
               ))}
@@ -94,7 +94,7 @@ export function TabAudienceD1({
           {candidatesRef.provenance === "stub" ? (
             <StubNotice stage="Relevance scoring (relevance engine)" />
           ) : null}
-          <div className="grid grid-cols-2 gap-2 text-[13px]">
+          <div className="grid grid-cols-2 gap-2">
             <Stat
               label="Eligible in geography"
               value={
@@ -107,27 +107,16 @@ export function TabAudienceD1({
               label="Shortlisted"
               value={summary.candidates !== undefined ? formatNumber(summary.candidates) : "—"}
             />
-            <Stat
-              label="Mean relevance"
-              value={
-                summary.relevance_mean !== undefined ? summary.relevance_mean.toFixed(3) : "—"
-              }
-            />
-            <Stat
-              label="Relevance range"
-              value={
-                summary.relevance_min !== undefined && summary.relevance_max !== undefined
-                  ? `${summary.relevance_min.toFixed(2)}-${summary.relevance_max.toFixed(2)}`
-                  : "—"
-              }
-            />
           </div>
+          <p className="text-[10px] leading-relaxed text-zinc-400">
+            These screens were scored and shortlisted against the audience, location, timing
+            and context set out in the campaign brief. The strongest of them go through to
+            pricing.
+          </p>
         </InspectorSection>
       ) : null}
 
       <InventoryMix candidates={candidates} />
-
-      <FootfallChart rollups={rollups} />
     </>
   );
 }
@@ -140,9 +129,8 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
   if (candidates.length === 0) {
     return (
       <InspectorSection title="Inventory Mix">
-        <p className="text-[12px] leading-relaxed text-zinc-400">
-          Populated from the <code className="font-mono">screen_candidates</code> artifact once
-          the relevance engine has run.
+        <p className="text-[10px] leading-relaxed text-zinc-400">
+          Populated once the relevance engine has scored the eligible inventory.
         </p>
       </InspectorSection>
     );
@@ -172,7 +160,7 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
           return (
             <span
               key={type}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium ${
+              className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-medium ${
                 primary
                   ? "border border-zinc-800 bg-zinc-50 text-zinc-800"
                   : "border border-zinc-200/50 bg-zinc-100/70 text-zinc-600"
@@ -188,94 +176,11 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
   );
 }
 
-/**
- * Forecast impression share per `dim_slot` block. The commuter peaks (blocks 2 and 5)
- * are highlighted in violet, matching the mockup's peak emphasis.
- */
-function FootfallChart({ rollups }: { rollups: TimeBlockRollup[] }) {
-  const hasData = rollups.some((r) => r.impressions > 0);
-  if (!hasData) {
-    return (
-      <InspectorSection title="Forecast Impressions by Time Block">
-        <p className="text-[12px] leading-relaxed text-zinc-400">
-          Populated from the optimizer&rsquo;s allocations once stage 4 has run.
-        </p>
-      </InspectorSection>
-    );
-  }
-
-  const peak = Math.max(...rollups.map((r) => r.impressionShare));
-
-  return (
-    <InspectorSection title="Forecast Impressions by Time Block" meta="dim_slot">
-      <div className="flex h-24 items-end gap-2 border-b border-zinc-100 pt-2 pb-1">
-        {rollups.map((rollup) => {
-          // Scale to the tallest bar so a single-block package is still readable.
-          const height = peak > 0 ? (rollup.impressionShare / peak) * 100 : 0;
-          return (
-            <div
-              key={rollup.id}
-              className="group relative flex-1"
-              title={`${rollup.label} — ${formatCompact(rollup.impressions)} impressions (${Math.round(rollup.impressionShare * 100)}%)`}
-            >
-              <div
-                className={`w-full rounded-t-sm ${
-                  !rollup.selected
-                    ? "bg-zinc-200/60"
-                    : rollup.isPeak
-                      ? "bg-violet-950"
-                      : "bg-zinc-300"
-                }`}
-                style={{ height: `${Math.max(height, rollup.selected ? 6 : 3)}%`, minHeight: 3 }}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex gap-2 text-[11px] font-medium tracking-tight text-zinc-400">
-        {rollups.map((rollup) => (
-          <span key={rollup.id} className="flex-1 text-center">
-            {rollup.label.slice(0, 5)}
-            {rollup.isPeak ? <span className="block text-violet-950">peak</span> : null}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-3 pt-1 text-[11px] text-zinc-400">
-        <LegendSwatch className="bg-violet-950" label="Peak block, bought" />
-        <LegendSwatch className="bg-zinc-300" label="Bought" />
-        <LegendSwatch className="bg-zinc-200/60" label="Not bought" />
-      </div>
-    </InspectorSection>
-  );
-}
-
-function LegendSwatch({ className, label }: { className: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1">
-      <span className={`h-2 w-2 rounded-sm ${className}`} />
-      {label}
-    </span>
-  );
-}
-
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-3">
       <dt className="shrink-0 text-zinc-400">{label}</dt>
       <dd className="text-right font-medium text-zinc-600">{value}</dd>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg bg-zinc-50/80 px-2.5 py-2">
-      <span className="block text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
-        {label}
-      </span>
-      <span className="font-semibold text-zinc-700">{value}</span>
     </div>
   );
 }
