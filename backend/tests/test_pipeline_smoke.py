@@ -92,6 +92,76 @@ def test_full_pipeline_produces_a_package_that_passes_validation():
     assert verdict["stub_stages"] == []
 
 
+def test_pricing_levers_reach_the_package_and_are_disclosed():
+    """The whole agent-facing path for a lever: a Master tool sets it, the pricing stage
+    picks it up off the run without it crossing a delegation message, the prices move, the
+    optimizer still produces a valid package, and every surface the Master reads from says
+    a human moved the price.
+
+    A rep asking for a 15% premium is the case this exists for. What must NOT happen is a
+    silently repriced package that reads like a modelled quote.
+    """
+    run_id = _spec()["run_id"]
+    relevance_tools.build_screen_candidates.invoke({"run_id": run_id, "top_n": 60})
+
+    baseline = ml_agent_tools.estimate_screen_economics.invoke({"run_id": run_id})
+    assert baseline["status"] == "ok"
+    assert baseline["pricing_levers_applied"] == []
+
+    levers = master_tools.set_pricing_levers.invoke(
+        {
+            "run_id": run_id,
+            "commercial_multiplier": 1.15,
+            "note": "client accepted a premium for the downtown peak",
+        }
+    )
+    assert levers["status"] == "ok"
+    assert levers["clamped"] == []
+    assert levers["changes_from_default"] == ["commercial_multiplier=1.15"]
+
+    # Re-priced with no lever argument anywhere: the stage reads them off the run.
+    levered = ml_agent_tools.estimate_screen_economics.invoke({"run_id": run_id})
+    assert levered["status"] == "ok"
+    assert levered["pricing_levers_applied"] == ["commercial_multiplier=1.15"]
+    assert levered["pricing_levers_note"] == "client accepted a premium for the downtown peak"
+    assert levered["price_band"]["mean"] > baseline["price_band"]["mean"]
+    # A commercial adjustment must not change what inventory is purchasable.
+    assert levered["lines_feasible"] == baseline["lines_feasible"]
+
+    optimized = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert optimized["status"] in SOLVED, optimized
+    assert optimized["total_cost"] <= 50_000.0
+
+    verdict = master_tools.verify_package.invoke({"run_id": run_id})
+    assert verdict["status"] == "pass", verdict["failed_checks"]
+
+    # The disclosure the recommendation is built from.
+    assert master_tools.inspect_package.invoke({"run_id": run_id})["pricing_levers_applied"] == [
+        "commercial_multiplier=1.15"
+    ]
+
+
+def test_out_of_range_levers_are_clamped_before_they_reach_the_price():
+    """An LLM picks these values, so the bound has to hold in code. `set_pricing_levers`
+    clamps and reports rather than rejecting, and the price is computed from the clamped
+    value — never from what was asked for."""
+    run_id = _spec()["run_id"]
+    relevance_tools.build_screen_candidates.invoke({"run_id": run_id, "top_n": 40})
+
+    out = master_tools.set_pricing_levers.invoke({"run_id": run_id, "commercial_multiplier": 5.0})
+    assert out["status"] == "ok"
+    assert out["effective_levers"]["commercial_multiplier"] == 1.30
+    assert any("clamped to 1.3" in c for c in out["clamped"])
+
+    economics = ml_agent_tools.estimate_screen_economics.invoke({"run_id": run_id})
+    assert economics["pricing_levers_applied"] == ["commercial_multiplier=1.3"]
+
+
+def test_levers_on_an_unknown_run_are_an_error_not_a_silent_no_op():
+    out = master_tools.set_pricing_levers.invoke({"run_id": "run-does-not-exist"})
+    assert out["status"] == "error"
+
+
 def test_infeasible_budget_is_reported_not_papered_over():
     created = _spec(budget=25.0)
     run_id = created["run_id"]

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.ml.levers import PricingLevers
 from app.models.artifacts import ArtifactReference, Provenance
 from app.models.campaign import CampaignSpec
 from app.models.optimization import OptimizationResult
@@ -28,6 +29,7 @@ def create_run(spec: CampaignSpec, *, session_id: str | None = None) -> str:
             "optimization": None,
             "validation": None,
             "stub_stages": [],
+            "pricing_levers": None,
         },
     )
     return record["id"]
@@ -116,6 +118,23 @@ def missing_prerequisite(run_id: str, kind: str) -> dict[str, Any] | None:
             f"concurrently — each one consumes the previous stage's output."
         ),
     }
+
+
+def set_pricing_levers(run_id: str, levers: PricingLevers) -> None:
+    """Record the run's pricing levers. Store CLAMPED values only.
+
+    Levers live on the run rather than travelling in a delegation message on purpose. The
+    Master talks to the ml_agent in natural language, and a float that has to survive an
+    LLM paraphrase is a float that will eventually arrive wrong. This is the same
+    "run handles, not payloads" rule the artifacts follow.
+    """
+    local_db.update(local_db.RUNS, run_id, {"pricing_levers": levers.model_dump(mode="json")})
+
+
+def get_pricing_levers(run_id: str) -> PricingLevers:
+    """The run's pricing levers, or the identity set if none were ever recorded."""
+    raw = _require(run_id).get("pricing_levers")
+    return PricingLevers.model_validate(raw) if raw else PricingLevers()
 
 
 def set_optimization(run_id: str, result: OptimizationResult) -> None:

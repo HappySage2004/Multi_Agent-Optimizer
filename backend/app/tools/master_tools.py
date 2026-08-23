@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from app.agents.validation import validate_explanations, validate_package
 from app.data.reference import resolve_geography, screen_facts
 from app.logging_utils import debug, error, info
+from app.ml.levers import PricingLevers
 from app.models.campaign import AUDIENCE_TERMS, AudienceTarget, CampaignSpec
 from app.models.economics import ScreenEconomics
 from app.services import run_state
@@ -261,6 +262,11 @@ def get_active_run(session_id: str) -> dict:
             "day_type_focus": spec.day_type_focus,
             "hard_constraints": spec.hard_constraints,
             "soft_preferences": spec.soft_preferences,
+            # Levers are a campaign input in the sense that matters here: they change the
+            # prices the optimizer consumed, so a request to move one is a REBUILD, not a
+            # question. Only the non-default ones are listed — an empty list means the
+            # package was priced with the engine's own derived multipliers.
+            "pricing_levers": run_state.get_pricing_levers(run_id).changes(),
         },
         "original_query": spec.original_query,
         "missing_information": spec.missing_information,
@@ -280,6 +286,150 @@ def get_run_state(run_id: str) -> dict:
         return run_state.snapshot(run_id)
     except KeyError as exc:
         return {"status": "error", "detail": str(exc)}
+
+
+@tool
+def get_client_negotiation_profile(client: str) -> dict:
+    """How this client has behaved on price before. ADVISORY — it changes no quote.
+
+    Call this when the rep names the advertiser, so you can tell them what to expect in the
+    negotiation. It reports what the client has actually paid relative to comparable
+    inventory, how precisely that is known, whether they have ever walked away over price
+    and how much off they asked for.
+
+    It may suggest an opening `commercial_multiplier`, but you must NOT apply it. Present
+    it, and call `set_pricing_levers` only if the rep agrees. A client's posture predicts
+    what you concede, not whether you lose — price-driven loss rates are flat across
+    leverage tiers (34.2% / 32.5% / 34.8%) while realized prices are not, so acting on it
+    automatically would be pricing off the wrong half of the finding.
+
+    Args:
+        client: A client_id (e.g. "CLI-000123") or a company name, whole or partial. If
+            more than one client matches, the candidates come back and you should ask which
+            one rather than picking.
+    """
+    from app.ml.client_profile import get_client_profile_model
+
+    model = get_client_profile_model()
+    matches = model.resolve(client)
+
+    if not matches:
+        info(f"client profile: '{client}' matched no client")
+        return {
+            "status": "not_found",
+            "detail": (
+                f"No client matches '{client}'. This may be a prospect with no history — "
+                f"say so rather than implying the account is known."
+            ),
+        }
+    if len(matches) > 1:
+        options = [
+            {"client_id": cid, "company_name": model.profile(cid).company_name}
+            for cid in matches[:10]
+        ]
+        debug(f"client profile: '{client}' is ambiguous across {len(matches)} clients")
+        return {
+            "status": "ambiguous",
+            "matches": options,
+            "detail": (
+                f"'{client}' matches {len(matches)} clients. Ask which one — do not guess, "
+                f"the profile drives what the rep says in a live negotiation."
+            ),
+        }
+
+    profile = model.profile(matches[0])
+    debug(
+        f"client profile {profile.client_id} ({profile.company_name}): "
+        f"posture={profile.posture} confidence={profile.confidence} "
+        f"index={profile.realized_price_index} suggestion="
+        f"x{profile.suggested_commercial_multiplier}"
+    )
+    return {"status": "ok", **profile.as_context()}
+
+
+@tool
+def set_pricing_levers(
+    run_id: str,
+    seasonality_weight: float = 1.0,
+    event_weight: float = 1.0,
+    industry_weight: float = 1.0,
+    occupancy_gamma: float = 1.0,
+    band_position: float | None = None,
+    commercial_multiplier: float = 1.0,
+    respect_band_floor: bool = True,
+    note: str | None = None,
+) -> dict:
+    """Adjust HOW the pricing stage prices, based on what the sales rep told you.
+
+    Call this BEFORE delegating stage 4, whenever the rep has given commercial context the
+    brief did not contain — a client who will not pay a peak premium, a flight where the
+    seasonality haircut is wrong, an instruction to open at the top of the band. The levers
+    are stored on the run and the pricing stage picks them up automatically, so do not
+    repeat them in the delegation message.
+
+    Every lever defaults to identity: omit the ones the rep did not speak to. Values are
+    CLAMPED to a permitted range rather than rejected — the result tells you the effective
+    value, and you must quote that rather than what you asked for.
+
+    None of these can overrule inventory. A sold-out screen stays infeasible, availability
+    is untouched, and the band still comes from real comparable bookings.
+
+    Args:
+        run_id: Handle for the campaign run.
+        seasonality_weight: 0.0-2.0. How much of the day-of-week / holiday ridership
+            multiplier to apply; 1.0 is the derived value. Note it averages 0.913 over a
+            full week, so a whole-week flight is discounted ~9% off a band already built
+            from real contracted prices. Set 0.0 to stop that.
+        event_weight: 0.0-2.0. How much of the nearby-event premium to apply.
+        industry_weight: 0.0-2.0. How much of the industry-vertical band adjustment to
+            apply. The effective adjustment stays inside [0.85, 1.20] regardless.
+        occupancy_gamma: 0.25-4.0. Reshapes occupancy into a position in the band. Below
+            1.0 quotes higher on partly-empty inventory; above 1.0 quotes lower. Empty
+            still quotes at floor, full still quotes at cap.
+        band_position: 0.0-1.0, or omit. Quote at a fixed position instead of an
+            occupancy-driven one: 0.0 floor, 0.5 midpoint, 1.0 cap.
+        commercial_multiplier: 0.70-1.30. Blanket adjustment applied last — the
+            negotiation lever.
+        respect_band_floor: Keep the quote at or above the band floor. Set False only to
+            authorise a sub-floor quote; rows then disclose that they went below it.
+        note: The rep's reason, in their words. Stored with the levers.
+    """
+    try:
+        run_state.get_spec(run_id)  # existence check; levers on an unknown run are useless
+    except KeyError as exc:
+        return {"status": "error", "detail": str(exc)}
+
+    requested = PricingLevers(
+        seasonality_weight=seasonality_weight,
+        event_weight=event_weight,
+        industry_weight=industry_weight,
+        occupancy_gamma=occupancy_gamma,
+        band_position=band_position,
+        commercial_multiplier=commercial_multiplier,
+        respect_band_floor=respect_band_floor,
+        note=note,
+    )
+    effective, clamped = requested.clamp()
+    run_state.set_pricing_levers(run_id, effective)
+
+    changes = effective.changes()
+    info(
+        f"pricing levers set on run_id={run_id}: "
+        + (", ".join(changes) if changes else "all identity (no change)")
+        + (f" — clamped: {'; '.join(clamped)}" if clamped else "")
+    )
+    return {
+        "status": "ok",
+        "run_id": run_id,
+        "effective_levers": effective.model_dump(mode="json"),
+        "changes_from_default": changes,
+        "clamped": clamped,
+        "detail": (
+            "Stored on the run. Stage 4 will apply these automatically — do not restate "
+            "them when you delegate. If the package already exists, it was priced with the "
+            "PREVIOUS levers and must be rebuilt for these to take effect."
+        ),
+    }
 
 
 @tool
@@ -377,6 +527,10 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
             "optimization_method": pkg.optimization_method,
         },
         "composition": {"zones_covered": len(zones), "by_screen_type": types},
+        # Empty means these prices are the engine's own derived figures. Non-empty means a
+        # human moved them, and the recommendation has to disclose that rather than
+        # presenting an adjusted quote as a purely modelled one.
+        "pricing_levers_applied": run_state.get_pricing_levers(run_id).changes(),
         "top_lines": [
             {
                 "screen_id": a.screen_id,
@@ -415,6 +569,8 @@ TOOLS = [
     resolve_geography_terms,
     create_campaign_spec,
     get_run_state,
+    get_client_negotiation_profile,
+    set_pricing_levers,
     verify_package,
     inspect_package,
     check_explanations,

@@ -75,6 +75,10 @@ def estimate_screen_economics(
     Consumes the `screen_candidates` artifact and produces the `screen_economics`
     artifact the optimizer needs. Returns an artifact reference plus aggregates.
 
+    Pricing levers are read from the run, not passed here — the Master sets them with
+    `set_pricing_levers` when the sales rep gives commercial context. The result reports
+    which ones were active so you can state how the prices were adjusted.
+
     Args:
         run_id: Handle for the campaign run.
         time_blocks: dim_slot time_block_ids to price. Defaults to the campaign's
@@ -102,6 +106,14 @@ def estimate_screen_economics(
     from app.ml.engine import get_pricing_engine
 
     engine = get_pricing_engine()
+
+    # Already clamped when they were stored, so this is a read, not a second gate. The
+    # engine is handed them verbatim: clamping in two places would let one of them bound a
+    # value the caller was never told about.
+    levers = run_state.get_pricing_levers(run_id)
+    lever_changes = levers.changes()
+    if lever_changes:
+        info(f"STAGE 4 pricing levers active: {', '.join(lever_changes)}")
 
     # The relevance engine publishes the blocks this campaign's audience is actually active
     # in. Reading it here keeps one authoritative copy of that mapping instead of
@@ -154,6 +166,16 @@ def estimate_screen_economics(
         f"{day_mix['weekend']} weekend day(s)"
     )
 
+    # Deal shape, for the price band's comparables. In `bookings` a non-bundle deal holds
+    # exactly one screen (max 1) and a bundled one a median of 20, so the shape is decided
+    # by whether this campaign wants a single screen — which is the only case the spec can
+    # state unambiguously before the optimizer has picked anything.
+    is_bundle = spec.requested_num_screens != 1
+    debug(
+        f"STAGE 4 pricing against {'bundled' if is_bundle else 'single-screen'} comparables "
+        f"(requested_num_screens={spec.requested_num_screens})"
+    )
+
     economics: list[ScreenEconomics] = []
     for block in blocks:
         campaign = {
@@ -162,10 +184,11 @@ def estimate_screen_economics(
             "start_date": spec.start_date,
             "end_date": end_date,
             "slots_needed": slots_needed,
+            "is_bundle": is_bundle,
             # city_id omitted on purpose: the engine uses each screen's own city, which is
             # what a multi-city campaign requires.
         }
-        rows = engine.price_candidates(campaign, screen_ids)
+        rows = engine.price_candidates(campaign, screen_ids, levers)
         economics.extend(
             _to_contract(row, block, audience.get(row["screen_id"]), day_mix) for row in rows
         )
@@ -174,11 +197,13 @@ def estimate_screen_economics(
 
     # Aggregated rather than per row: `exposure.py` is called once per line and stays a
     # pure module, so the fallbacks it took are counted and reported here instead.
+    # The membership guard has to come FIRST: it protects the subscript in the condition
+    # after it, and generator `if` clauses evaluate in source order.
     assumed = sum(
         1
         for e in economics
-        if e.daily_unique_audience > 0 and is_viewability_assumed(audience[e.screen_id].screen_type)
         if e.screen_id in audience
+        if e.daily_unique_audience > 0 and is_viewability_assumed(audience[e.screen_id].screen_type)
     )
     no_audience = sum(1 for e in economics if e.daily_unique_audience <= 0)
     debug(
@@ -204,6 +229,7 @@ def estimate_screen_economics(
                 "feasible_rows": 0,
                 "time_blocks": sorted(set(blocks)),
                 "demand_model": "transit_ridership (relevance engine)",
+                "pricing_levers": lever_changes,
             },
         )
         run_state.set_artifact(run_id, ARTIFACT_KIND, ref)
@@ -250,6 +276,12 @@ def estimate_screen_economics(
                 sum(e.reachable_daily_audience for e in feasible), 1
             ),
             "demand_model": "transit_ridership (relevance engine)",
+            "demand_premium_screens": _premium_count(feasible),
+            "demand_premium_mean": _premium_mean(feasible),
+            # Recorded on the artifact, not just in the tool result: a price table is only
+            # reproducible if the parameters it was priced under travel with it.
+            "pricing_levers": lever_changes,
+            "pricing_levers_note": levers.note,
         },
     )
     run_state.set_artifact(run_id, ARTIFACT_KIND, ref)
@@ -282,6 +314,23 @@ def estimate_screen_economics(
             "seller-side price = floor + occupancy_rate x (cap - floor), where the band is "
             "p25/p50/p90 of comparable historical bookings"
         ),
+        # Empty means the engine's own derived multipliers priced this run. Non-empty means
+        # a human decision moved the price, and the answer must say so rather than
+        # presenting an adjusted quote as a purely modelled one.
+        "pricing_levers_applied": lever_changes,
+        "pricing_levers_note": levers.note,
+        "demand_premium": {
+            "lines_with_a_premium": ref.summary["demand_premium_screens"],
+            "mean_multiplier": ref.summary["demand_premium_mean"],
+            "basis": (
+                "screens whose audience merit exceeds what they have historically sold for, "
+                "raised by up to 15%. Gated on the screen actually selling and on fixed "
+                "inventory only; every premium line carries its reason in "
+                "`demand_value_reason`. This is the one adjustment that can carry a quote "
+                "above the band cap, because an underpriced screen's own comparables are "
+                "what understate it."
+            ),
+        },
         "audience_basis": (
             "viewed_exposures_per_slot_per_day = the block's daily riders (weighted by this "
             "flight's weekday/weekend mix) x 8 loop passes / 6 slots x viewability. Reach is "
@@ -329,10 +378,29 @@ def describe_pricing_model(run_id: str) -> dict:
         },
         "price_band": {
             "form": "p25/p50/p90 of contracted_price_per_slot_per_day",
-            "segmentation": "screen_size x screen_type x position x city x daypart, "
-            "with bounded fallbacks",
+            "segmentation": (
+                "screen_size x screen_type x position x ZONE x daypart, falling back "
+                "through zone, then city+daypart, then city, then attributes only"
+            ),
+            "why_zone": (
+                "Holding city, size, type and position fixed, median contracted price "
+                "still varies 1.87x-2.52x across zones of the same city. Segmenting on "
+                "city alone quoted all of them from one blended band."
+            ),
+            "deal_shape": (
+                "Each rung is also split by is_bundle and tried split-first. A non-bundle "
+                "deal holds exactly one screen and a bundled one a median of 20, and at "
+                "zone grain single-screen comparables sit x1.065-x1.090 above bundled ones. "
+                "Shape is the first dimension dropped when a cell is thin, being worth less "
+                "than zone."
+            ),
             "industry_adjustment_clamp": [0.85, 1.20],
+            "rejected_dimensions": (
+                "duration_days — ~2% between the buckets most campaigns fall in, once "
+                "bundle is controlled, and non-monotone on thin non-bundle cells"
+            ),
         },
+        "demand_value_model": get_pricing_engine().demand_value.describe(),
         "availability": {
             "form": "day-by-day slot occupancy from live bookings",
             "slot_capacity_per_screen_per_block_per_day": 6,
@@ -353,6 +421,17 @@ def describe_pricing_model(run_id: str) -> dict:
         },
         "notice": AUDIENCE_NOTICE,
     }
+
+
+def _premium_count(economics: list[ScreenEconomics]) -> int:
+    return sum(1 for e in economics if (e.demand_premium or 1.0) > 1.0)
+
+
+def _premium_mean(economics: list[ScreenEconomics]) -> float:
+    """Mean premium across the lines that GOT one. Averaging over all lines instead would
+    dilute a real +12% into a meaningless +2% by mixing in the screens the gates excluded."""
+    applied = [e.demand_premium for e in economics if (e.demand_premium or 1.0) > 1.0]
+    return round(sum(applied) / len(applied), 4) if applied else 1.0
 
 
 def _day_type_mix(start: date, duration_days: int) -> dict[str, int]:
@@ -446,6 +525,10 @@ def _to_contract(
         event_match_type=row["event_match_type"],
         pricing_internal_reach_proxy=row["pricing_internal_reach_proxy"],
         reach_owner=row["reach_owner"],
+        demand_value_index=row["demand_value_index"],
+        historical_price_index=row["historical_price_index"],
+        demand_premium=row["demand_premium"],
+        demand_value_reason=row["demand_value_reason"],
         assumptions=assumptions,
     )
 

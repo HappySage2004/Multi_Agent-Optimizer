@@ -171,6 +171,46 @@ class ScreenEconomics(BaseModel):
             "pricing diagnostics only. Reach belongs to the demand/audience model."
         ),
     )
+
+    # --- demand value / mispricing, from app/ml/demand_value.py ------------------
+    demand_value_index: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "MERIT: what this screen is worth on what it physically delivers — riders, "
+            "zone income, daytime activity, POI draw — as a percentile of its own "
+            "screen_type x city. Computed WITHOUT ever seeing a price, which is what lets "
+            "it disagree with the market instead of reproducing it."
+        ),
+    )
+    historical_price_index: float | None = Field(
+        default=None,
+        ge=0.0,
+        description=(
+            "What this screen has actually transacted at, relative to its own comparables. "
+            "1.0 is exactly its segment median, 0.85 is 15% under. None when the screen has "
+            "too little booking history to say."
+        ),
+    )
+    demand_premium: float | None = Field(
+        default=None,
+        ge=0.0,
+        description=(
+            "Multiplier applied because merit exceeds the realized price rank — i.e. the "
+            "screen is underpriced for the audience it delivers. 1.0 means no premium. "
+            "Capped, gated on the screen actually selling, and fixed inventory only. This "
+            "is the ONE adjustment that may carry a quote above the band cap, deliberately: "
+            "an underpriced screen's own comparables are what understate it."
+        ),
+    )
+    demand_value_reason: str | None = Field(
+        default=None,
+        description=(
+            "Why a premium was or was not applied, citing the real figures. A screen with "
+            "no premium is the interesting case — it says which gate stopped it."
+        ),
+    )
     reach_owner: str = "audience_engine"
     assumptions: list[str] = Field(
         default_factory=list,

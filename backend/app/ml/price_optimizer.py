@@ -3,6 +3,11 @@
 Ties M1 (occupancy/feasibility), M2 (price band) and M3 (booking probability) together
 into the actual pricing decision. Port note: the decision rule, the grid size, the 15%
 divergence threshold and the flat per-slot curve are all unchanged.
+
+The decision is now PARAMETERIZED by `app/ml/levers.py` so a later agent turn can act on
+what the sales rep said without rewriting the brief. Every lever defaults to identity, so
+a run that sets none produces exactly the prices this module produced before they existed.
+No lever reaches the feasibility gate: availability is inventory truth, not a posture.
 """
 
 from __future__ import annotations
@@ -11,6 +16,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from app.ml.levers import DEFAULT_LEVERS, PricingLevers
 from app.ml.occupancy import SLOT_CAPACITY
 
 
@@ -53,7 +59,19 @@ class PriceOptimizer:
         end_date,
         slots_needed: int = 1,
         price_multiplier: float = 1.0,
+        demand_premium: float = 1.0,
+        is_bundle: bool | None = None,
+        levers: PricingLevers | None = None,
     ) -> ScreenPricing:
+        """`price_multiplier` and `demand_premium` arrive ALREADY weighted by the caller.
+
+        The engine owns the seasonality object and the demand-value model, so it applies
+        `seasonality_weight`, `event_weight` and `demand_premium_weight` before calling here.
+        This module applies the levers that belong to the band-to-price decision itself:
+        `industry_weight`, `occupancy_gamma`, `band_position`, `commercial_multiplier` and
+        `respect_band_floor`.
+        """
+        levers = levers or DEFAULT_LEVERS
         assumptions: list[str] = []
 
         # Step 1: feasibility gate
@@ -83,7 +101,14 @@ class PriceOptimizer:
 
         # Step 2: price band, with optional seasonality/event multiplier (computed upstream
         # by M6 and passed in here so M2/M4 stay independent of M6)
-        pb = self.band.get_price_band(screen_id, daypart, industry_vertical, city_id)
+        pb = self.band.get_price_band(
+            screen_id,
+            daypart,
+            industry_vertical,
+            city_id,
+            levers.industry_weight,
+            is_bundle,
+        )
         assumptions.extend(pb.assumptions)
         floor_price = pb.floor_price * price_multiplier
         target_price = pb.target_price * price_multiplier
@@ -109,12 +134,74 @@ class PriceOptimizer:
         # did (rare, but worth surfacing rather than silently overriding).
         #
         # These are SELLER-SIDE prices: what the network should quote for the slot.
+        #
+        # Two levers reshape this step. `occupancy_gamma` bends the occupancy -> position
+        # curve while pinning both ends, so an empty screen still quotes at floor and a
+        # full one still quotes at cap — only the middle moves. `band_position` replaces
+        # the scarcity read entirely with a stated posture, which is what a rep means by
+        # "open at the cap" or "go in at floor to win the logo".
+        # NOTE the name: `band_pos`, never `position`. `position` is this function's
+        # parameter for the screen's PHYSICAL position ("entrance_exit", "top", ...) and it
+        # is passed to the booking-probability encoder as a category further down. Shadowing
+        # it with a float here silently feeds a number into a categorical feature.
         occ_rate = occ_result.avg_occupancy_rate
+        if levers.band_position is not None:
+            band_pos = levers.band_position
+            assumptions.append(
+                f"band position fixed at {band_pos:g} by lever (occupancy-driven position "
+                f"would have been {occ_rate**levers.occupancy_gamma:.3f})"
+            )
+        else:
+            band_pos = occ_rate**levers.occupancy_gamma
+            if levers.occupancy_gamma != 1.0:
+                assumptions.append(
+                    f"occupancy_gamma={levers.occupancy_gamma:g} moved band position "
+                    f"{occ_rate:.3f} -> {band_pos:.3f}"
+                )
+
         if cap_price <= floor_price:
             recommended_price = floor_price
             assumptions.append("degenerate price band (cap<=floor), using floor only")
         else:
-            recommended_price = floor_price + occ_rate * (cap_price - floor_price)
+            recommended_price = floor_price + band_pos * (cap_price - floor_price)
+
+        # The demand premium, and the commercial adjustment after it. Both sit OUTSIDE the
+        # band on purpose: the band stays the record of what comparable inventory actually
+        # transacted at, and each adjustment stays visibly a decision rather than evidence.
+        #
+        # This is also the one place a quoted price may exceed the cap (p90 of comparables),
+        # and it has to be able to. The whole point of the demand model is that a
+        # systematically underpriced screen's own comparables understate it — clamping the
+        # premium back inside the band would delete exactly the correction it exists to
+        # make. The premium is bounded at +15% and disclosed per row instead.
+        if demand_premium != 1.0:
+            before = recommended_price
+            recommended_price *= demand_premium
+            assumptions.append(
+                f"demand premium x{demand_premium:.3f} applied — underpriced for the "
+                f"audience it delivers ({before:.2f} -> {recommended_price:.2f})"
+            )
+
+        if levers.commercial_multiplier != 1.0:
+            before = recommended_price
+            recommended_price *= levers.commercial_multiplier
+            assumptions.append(
+                f"commercial adjustment x{levers.commercial_multiplier:g} "
+                f"({before:.2f} -> {recommended_price:.2f})"
+            )
+
+        if recommended_price < floor_price:
+            if levers.respect_band_floor:
+                assumptions.append(
+                    f"held at band floor {floor_price:.2f} "
+                    f"(adjusted price {recommended_price:.2f} was below it)"
+                )
+                recommended_price = floor_price
+            else:
+                assumptions.append(
+                    f"quoting BELOW the band floor: {recommended_price:.2f} against a "
+                    f"p25 of {floor_price:.2f} — authorised by respect_band_floor=false"
+                )
 
         booking_probability = self.prob_model.predict_proba(
             recommended_price, screen_size, screen_type, position, city_id, industry_vertical
@@ -152,10 +239,17 @@ class PriceOptimizer:
         # explicitly so the interface states this rather than leaving consumers to infer
         # it. If a discount curve is later justified, apply it here -- the shape is the
         # only thing that changes.
+        #
+        # Rounded ONCE, and the same value is used for `recommended_price` and for every
+        # entry of the curve. Rounding twice from the unrounded price is not equivalent:
+        # `round()` on a numpy float64 and on a Python float disagree at an exact .xx5
+        # half-way point, which produced a one-cent gap between two figures the contract
+        # says are the same number (observed: curve 70.45 against a recommended 70.46).
+        # "Flat across slot counts" has to hold by construction, not by coincidence.
         max_avail = int(occ_result.min_available_slots)
+        recommended_price = round(float(recommended_price), 2)
         price_by_slot_count = {
-            n: (round(float(recommended_price), 2) if n <= max_avail else None)
-            for n in range(1, SLOT_CAPACITY + 1)
+            n: (recommended_price if n <= max_avail else None) for n in range(1, SLOT_CAPACITY + 1)
         }
 
         return ScreenPricing(

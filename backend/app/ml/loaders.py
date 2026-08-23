@@ -25,13 +25,19 @@ from app.logging_utils import debug, info
 BOOKINGS_SQL = """
     SELECT screen_id, city_id, industry_vertical, time_block_id, daypart,
            slots_booked_per_day, start_date, end_date,
-           contracted_price_per_slot_per_day
+           contracted_price_per_slot_per_day, is_bundle
     FROM bookings
 """
 
+# `zone_id` joins through `locations` and is NULL for all 2,615 vehicle-mounted screens (a
+# zone is undefined for a moving vehicle). The price-band ladder relies on that: its zone
+# levels simply never match for mobile inventory, which falls through to the city levels
+# without needing a branch.
 SCREENS_SQL = """
-    SELECT screen_id, city_id, screen_type, location_id, vehicle_id, position, screen_size
-    FROM screens
+    SELECT s.screen_id, s.city_id, s.screen_type, s.location_id, s.vehicle_id,
+           s.position, s.screen_size, l.zone_id
+    FROM screens s
+    LEFT JOIN locations l ON l.location_id = s.location_id
 """
 
 LOST_LEADS_SQL = """
