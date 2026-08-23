@@ -246,19 +246,45 @@ def _create_audience_views(con: duckdb.DuckDBPyConnection) -> None:
             """
         )
 
+    # Proportional stop allocation: a route's riders are shared across its stops
+    # (terminals 2x, intermediates 1x), not copied in full onto every stop.
+    con.execute(
+        """
+        CREATE OR REPLACE VIEW v_route_stop_share AS
+        WITH weighted AS (
+            SELECT
+                route_id,
+                location_id,
+                CASE
+                    WHEN COALESCE(TRY_CAST(is_first_stop AS BOOLEAN), FALSE)
+                      OR COALESCE(TRY_CAST(is_last_stop AS BOOLEAN), FALSE)
+                    THEN 2.0
+                    ELSE 1.0
+                END AS stop_weight
+            FROM route_stops
+        )
+        SELECT
+            route_id,
+            location_id,
+            stop_weight,
+            stop_weight / SUM(stop_weight) OVER (PARTITION BY route_id) AS stop_share
+        FROM weighted
+        """
+    )
     con.execute(
         """
         CREATE OR REPLACE VIEW v_screen_demand_history AS
-        -- Stop-mounted: SUM across every route serving the location. Multiple routes at
-        -- one stop genuinely means more people passing the screen.
+        -- Stop-mounted: each route's ridership is allocated by stop_share, then SUM'd
+        -- across routes serving the location. Multiple routes at one stop genuinely
+        -- means more people; the same route is never counted in full at every stop.
         SELECT
             g.screen_id,
             rb.time_block_id,
             rb.day_type,
-            sum(rb.avg_daily_ridership) AS daily_impressions
+            sum(rb.avg_daily_ridership * ss.stop_share) AS daily_impressions
         FROM v_screen_geography g
-        JOIN route_stops rs         ON rs.location_id = g.location_id
-        JOIN v_route_block_demand rb ON rb.route_id = rs.route_id
+        JOIN v_route_stop_share ss  ON ss.location_id = g.location_id
+        JOIN v_route_block_demand rb ON rb.route_id = ss.route_id
         WHERE g.inventory_class = 'fixed'
         GROUP BY 1, 2, 3
 

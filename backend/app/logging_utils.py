@@ -83,6 +83,10 @@ def debug(message: str) -> None:
         _emit("DEBUG", message)
 
 
+def warning(message: str) -> None:
+    _emit("WARN", message)
+
+
 def error(message: str) -> None:
     _emit("ERROR", message)
 

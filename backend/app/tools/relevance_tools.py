@@ -20,11 +20,14 @@ Feature layer (DuckDB, `app/data/db.py`):
 
 Audience scores, normalized 0-1 across the WHOLE inventory at build time so they stay
 comparable between campaigns:
-    income_score        min-max of zone income_index
-    professional_score  0.7 x income_score + 0.3 x white_collar_flag
+    income_score / high_income_score
+                        min-max of zone income_index
+    professional_score  0.6 x income_score + 0.4 x occ_prof_affinity
+    young_professionals_score
+                        0.4 x young_adult + 0.3 x income + 0.3 x occ_prof
     young_adult_score   min-max of pct_age_18_34, scaled 0.85
-    student_score       0.6 x young_adult_score + 0.4 x university_nearby
-    family_score        (min-max pct_35_54 + 0.25 x min-max pct_18_34) / 1.25
+    student_score       0.4 x young_adult + 0.3 x university_nearby + 0.3 x occ_student
+    family_score        0.6 x middle_age + 0.2 x young_adult + 0.2 x occ_family
     commuter_score      peak-block impressions / total impressions
 
 Relevance is a transparent weighted sum of five components (SOLUTION.md section 5):
@@ -90,7 +93,7 @@ from langchain_core.tools import tool
 from app.config import get_settings
 from app.data.db import has_ridership_actuals, query_df
 from app.data.reference import corridor_zones, eligible_screen_ids, screen_facts
-from app.logging_utils import debug, error, info
+from app.logging_utils import debug, error, info, warning
 from app.models.campaign import AUDIENCE_TERMS, CampaignSpec
 from app.models.screens import ScreenCandidate
 from app.services import run_state
@@ -111,11 +114,6 @@ ALL_DAY_TYPES: tuple[str, ...] = ("weekday", "weekend")
 # Blocks 2 (04:00-08:00) and 5 (16:00-20:00) are the commute peaks.
 PEAK_BLOCKS: tuple[int, ...] = (2, 5)
 
-# family_score sums a 1.0-weighted and a 0.25-weighted normalized term, so its raw ceiling
-# is 1.25. Dividing by that preserves the ordering while keeping the score inside the
-# contract's 0-1 bound. Clamping instead would flatten the top of the distribution.
-FAMILY_SCORE_MAX = 1.25
-
 WEIGHTS: dict[str, float] = {
     "audience_similarity": 0.40,
     "geographic_fit": 0.20,
@@ -125,11 +123,11 @@ WEIGHTS: dict[str, float] = {
 }
 
 AUDIENCE_TERM_TO_SCORE_COLUMN: dict[str, list[str]] = {
-    "young_professionals": ["professional_score", "student_score"],
+    "young_professionals": ["young_professionals_score"],
     "professionals": ["professional_score"],
     "students": ["student_score"],
     "families": ["family_score"],
-    "high_income": ["professional_score"],
+    "high_income": ["high_income_score"],
     "commuters": ["commuter_score"],
 }
 
@@ -137,12 +135,12 @@ AUDIENCE_TERM_TO_SCORE_COLUMN: dict[str, list[str]] = {
 # so the pricing stage prices the blocks the campaign wants, rather than each stage
 # reimplementing this table and drifting apart.
 AUDIENCE_TO_PREFERRED_BLOCKS: dict[str, list[int]] = {
-    "young_professionals": [2, 5],
+    "young_professionals": [2, 5, 6],
     "professionals": [2, 5],
     "commuters": [2, 5],
-    "students": [2, 3, 4],
+    "students": [2, 4, 6],
     "families": [4, 5],
-    "high_income": [2, 5],
+    "high_income": [2, 3, 5],
 }
 
 INDUSTRY_TO_POI_CONTEXT: dict[str, list[str]] = {
@@ -163,6 +161,45 @@ INDUSTRY_TO_POI_CONTEXT: dict[str, list[str]] = {
 
 NEUTRAL = 0.5
 """Score used when an input is missing. Always recorded in `defaults_applied`."""
+
+VEHICLE_MOUNTED_TYPES: tuple[str, ...] = ("bus", "metro_rail_coach")
+
+CONTEXT_FIT_MOBILE_NOTE = "context_fit not applicable -- mobile screen has no fixed location"
+
+EXPECTED_OCCUPATIONS: frozenset[str] = frozenset(
+    {"white_collar", "mixed", "retail_service", "blue_collar", "student"}
+)
+
+OCC_PROF_MAP: dict[str, float] = {
+    "white_collar": 1.0,
+    "mixed": 0.5,
+    "retail_service": 0.3,
+    "blue_collar": 0.2,
+    "student": 0.0,
+}
+
+OCC_STUDENT_MAP: dict[str, float] = {
+    "student": 1.0,
+    "mixed": 0.5,
+    "retail_service": 0.3,
+    "white_collar": 0.0,
+    "blue_collar": 0.0,
+}
+
+OCC_FAMILY_MAP: dict[str, float] = {
+    "blue_collar": 0.7,
+    "retail_service": 0.6,
+    "white_collar": 0.5,
+    "mixed": 0.5,
+    "student": 0.0,
+}
+
+RIDERSHIP_COLUMNS: tuple[str, ...] = (
+    "avg_daily_ridership",
+    "daily_ridership",
+    "estimated_ridership",
+    "route_daily_ridership",
+)
 
 KNOWN_LIMITATIONS: tuple[str, ...] = (
     (
@@ -198,6 +235,24 @@ BLOCK_COLUMNS: tuple[str, ...] = tuple(
     block_column(b, dt) for b in ALL_TIME_BLOCKS for dt in ALL_DAY_TYPES
 )
 
+RANK_OUTPUT_COLUMNS: tuple[str, ...] = (
+    "screen_id",
+    "pool_key",
+    "relevance_score",
+    "reason_audience_similarity",
+    "reason_geographic_fit",
+    "reason_context_fit",
+    "reason_time_of_day_fit",
+    "reason_historical_performance",
+    "total_impressions",
+    "impressions_weekday",
+    "impressions_weekend",
+    "campaign_preferred_blocks",
+    "campaign_day_type_focus",
+    "impressions_preferred_blocks",
+    "defaults_applied",
+) + BLOCK_COLUMNS
+
 
 # =============================================================================
 # FEATURE LAYER
@@ -227,6 +282,104 @@ def _impressions_wide(demand: pd.DataFrame) -> pd.DataFrame:
     )
     wide.columns = [block_column(int(b), str(dt)) for b, dt in wide.columns]
     return wide.reset_index()
+
+
+def _as_bool_mask(series: pd.Series) -> pd.Series:
+    """Coerce string/boolean terminal flags without raising on mixed dtypes."""
+    if pd.api.types.is_bool_dtype(series):
+        return series.fillna(False)
+    lowered = series.astype("string").str.strip().str.lower()
+    return lowered.isin(("true", "1", "yes", "t"))
+
+
+def compute_stop_weights(route_stops: pd.DataFrame) -> pd.DataFrame:
+    """Allocate each route's ridership across its stops instead of copying 100% to each.
+
+    Terminals (first or last) get weight 2.0, intermediates 1.0. If the terminal columns
+    are missing, every stop is weight 1.0. `stop_share` sums to 1.0 per route.
+    """
+    out = route_stops.copy()
+    has_first = "is_first_stop" in out.columns
+    has_last = "is_last_stop" in out.columns
+    if has_first or has_last:
+        first = _as_bool_mask(out["is_first_stop"]) if has_first else False
+        last = _as_bool_mask(out["is_last_stop"]) if has_last else False
+        terminal = first | last
+        out["stop_weight"] = pd.Series(1.0, index=out.index)
+        out.loc[terminal, "stop_weight"] = 2.0
+    else:
+        out["stop_weight"] = 1.0
+
+    route_total = out.groupby("route_id")["stop_weight"].transform("sum")
+    out["stop_share"] = out["stop_weight"] / route_total.replace(0.0, pd.NA)
+    out["stop_share"] = out["stop_share"].fillna(0.0)
+
+    ridership_col = next((c for c in RIDERSHIP_COLUMNS if c in out.columns), None)
+    if ridership_col is not None:
+        out["allocated_ridership"] = out[ridership_col].astype(float) * out["stop_share"]
+    return out
+
+
+def build_occupation_affinity(occupation: pd.Series | pd.DataFrame) -> pd.DataFrame:
+    """Map dominant_occupation onto professional / student / family affinities."""
+    series = (
+        occupation["dominant_occupation"] if isinstance(occupation, pd.DataFrame) else occupation
+    )
+    series = pd.Series(series)
+    present = series.dropna().astype(str)
+    unknown = sorted(set(present) - EXPECTED_OCCUPATIONS)
+    if unknown:
+        warning(
+            f"dominant_occupation contains unexpected categor(y/ies) {unknown}; "
+            f"expected one of {sorted(EXPECTED_OCCUPATIONS)}. Affinities default to 0.0."
+        )
+
+    def _map(mapping: dict[str, float]) -> pd.Series:
+        return series.map(lambda v: mapping.get(v, 0.0) if pd.notna(v) else 0.0).astype(float)
+
+    return pd.DataFrame(
+        {
+            "occ_prof_affinity": _map(OCC_PROF_MAP),
+            "occ_student_affinity": _map(OCC_STUDENT_MAP),
+            "occ_family_affinity": _map(OCC_FAMILY_MAP),
+        },
+        index=series.index,
+    )
+
+
+def validate_vocabulary(audience_df: pd.DataFrame) -> None:
+    """Assert audience/industry dictionaries stay aligned with the closed vocabs."""
+    audience_keys = set(AUDIENCE_TERMS)
+    preferred_keys = set(AUDIENCE_TO_PREFERRED_BLOCKS)
+    score_keys = set(AUDIENCE_TERM_TO_SCORE_COLUMN)
+    if preferred_keys != audience_keys:
+        raise AssertionError(
+            f"AUDIENCE_TO_PREFERRED_BLOCKS keys {sorted(preferred_keys)} != "
+            f"AUDIENCE_TERMS {sorted(audience_keys)}"
+        )
+    if score_keys != audience_keys:
+        raise AssertionError(
+            f"AUDIENCE_TERM_TO_SCORE_COLUMN keys {sorted(score_keys)} != "
+            f"AUDIENCE_TERMS {sorted(audience_keys)}"
+        )
+    missing_score_cols = [
+        col
+        for cols in AUDIENCE_TERM_TO_SCORE_COLUMN.values()
+        for col in cols
+        if col not in audience_df.columns
+    ]
+    if missing_score_cols:
+        raise AssertionError(f"audience profile missing score columns {missing_score_cols}")
+    if not INDUSTRY_TO_POI_CONTEXT:
+        raise AssertionError("INDUSTRY_TO_POI_CONTEXT is empty")
+    empty_industries = [k for k, v in INDUSTRY_TO_POI_CONTEXT.items() if not v]
+    if empty_industries:
+        raise AssertionError(f"industry vocabulary has empty POI maps: {empty_industries}")
+
+
+def get_audience_profile() -> pd.DataFrame:
+    """Copy of the cached per-screen profile. Callers must not mutate the cache."""
+    return get_relevance_engine().profile.copy()
 
 
 def _build_profile() -> pd.DataFrame:
