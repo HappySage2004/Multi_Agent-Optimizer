@@ -6,8 +6,9 @@ campaign brief in, explainable sales-ready media package out.
 Full specs live in the repo root and are the source of truth:
 - [SOLUTION.md](SOLUTION.md) — architecture, 6-stage pipeline, agent design, Pydantic contracts
 - [DATASETS.md](DATASETS.md) — the 14 source CSVs, join map, data-quality traps
-- [UI.md](UI.md) — UI spec (design system, 3-panel layout, component tree)
-- [UI-handoff.html](UI-handoff.html) — static HTML mockup of the target UI
+- [UI.md](UI.md) — UI spec (design system, 3-panel layout, component tree). The static
+  `UI-handoff.html` mockup this was written against has been deleted — UI.md is now the
+  only UI source of truth, so do not go looking for the HTML.
 
 Read the relevant spec before implementing a stage. Do not re-derive them here.
 

@@ -1,7 +1,8 @@
 # AgentIQ Frontend
 
 Next.js (App Router) + TypeScript + Tailwind v4. Implements the 3-panel workspace in
-[`../UI.md`](../UI.md), styled to match [`../UI-handoff.html`](../UI-handoff.html).
+[`../UI.md`](../UI.md), which is the sole UI source of truth now that the static
+`UI-handoff.html` mockup it was styled against has been deleted.
 
 ## Run it
 
