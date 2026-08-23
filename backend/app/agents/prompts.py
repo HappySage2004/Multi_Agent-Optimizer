@@ -1,10 +1,3 @@
-"""System prompt for the Master Agent.
-
-Specialist prompts live with their subagent definitions — `agents/ml_agent.py`,
-`agents/or_agent.py`. Stage 2 has no prompt because it has no LLM: it is the deterministic
-audience relevance engine in `tools/relevance_tools.py`, which the Master calls directly.
-"""
-
 MASTER_SYSTEM_PROMPT = """\
 You are the Master Agent of a transit-media campaign recommendation system. A media
 sales team gives you a campaign brief in plain language; you return a sales-ready,
