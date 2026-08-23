@@ -62,25 +62,79 @@ A rejected value costs one turn. An unmatched one silently deletes a quarter of 
 SCREEN_TYPES: tuple[str, ...] = ("bus_stop", "metro_station", "bus", "metro_rail_coach")
 """The four real values of `screens.screen_type`. Two fixed, two vehicle-mounted."""
 
-ENFORCED_HARD_CONSTRAINTS: frozenset[str] = frozenset(
+DISPLAY_TYPE_NON_CONSTRAINTS: frozenset[str] = frozenset(
     {
-        "min_screens",
-        "max_screens",
-        "allowed_screen_types",
-        "excluded_screen_types",
-        "excluded_zone_ids",
-        "excluded_positions",
-        "required_time_blocks",
-        # A legacy alias for the line above, accepted by both consumers but deliberately
-        # NOT advertised in `create_campaign_spec`'s docstring — one canonical name at
-        # intake, two accepted on read, so an older spec still verifies.
-        "time_blocks",
-        "min_zone_coverage",
-        "min_budget_utilization",
-        "max_slots_per_day",
+        "digital_screens_only",
+        "digital_only",
+        "digital",
+        "static_screens_only",
+        "exclude_static_screens",
+        "screen_display_type",
     }
 )
+"""Keys that describe a display type, dropped from `hard_constraints` on sight.
+
+EVERY SCREEN IN THIS NETWORK IS DIGITAL, so none of these can select anything. There is no
+digital/static attribute in `screens.csv` to filter on, and the inventory model settles it
+anyway: 6 ad slots rotating continuously through a 4-hour block is not a printed poster.
+
+They are stripped rather than rejected because a brief saying "digital screens only" is
+asking for something already true, and failing a whole run over a redundant phrase is
+worse than ignoring it. Recording one, though, was worse still: it is not in
+`ENFORCED_HARD_CONSTRAINTS`, so `validation._hard_constraint_checks` failed the package and
+the agent reported the plan as "blocked by the digital-only constraint" — a constraint that
+never meant anything. Unknown keys in general still fail loudly; only these are inert."""
+
+TIME_BLOCK_IDS: tuple[str, ...] = ("1", "2", "3", "4", "5", "6")
+"""`dim_slot.time_block_id` as the strings every consumer compares against.
+
+Six 4-hour windows. Stored as strings rather than ints because that is what
+`CampaignSpec.preferred_time_blocks`, `hard_constraints["required_time_blocks"]` and
+`Allocation.time_block_id` all carry, and a mixed-type comparison silently matches
+nothing. `relevance_tools.ALL_TIME_BLOCKS` is the int-keyed twin used for column names.
+"""
+
+HARD_CONSTRAINT_SHAPES: dict[str, str] = {
+    "min_screens": "int",
+    "max_screens": "int",
+    "min_zone_coverage": "int",
+    # Type-coerced at intake but NOT range-checked there, because `contract.resolve_slot_cap`
+    # is its single enforcement site and owns the rule that 0 and 7 are not purchasable
+    # depths. Checking a range in two places is how one of them ends up bounding a value the
+    # caller was never told about; a value this cannot read is passed through untouched so
+    # the site that owns the constraint is the site that explains it.
+    "max_slots_per_day": "int_passthrough",
+    "min_budget_utilization": "fraction",
+    "allowed_screen_types": "screen_types",
+    "excluded_screen_types": "screen_types",
+    "excluded_zone_ids": "id_list",
+    "excluded_positions": "id_list",
+    "required_time_blocks": "time_blocks",
+    # A legacy alias for the line above, accepted by both consumers but deliberately NOT
+    # advertised in `create_campaign_spec`'s docstring — one canonical name at intake, two
+    # accepted on read, so an older spec still verifies.
+    "time_blocks": "time_blocks",
+}
+"""The declared VALUE TYPE of every enforced hard constraint, keyed by name.
+
+The types are here because they were nowhere, and an untyped constraint fails silently in
+the worst possible direction. `hard_constraints={"allowed_screen_types": "metro_station"}`
+is what a model writes when the brief names one screen type, and the consumer's
+`list(allowed)` turned that single string into thirteen one-character screen types:
+`.isin()` matched nothing, the pool emptied, and stage 2 reported that the spec's hard
+constraints had eliminated every eligible screen. The constraint was satisfiable; the
+value was the wrong shape.
+
+`tools/coerce.normalize_hard_constraints` reads this map to reshape each value at intake
+and rejects a key that is not in it. Adding an entry here without the code that enforces
+it re-creates the bug `ENFORCED_HARD_CONSTRAINTS` exists to prevent.
+"""
+
+ENFORCED_HARD_CONSTRAINTS: frozenset[str] = frozenset(HARD_CONSTRAINT_SHAPES)
 """Every `hard_constraints` key some stage actually enforces.
+
+Derived from `HARD_CONSTRAINT_SHAPES` so the vocabulary and the type map cannot drift —
+a key that is enforced but untyped is exactly the state that shipped a broken filter.
 
 `hard_constraints` is a free-form dict, and that freedom cost a real package: a brief
 declaring "1 rotating slot per screen" was recorded as `max_slots_per_day: 1`, persisted,

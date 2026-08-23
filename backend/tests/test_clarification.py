@@ -15,7 +15,7 @@ import pytest
 
 from app.models.campaign import AUDIENCE_TERMS
 from app.models.clarification import ASKABLE_FIELDS, build_question
-from app.services import clarifications
+from app.services import clarifications, local_db
 from app.tools import master_tools
 
 SESSION = "ses-clarify-test"
@@ -53,6 +53,11 @@ def _ask(**overrides):
 
 @pytest.fixture(autouse=True)
 def _clean():
+    # The session has to exist: `ask_clarifying_questions` refuses an unknown one, because
+    # questions stored against a session nobody reads leave the rep with a request and no
+    # options to click.
+    if local_db.get_record(local_db.SESSIONS, SESSION) is None:
+        local_db.insert(local_db.SESSIONS, {"id": SESSION, "title": "clarification test"})
     clarifications.close(SESSION)
     yield
     clarifications.close(SESSION)

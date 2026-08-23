@@ -198,9 +198,15 @@ def build_candidate_frame(
         # pair, so the two definitions stay in step.
         pool_key = f"{candidate.pool_key or e.screen_id}|{block}"
 
-        # The pool's whole crowd, not one vehicle's share of it. For stop-mounted screens
-        # the partition count is 1 and this is the per-screen figure unchanged.
-        pool_population = e.reachable_daily_audience * candidate.pool_partition_count
+        # The pool's whole crowd, not one vehicle's share of it. Published once on
+        # `ScreenEconomics` so this module, `_package_metrics` and the validator all read
+        # the SAME number — three independent reach implementations are the point, but they
+        # have to be independent implementations of one definition, not of three.
+        # The fallback keeps artifacts written before the field existed readable; it
+        # reproduces the old arithmetic exactly rather than silently zeroing a pool.
+        pool_population = e.pool_reachable_daily_audience or (
+            e.reachable_daily_audience * candidate.pool_partition_count
+        )
 
         row = {
             "screen_id": e.screen_id,

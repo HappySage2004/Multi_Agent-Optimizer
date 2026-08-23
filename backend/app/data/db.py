@@ -397,14 +397,38 @@ def _create_location_site_view(con: duckdb.DuckDBPyConnection) -> None:
     )
 
 
-TERMINUS_WEIGHT = 1.5
+TERMINUS_WEIGHT = 1.0
 """Weight a route's first/last stop carries relative to a mid-route stop.
 
-An ASSUMED constant, not a measured one: termini concentrate boardings and alightings, so
-more of a route's riders pass through them. Nothing the validator checks may depend on an
-assumed constant (CLAUDE.md 31), and nothing does — this only redistributes a route's
-riders between its own stops. Set it to 1.0 and every stop shares equally; the corridor
-total is identical either way, because `stop_share` renormalizes.
+**1.0 — i.e. OFF — and that is a correction, not a default.** It was 1.5 on the reasoning
+that termini concentrate boardings and alightings. That reasoning is still plausible; it is
+also unmeasured, and at 1.5 it broke a load-bearing invariant. Do not restore it without
+reading the next two paragraphs.
+
+The invariant: every screen sharing a `pool_key` must report the SAME audience, because
+`pooled.pool_population` treats `max` over a pool as a lookup rather than an estimate. That
+held while a pool was one `location_id`. It stopped holding when `v_location_site` began
+merging location rows into a site: the two sides of one road are one site, and a route that
+TERMINATES on one side runs mid-route on the other, so the same physical stop got two crowd
+figures 1.5x apart.
+
+Measured at 1.5: **196 (site x time block) cells** where screens at one site disagreed,
+ratios spanning 1.0-1.5x. At 1.0 the disagreement is **numerically zero** — the residual 76
+cells differ only in float summation order, well inside the validator's tolerance. The
+consequence at 1.5 was not subtle: the solver's pool ceiling (max over the whole candidate
+frame) exceeded the reported one (max over what was bought), so `curve_reach_bounded` failed
+and NO package could pass verification. On one brief, 16,939 against 16,637.
+
+So this constant was reaching a validated, client-facing number — exactly what CLAUDE.md's
+"a validated number may not depend on an assumed constant" forbids. Turning it off cost
+4.2% of reported reach on that brief (16,637 -> 15,940) on an otherwise identical package,
+and that 4.2% was the assumption talking.
+
+Kept as a named constant rather than deleted so the mechanism stays visible. Corridor totals
+are invariant at any value, because `stop_share` renormalizes per route — the weight only
+ever redistributed riders between one route's own stops. If you want the terminus effect
+back, weight the SITE rather than the location (see `_create_route_stop_weight_view`), so
+merged rows cannot disagree.
 """
 
 

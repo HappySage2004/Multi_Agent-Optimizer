@@ -59,6 +59,8 @@ from app.optimize import config as C
 from app.optimize import contract, solver
 from app.services import run_state
 from app.services.artifact_store import read_models
+from app.tools import coerce
+from app.tools.coerce import ArgumentError
 
 ECONOMICS_KIND = "screen_economics"
 CANDIDATES_KIND = "screen_candidates"
@@ -81,7 +83,7 @@ SOLVER_NOTICE = (
 
 
 @tool
-def optimize_package(run_id: str, slots_per_day_cap: int | None = None) -> dict:
+def optimize_package(run_id: str, slots_per_day_cap: int | str | None = None) -> dict:
     """Select the inventory package that best serves the campaign objective.
 
     Consumes `screen_economics` and stores an OptimizationResult on the run. Returns
@@ -106,6 +108,21 @@ def optimize_package(run_id: str, slots_per_day_cap: int | None = None) -> dict:
     if (blocked := run_state.missing_prerequisite(run_id, ECONOMICS_KIND)) is not None:
         error(f"STAGE 5 blocked: {blocked['detail']}")
         return blocked
+
+    # Bounded before `resolve_slot_cap` sees it: the override may only ever tighten the
+    # brief's own cap, and a value outside 1-6 is not a slot count at all. Clamping an
+    # exploration knob is right where rejecting a brief-declared cap is right — one is our
+    # search choice, the other is a client commitment.
+    argument_notes: list[str] = []
+    try:
+        slots_per_day_cap, cap_note = coerce.clamp_int(
+            slots_per_day_cap, field="slots_per_day_cap", low=1, high=C.SLOTS_PER_CELL
+        )
+    except ArgumentError as exc:
+        error(f"STAGE 5 optimize_package rejected an argument: {exc}")
+        return {"status": "invalid", "errors": str(exc)}
+    if cap_note:
+        argument_notes.append(cap_note)
 
     spec = run_state.get_spec(run_id)
     economics, candidates = _load_inputs(run_id)
@@ -293,7 +310,10 @@ def optimize_package(run_id: str, slots_per_day_cap: int | None = None) -> dict:
         },
         "constraint_status": pkg.constraint_status,
         "unmet_coverage": pkg.unmet_coverage,
+        "screen_type_mix": _mix_report(spec, pkg, candidates, economics, frame, notes),
         "solver_log": result.solver_log,
+        # Non-empty means an argument you passed was bounded. Report the applied figure.
+        "argument_notes": argument_notes,
         "caveat": SOLVER_NOTICE,
     }
     if (warning := _wear_out_warning(pkg, spec)) is not None:
@@ -319,11 +339,38 @@ def optimize_package(run_id: str, slots_per_day_cap: int | None = None) -> dict:
         )
     if pkg.unmet_coverage:
         info(f"STAGE 5 unmet coverage: {pkg.unmet_coverage}")
+
+    # The brief's screen-type mix. Reported on every run; a FINDING only when a requested
+    # type is missing, because that is the case a rep must not be allowed to miss.
+    mix = payload["screen_type_mix"]
+    pool_by_type = (
+        frame.groupby("screen_type")["screen_id"].nunique().to_dict()
+        if "screen_type" in frame.columns
+        else {}
+    )
+    if (
+        mix_finding := _mix_finding(spec, mix["delivered_screens_by_type"], pool_by_type)
+    ) is not None:
+        payload["mix_finding"] = mix_finding
+        error(
+            f"STAGE 5 requested screen_type_mix {spec.screen_type_mix} NOT fully delivered: "
+            f"package holds {mix['delivered_screens_by_type']}, pool held {pool_by_type}"
+        )
+    elif spec.screen_type_mix:
+        info(
+            f"STAGE 5 screen_type_mix {spec.screen_type_mix} honoured: "
+            f"{mix['delivered_screens_by_type']}"
+            + (
+                f" (cost {mix['reach_cost_of_the_mix']:,.0f} reach against an unmixed plan)"
+                if mix.get("reach_cost_of_the_mix")
+                else ""
+            )
+        )
     return payload
 
 
 @tool
-def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict:
+def compare_objectives(run_id: str, objectives: list[str] | str | None = None) -> dict:
     """Solve the same brief under different objectives and return the plans side by side.
 
     Use this when the brief blends goals ("launch awareness and drive footfall") so the
@@ -332,11 +379,24 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
 
     Args:
         run_id: Handle for the campaign run.
-        objectives: Which objectives to compare. Defaults to reach and awareness.
+        objectives: Which objectives to compare, as a LIST — e.g. ["reach", "awareness"].
+            Valid values are reach, frequency, awareness and conversion. Defaults to reach
+            and awareness.
     """
     if not run_state.exists(run_id):
         error(f"STAGE 5 compare_objectives called with unknown run_id={run_id!r}")
         return run_state.unknown_run(run_id, tool="compare_objectives")
+
+    try:
+        objectives = coerce.as_str_list(
+            objectives,
+            field="objectives",
+            vocabulary=tuple(sorted(solver.PROFILES)),
+            example='["reach", "awareness"]',
+        )
+    except ArgumentError as exc:
+        error(f"STAGE 5 compare_objectives rejected an argument: {exc}")
+        return {"status": "invalid", "errors": str(exc)}
 
     if (blocked := run_state.missing_prerequisite(run_id, ECONOMICS_KIND)) is not None:
         error(f"STAGE 5 objective comparison blocked: {blocked['detail']}")
@@ -358,12 +418,10 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
         error(f"STAGE 5 objective comparison: no purchasable cells on run_id={run_id}")
         return {"status": "infeasible", "detail": "No purchasable cells."}
 
-    requested = [o for o in (objectives or ["reach", "awareness"]) if o in solver.PROFILES]
-    if rejected := [o for o in (objectives or []) if o not in solver.PROFILES]:
-        info(
-            f"STAGE 5 objective comparison ignoring unknown objective(s) {rejected}; "
-            f"known objectives are {sorted(solver.PROFILES)}"
-        )
+    # Already validated against `solver.PROFILES` by the coercion above, so an unknown
+    # objective never reaches here — it comes back as a recoverable `invalid` result
+    # instead of being dropped from a comparison the agent then reports as complete.
+    requested = objectives or ["reach", "awareness"]
     debug(
         f"STAGE 5 comparing objectives {requested} on {len(frame)} cells "
         f"(one MILP solve per objective)"
@@ -477,6 +535,7 @@ def _solve(
     exact: int | None | object = ...,
     min_spend_fraction: float | None = None,
     slot_cap_limit: int | None | object = ...,
+    mix: list[str] | None | object = ...,
 ) -> solver.SolveOutcome:
     """Translate spec constraints into solver arguments and solve.
 
@@ -489,6 +548,30 @@ def _solve(
 
     exact_screens = spec.requested_num_screens if exact is ... else exact
     max_screens = hc.get("max_screens") or settings.max_screens_in_package
+
+    # The brief's screen-type mix, as ELASTIC coverage: one group per requested type, at
+    # least one cell each. Elastic on purpose — see `_mix_finding`. `COVERAGE_PENALTY` is a
+    # tenth of the total reachable population per unit of shortfall, far above what one
+    # screen's marginal reach can earn, so the solver honours the mix unless a HARD
+    # constraint leaves it no choice, and then yields and reports instead of failing.
+    # `mix=[]` drops the coverage rows for a diagnostic re-solve — "what would this brief
+    # reach if we ignored the requested mix?" — which is how the cost of honouring it is
+    # reported rather than asserted.
+    requested_mix = spec.screen_type_mix if mix is ... else (mix or [])
+    coverage = None
+    if requested_mix:
+        masks = {f"screen_type:{t}": (frame["screen_type"] == t).to_numpy() for t in requested_mix}
+        # A type with nothing in the pool cannot be covered by any plan. Asking anyway
+        # would spend the penalty on an unsatisfiable row and bias the whole solve; the
+        # absence is reported from the pool composition instead, which is where it happened.
+        coverage = {label: {"mask": m, "min": 1} for label, m in masks.items() if m.any()}
+        if absent := [label for label, m in masks.items() if not m.any()]:
+            info(
+                f"STAGE 5 screen_type_mix {[a.split(':')[1] for a in absent]} has no priced "
+                f"cell in the candidate pool — no plan can include it, so it is reported "
+                f"rather than penalized"
+            )
+        coverage = coverage or None
 
     unit_coverage = None
     if (min_zones := hc.get("min_zone_coverage")) is not None:
@@ -508,6 +591,7 @@ def _solve(
         min_screens=int(hc.get("min_screens") or 0),
         max_screens=int(max_screens),
         exact_screens=exact_screens,
+        coverage=coverage,
         unit_coverage=unit_coverage,
         time_limit=float(settings.solver_time_limit_seconds),
         min_spend_fraction=min_spend_fraction,
@@ -623,6 +707,18 @@ def _pool_of(line: ScreenEconomics) -> str:
     return line.pool_key or line.screen_id
 
 
+def _pool_ceiling(line: ScreenEconomics) -> float:
+    """The reach ceiling for the line's POOL, not for the line.
+
+    A vehicle's `reachable_daily_audience` is its share of the corridor, so capping a
+    corridor's reach against it understates the corridor by the vehicle count — measured up
+    to ~9x, and it made `curve_reach_bounded` fail on any package containing mobile
+    inventory (132,724 against 14,682 on one brief). The pool figure is published on the
+    contract; the fallback is only for artifacts written before that field existed.
+    """
+    return line.pool_reachable_daily_audience or line.reachable_daily_audience
+
+
 def _package_metrics(
     allocations: list[Allocation], economics: list[ScreenEconomics]
 ) -> tuple[float, float, float, int]:
@@ -645,7 +741,7 @@ def _package_metrics(
             continue
         key = (_pool_of(line), str(a.time_block_id))
         grouped[key] += a.viewed_exposures
-        caps[key] = max(caps.get(key, 0.0), line.reachable_daily_audience)
+        caps[key] = max(caps.get(key, 0.0), _pool_ceiling(line))
 
     reach = sum(min(gross, caps.get(key, 0.0)) for key, gross in grouped.items())
     frequency = (exposures / reach) if reach > 0 else 0.0
@@ -793,6 +889,145 @@ def _physical_pools(package: OptimizedPackage, economics: list[ScreenEconomics])
     return len(pools)
 
 
+def _mix_report(
+    spec: CampaignSpec,
+    package: OptimizedPackage,
+    candidates: dict[str, ScreenCandidate],
+    economics: list[ScreenEconomics],
+    frame=None,
+    notes: list[str] | None = None,
+) -> dict:
+    """What the brief asked for, what it got, and what honouring it cost.
+
+    `requested` empty means the brief named no mix — then this reports the delivered
+    composition and nothing else. A package that is 100% one screen type is the single most
+    consequential fact about it, so the composition is reported on EVERY run whether a mix
+    was asked for or not.
+
+    When a mix WAS requested, the plan is re-solved once with the coverage rows dropped, to
+    report what the SAME pool would have reached without them. It costs one extra solve, only
+    on briefs that asked for a mix. See `reach_cost_of_the_coverage_rule` for why that is
+    deliberately not the same quantity as "what a single-type campaign would have reached".
+    """
+    delivered = _mix_delivered(package, candidates)
+    report: dict = {
+        "requested": spec.screen_type_mix,
+        "delivered_screens_by_type": delivered,
+    }
+    if not spec.screen_type_mix:
+        # No mix asked for. `honoured` is deliberately absent rather than False — there was
+        # nothing to honour, and False reads as a failure to a model paraphrasing this.
+        report["note"] = (
+            "The brief named no screen-type mix, so the composition above is whatever the "
+            "objective selected. Report it anyway: a package that is 100% one screen type "
+            "is the most consequential fact about it."
+        )
+        return report
+
+    report["honoured"] = all(delivered.get(t) for t in spec.screen_type_mix)
+    report["enforcement"] = (
+        "best effort, penalized and disclosed — never silently dropped, and never allowed "
+        "to make the brief infeasible"
+    )
+    if frame is None:
+        return report
+
+    unmixed = _solve(
+        spec,
+        frame,
+        objective=spec.optimization_goal,
+        notes=notes or [],
+        slot_cap=contract.resolve_slot_cap(spec),
+        mix=[],
+    )
+    if unmixed.plan is not None:
+        alt_reach = _package_metrics(_allocations(spec, unmixed), economics)[1]
+        cost = alt_reach - package.expected_reach
+        report["reach_if_coverage_dropped"] = round(alt_reach, 0)
+        report["reach_cost_of_the_coverage_rule"] = round(cost, 0)
+        # Named precisely, because there are TWO different costs here and conflating them
+        # overstates this one. This is the cost of the SOLVER rule: same candidate pool,
+        # coverage rows dropped. Measured at ~0 on the briefs tried, because the optimizer
+        # buys the cheaper type anyway once it is in the pool — reach saturates per pool and
+        # a cheap bus stop is a FRESH pool, so it is good value rather than a concession.
+        #
+        # The larger cost is upstream and is NOT this number: requesting a mix also
+        # stratifies the stage-2 candidate cut, so the pool itself changes. A stratified
+        # 120-screen pool reached 8,190 where a metro-only pool of the same size reached
+        # 15,940. That belongs to candidate selection, not to the optimizer, and the OR
+        # agent must not present it as the price of this rule.
+        report["mix_cost_note"] = (
+            f"Honouring the mix reaches {package.expected_reach:,.0f}; dropping the coverage "
+            f"rule on the SAME candidate pool reaches {alt_reach:,.0f} "
+            f"({cost:+,.0f}). Any larger gap against a single-type campaign comes from the "
+            f"candidate pool being stratified upstream, not from this rule — do not "
+            f"attribute it here."
+        )
+    return report
+
+
+def _mix_delivered(
+    package: OptimizedPackage, candidates: dict[str, ScreenCandidate]
+) -> dict[str, int]:
+    """Screens bought, by screen type. Counted from the package, never from the pool."""
+    counts: dict[str, int] = {}
+    for sid in package.screen_ids:
+        if (c := candidates.get(sid)) is not None:
+            counts[c.screen_type] = counts.get(c.screen_type, 0) + 1
+    return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
+
+
+def _mix_finding(
+    spec: CampaignSpec,
+    delivered: dict[str, int],
+    pool_by_type: dict[str, int],
+) -> str | None:
+    """State plainly when a screen type the brief asked for is not in the package.
+
+    BEST EFFORT, DISCLOSED — the deliberate choice between two options. A hard requirement
+    would guarantee the type or return an infeasibility; this one always ships a package and
+    never lets a missing type pass in silence. The reason is that a mix costs measured reach
+    (8,773 against 16,637 on one 60k brief, because bus stops draw smaller crowds), so
+    whether to pay it is a media planner's call, not the solver's. What is NOT optional is
+    saying so: `validation.screen_type_mix_disclosed` fails a package that drops a requested
+    type without reporting it.
+
+    The two causes read differently to a rep and are separated here. Nothing of that type in
+    the candidate pool is an upstream fact — stage 2 ranks on relevance alone and a scarcer
+    type can lose every slot — and no solver setting fixes it. A type that WAS in the pool
+    and still went unbought means a hard constraint crowded it out.
+    """
+    if not spec.screen_type_mix:
+        return None
+    missing = [t for t in spec.screen_type_mix if not delivered.get(t)]
+    if not missing:
+        return None
+
+    unpriced = [t for t in missing if not pool_by_type.get(t)]
+    crowded = [t for t in missing if pool_by_type.get(t)]
+    parts = [
+        (
+            f"The brief asked for {spec.screen_type_mix} and the package contains "
+            f"{delivered or 'none of them'}."
+        )
+    ]
+    if unpriced:
+        parts.append(
+            f"{unpriced} reached the optimizer with no priced inventory at all, so no plan "
+            f"could have included them — that is a candidate-selection outcome upstream of "
+            f"this stage, not a choice made here. Report it as a gap in the pool and say "
+            f"what the pool did contain."
+        )
+    if crowded:
+        parts.append(
+            f"{crowded} WAS available and was still not bought, which means another hard "
+            f"constraint (budget, screen count, zone coverage or the slot cap) left no room "
+            f"for it. Name that trade-off rather than the screen type."
+        )
+    parts.append("Do not present this package as matching the requested mix.")
+    return " ".join(parts)
+
+
 def _wear_out_warning(package: OptimizedPackage, spec: CampaignSpec) -> str | None:
     """Disclose the exposure frequency whenever it is past useful, cap breach or not.
 
@@ -804,11 +1039,28 @@ def _wear_out_warning(package: OptimizedPackage, spec: CampaignSpec) -> str | No
     if package.expected_frequency <= C.EFFECTIVE_FREQUENCY_FLOOR:
         return None
     breached = package.expected_frequency > cap
+    # The floor holds for a SATURATED pool: one slot on a pool the plan has filled delivers
+    # LOOP_PASSES/6 per person per day. A corridor bought at partial vehicle coverage is not
+    # saturated in that sense — its ceiling is the whole corridor while the exposures come
+    # from the vehicles actually bought — so mobile-heavy packages legitimately sit BELOW the
+    # floor. Asserting the floor unconditionally printed "cannot go below 40" next to a
+    # measured 3.96, which is the kind of contradiction that destroys trust in every other
+    # figure on the page.
+    if package.expected_frequency < floor:
+        return (
+            f"This package delivers {package.expected_frequency:.0f} viewed exposures per "
+            f"person reached, which is BELOW the {floor:.0f} a saturated pool would force on "
+            f"a {spec.duration_days}-day flight. That means the plan is not saturating its "
+            f"pools — characteristic of vehicle inventory, where a corridor's whole ridership "
+            f"is reachable but only the vehicles bought carry the creative. Report the figure "
+            f"as measured; do not describe it as a floor breach."
+        )
     return (
         f"This package delivers {package.expected_frequency:.0f} viewed exposures per "
         f"person reached. A {spec.duration_days}-day flight cannot go below "
-        f"~{floor:.0f} — duration is the brief's, the minimum purchase is one slot, and "
-        f"there is no flighting — so most of that is flight length rather than selection. "
+        f"~{floor:.0f} on a saturated pool — duration is the brief's, the minimum purchase "
+        f"is one slot, and there is no flighting — so most of that is flight length rather "
+        f"than selection. "
         + (
             f"It also exceeds the stacking cap of {cap:.0f}, which means a hard constraint "
             f"forced extra depth; report that."

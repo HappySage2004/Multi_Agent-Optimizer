@@ -24,7 +24,7 @@ from app.models.economics import ScreenEconomics
 from app.models.screens import ScreenCandidate
 from app.optimize import config as C
 from app.optimize import contract, pooled, solver
-from app.services import run_state
+from app.services import local_db, run_state
 from app.services.artifact_store import read_models
 from app.tools import master_tools, ml_agent_tools, or_agent_tools, relevance_tools
 
@@ -499,8 +499,17 @@ def test_a_hard_constraint_no_stage_enforces_fails_verification():
     An unrecognized `hard_constraints` key used to be persisted, echoed back to the Master
     and dropped in silence — which is how the slot cap went missing with nobody told.
     Verification now refuses to bless a package it cannot check.
+
+    Intake rejects such a key outright these days (`coerce.normalize_hard_constraints`), so
+    the only way one reaches a run is a spec persisted before that gate existed. That is
+    exactly what the validator backstop is for, and it is what this writes: the key goes
+    onto the stored record directly, bypassing the tool, rather than through intake.
     """
-    run_id = _priced_run(hard_constraints={"digital_screens_only": True})
+    run_id = _priced_run()
+    record = local_db.get_record(local_db.RUNS, run_id)
+    stored = dict(record["campaign_spec"])
+    stored["hard_constraints"] = {"weatherproof_screens_only": True}
+    local_db.update(local_db.RUNS, run_id, {"campaign_spec": stored})
     result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
     assert result["status"] in SOLVED, "the package still builds — it just cannot be blessed"
 
@@ -513,7 +522,7 @@ def test_a_hard_constraint_no_stage_enforces_fails_verification():
     )
     # The rep has to be told WHICH constraint went unenforced, not merely that one did,
     # and what the enforceable keys are so the brief can be restated.
-    assert "digital_screens_only" in failure["detail"]
+    assert "weatherproof_screens_only" in failure["detail"]
     assert "min_zone_coverage" in failure["detail"]
 
 
@@ -579,3 +588,158 @@ def test_pool_pruning_is_not_scaled_by_the_slot_cap(priced_candidates):
         )
         assert frame.groupby("pool_key").size().max() <= C.MAX_CELLS_PER_POOL
         assert int(frame["available"].max()) <= cap
+
+
+# --- the brief's screen-type mix ---------------------------------------------
+#
+# A brief asking for metro stations AND buses came back all metro, and every layer reported
+# success. Three separate holes: `allowed_screen_types` only PERMITS a type (one global
+# relevance cut then filled all 120 slots from the type with 5.7x the inventory), the
+# optimizer had no screen-type obligation at all, and nothing re-derived the outcome. These
+# pin the enforcement and — more importantly — the DISCLOSURE.
+
+
+def _facts_by_type(package):
+    from app.data.reference import screen_facts
+
+    facts = screen_facts()
+    out: dict[str, int] = {}
+    for sid in package.screen_ids:
+        if sid in facts:
+            out[facts[sid].screen_type] = out.get(facts[sid].screen_type, 0) + 1
+    return out
+
+
+def test_a_requested_screen_type_reaches_the_package_not_just_the_pool():
+    """The whole point. Stage 2 stratifying the candidate cut is necessary but not
+    sufficient — nothing obliged the optimizer to buy any of the scarcer type, and on the
+    brief this was written for it bought none."""
+    run_id = _priced_run(top_n=120, screen_type_mix=["metro_station", "bus_stop"])
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED, result
+
+    mix = result["screen_type_mix"]
+    assert mix["requested"] == ["metro_station", "bus_stop"]
+    assert mix["honoured"] is True, mix
+    delivered = _facts_by_type(run_state.get_optimization(run_id).package)
+    assert delivered.get("bus_stop"), f"no bus_stop screen reached the package: {delivered}"
+    assert delivered.get("metro_station"), f"no metro_station screen in the package: {delivered}"
+
+    verdict = master_tools.verify_package.invoke({"run_id": run_id})
+    assert verdict["status"] == "pass", verdict["failed_checks"]
+    assert "screen_type_mix_disclosed" in {c["name"] for c in verdict["checks_run"]}
+
+
+def test_the_mix_is_elastic_and_never_makes_a_brief_infeasible():
+    """Option B, deliberately. A mix is a media judgement that costs measured reach, so it is
+    penalized rather than hard: the package always ships. What is NOT optional is saying when
+    a requested type is missing — that is the next test."""
+    # A budget that cannot buy one line of everything requested still returns a package.
+    run_id = _priced_run(top_n=120, budget=900.0, screen_type_mix=["metro_station", "bus_stop"])
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED or result["status"] == "infeasible"
+    if result["status"] in SOLVED:
+        # If it shipped, the mix report must state plainly whether it was honoured.
+        assert "honoured" in result["screen_type_mix"]
+
+
+def test_a_dropped_screen_type_must_be_disclosed_or_verification_fails():
+    """The check that would have caught the original bug.
+
+    It validates the DISCLOSURE, not the constraint: a missing type is allowed (the mix is
+    best effort), a missing type nobody mentioned is not. Enforced against reference data, so
+    a solver cannot satisfy it by relabelling its own allocations.
+    """
+    run_id = _priced_run(top_n=120, screen_type_mix=["metro_station", "bus_stop"])
+    or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    spec = run_state.get_spec(run_id)
+    economics = read_models(run_state.require_artifact(run_id, "screen_economics"), ScreenEconomics)
+    package = run_state.get_optimization(run_id).package
+
+    assert _named(
+        validate_package(spec, package, economics), "screen_type_mix_disclosed"
+    ).status == ("pass")
+
+    # Strip every bus_stop line and say nothing about it: that is the silent drop.
+    from app.data.reference import screen_facts
+
+    facts = screen_facts()
+    kept = [
+        a
+        for a in package.allocations
+        if a.screen_id in facts and facts[a.screen_id].screen_type != "bus_stop"
+    ]
+    assert kept and len(kept) < len(package.allocations), "brief did not exercise the case"
+
+    silent = package.model_copy(update={"allocations": kept, "unmet_coverage": {}})
+    verdict = validate_package(spec, silent, economics)
+    check = _named(verdict, "screen_type_mix_disclosed")
+    assert check.status == "fail", "a silently dropped screen type must not verify"
+    assert "bus_stop" in check.detail
+
+    # Same package, now disclosing the omission: allowed, because the mix is best effort.
+    disclosed = package.model_copy(
+        update={"allocations": kept, "unmet_coverage": {"screen_type:bus_stop": 1.0}}
+    )
+    assert (
+        _named(validate_package(spec, disclosed, economics), "screen_type_mix_disclosed").status
+        == "pass"
+    )
+
+
+def test_the_pool_reach_ceiling_is_the_pools_crowd_not_one_vehicles_share():
+    """A vehicle's `reachable_daily_audience` is its share of the corridor, so capping a
+    corridor's reach against it understates the pool by the vehicle count.
+
+    This diverged from what the SOLVER used, which always reconstructed the corridor total —
+    so `curve_reach_bounded` failed on any package holding mobile inventory (132,724 against
+    14,682 on one brief). One published field, three readers.
+    """
+    run_id = _priced_run(top_n=120, screen_type_mix=["metro_station", "metro_rail_coach"])
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED, result
+    economics = read_models(run_state.require_artifact(run_id, "screen_economics"), ScreenEconomics)
+
+    mobile = [e for e in economics if e.pool_reachable_daily_audience > e.reachable_daily_audience]
+    assert mobile, "no partitioned pool in this brief; the test cannot exercise the bug"
+    for e in mobile[:20]:
+        assert e.pool_reachable_daily_audience == pytest.approx(
+            e.reachable_daily_audience * _partition_of(run_id, e.screen_id), rel=1e-6
+        )
+
+    # And the whole point: verification passes, which it did not before.
+    verdict = master_tools.verify_package.invoke({"run_id": run_id})
+    assert verdict["status"] == "pass", verdict["failed_checks"]
+
+
+def _partition_of(run_id: str, screen_id: str) -> int:
+    rows = read_models(run_state.require_artifact(run_id, "screen_candidates"), ScreenCandidate)
+    return next(c.pool_partition_count for c in rows if c.screen_id == screen_id)
+
+
+def test_screen_type_composition_is_reported_even_when_no_mix_was_asked_for():
+    """A package that is 100% one screen type is the most consequential fact about it, and
+    the Master cannot state a composition it was never told."""
+    run_id = _priced_run(top_n=120)
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED
+    mix = result["screen_type_mix"]
+    assert mix["requested"] == []
+    assert mix["delivered_screens_by_type"]
+    # `honoured` must be ABSENT, not False — there was nothing to honour, and False reads as
+    # a failure to a model paraphrasing this.
+    assert "honoured" not in mix
+    assert "note" in mix
+
+
+def test_the_mix_is_a_campaign_input_so_changing_it_rebuilds():
+    """`get_active_run`'s triage rule says a field absent from `campaign_inputs` cannot have
+    changed the package. The mix WAS absent, which made "also add some buses" an ANSWER off
+    the old package instead of a REBUILD — the request silently ignored a second time."""
+    session_id = "sess-mix-rebuild"
+    _spec(session_id=session_id, screen_type_mix=["metro_station", "bus_stop"])
+    active = master_tools.get_active_run.invoke({"session_id": session_id})
+    assert active["status"] == "ok", active
+    inputs = active["campaign_inputs"]
+    assert "screen_type_mix" in inputs, sorted(inputs)
+    assert inputs["screen_type_mix"] == ["metro_station", "bus_stop"]

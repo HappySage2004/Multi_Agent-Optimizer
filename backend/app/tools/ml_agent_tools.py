@@ -35,8 +35,10 @@ from datetime import date, timedelta
 from langchain_core.tools import tool
 
 from app.logging_utils import debug, error, info
+from app.models.campaign import TIME_BLOCK_IDS
 from app.models.economics import DemandForecastSummary, PricingRecommendation, ScreenEconomics
 from app.models.screens import ScreenCandidate
+from app.optimize import config as C
 from app.optimize.exposure import (
     is_viewability_assumed,
     reachable_daily_audience,
@@ -45,6 +47,8 @@ from app.optimize.exposure import (
 )
 from app.services import run_state
 from app.services.artifact_store import read_models, write_records
+from app.tools import coerce
+from app.tools.coerce import ArgumentError
 from app.tools.relevance_tools import ALL_DAY_TYPES
 
 ARTIFACT_KIND = "screen_economics"
@@ -68,7 +72,13 @@ AUDIENCE_NOTICE = (
 
 @tool
 def estimate_screen_economics(
-    run_id: str, time_blocks: list[str] | None = None, slots_needed: int = 1
+    run_id: str,
+    # Widened to what a model actually sends. langchain validates against these
+    # annotations BEFORE the body runs, so a strict `list[str]` makes the coercion below
+    # unreachable and turns `time_blocks=[2, 5]` into a schema error the tool cannot
+    # explain. Block ids are numbers in `dim_slot`, so ints are the common case.
+    time_blocks: list[str | int] | str | int | None = None,
+    slots_needed: int | str = 1,
 ) -> dict:
     """Price each candidate screen for each requested time block, with availability.
 
@@ -81,12 +91,18 @@ def estimate_screen_economics(
 
     Args:
         run_id: Handle for the campaign run.
-        time_blocks: dim_slot time_block_ids to price. Defaults to the campaign's
-            preferred blocks, then to the blocks the relevance engine identified for this
-            audience, then to the commuter peaks and midday ("2", "3", "5").
+        time_blocks: dim_slot time_block_ids to price, as a LIST of strings "1".."6" —
+            e.g. ["2", "5"]. NOT daypart names: "morning" is rejected, its block id is
+            "2". Normally OMIT this: it defaults to the campaign's preferred blocks, then
+            to the blocks the relevance engine identified for this audience, then to the
+            commuter peaks and midday ("2", "3", "5"). Passing your own set overrides the
+            brief, and a block the brief requires but you do not price makes the whole
+            optimization infeasible one stage later.
         slots_needed: Slots per day the campaign needs on a screen for it to count as
-            available. A screen with fewer free slots on any day of the flight is
-            returned as infeasible rather than dropped.
+            available, 1-6. A screen with fewer free slots on any day of the flight is
+            returned as infeasible rather than dropped. Leave at 1 unless you have a
+            reason: raising it is a feasibility gate, and setting it above what the brief
+            actually buys reports purchasable inventory as sold out.
     """
     if not run_state.exists(run_id):
         error(f"STAGE 4 estimate_screen_economics called with unknown run_id={run_id!r}")
@@ -95,6 +111,35 @@ def estimate_screen_economics(
     if (blocked := run_state.missing_prerequisite(run_id, CANDIDATES_KIND)) is not None:
         error(f"STAGE 4 blocked: {blocked['detail']}")
         return blocked
+
+    # A specialist writes `["morning", "evening"]` or `"2,5"` about as readily as the list
+    # the signature declares. Reshape and validate against the real vocabulary here, so an
+    # unusable block id is one recoverable tool result rather than a silent reprice.
+    argument_notes: list[str] = []
+    try:
+        requested_blocks = coerce.as_str_list(
+            time_blocks,
+            field="time_blocks",
+            vocabulary=TIME_BLOCK_IDS,
+            example='["2", "5"]',
+        )
+        capped_slots, slot_note = coerce.clamp_int(
+            slots_needed, field="slots_needed", low=1, high=C.SLOTS_PER_CELL
+        )
+    except ArgumentError as exc:
+        error(f"STAGE 4 rejected an argument: {exc}")
+        return {
+            "status": "invalid",
+            "errors": str(exc),
+            "detail": (
+                "Fix the argument's SHAPE and call again — or omit it entirely, which is "
+                "the normal case: the blocks come from the campaign spec."
+            ),
+        }
+    time_blocks = requested_blocks or None
+    slots_needed = capped_slots or 1
+    if slot_note:
+        argument_notes.append(slot_note)
 
     spec = run_state.get_spec(run_id)
     ref_candidates = run_state.require_artifact(run_id, CANDIDATES_KIND)
@@ -217,7 +262,8 @@ def estimate_screen_economics(
     )
     if assumed:
         info(
-            f"STAGE 4 {assumed} line(s) took the default static viewability factor because "
+            f"STAGE 4 {assumed} line(s) took the default stop-mounted viewability factor "
+            f"because "
             f"their screen_type is unrecognized — disclosed per row in `assumptions`"
         )
 
@@ -323,6 +369,9 @@ def estimate_screen_economics(
         # presenting an adjusted quote as a purely modelled one.
         "pricing_levers_applied": lever_changes,
         "pricing_levers_note": levers.note,
+        # Non-empty means an argument you passed was reshaped or bounded. Quote what was
+        # applied, not what you asked for.
+        "argument_notes": argument_notes,
         "demand_premium": {
             "lines_with_a_premium": ref.summary["demand_premium_screens"],
             "mean_multiplier": ref.summary["demand_premium_mean"],
@@ -506,7 +555,7 @@ def _to_contract(
     if daily_audience > 0 and is_viewability_assumed(screen_type):
         assumptions.append(
             f"unrecognized screen_type {screen_type!r}: viewability defaulted to the "
-            f"static factor {viewability(screen_type)}"
+            f"stop-mounted factor {viewability(screen_type)}"
         )
 
     return ScreenEconomics(
@@ -521,6 +570,14 @@ def _to_contract(
         ),
         daily_unique_audience=daily_audience,
         reachable_daily_audience=reachable_daily_audience(daily_audience, screen_type),
+        # The pool's WHOLE crowd, reconstructed here once so the three independent reach
+        # implementations (contract/solver, _package_metrics, validation) all read one
+        # number instead of each re-deriving it — the asymmetry that let the solver cap a
+        # corridor at its full ridership while the report capped it at one vehicle's share.
+        pool_reachable_daily_audience=(
+            reachable_daily_audience(daily_audience, screen_type)
+            * (candidate.pool_partition_count if candidate else 1)
+        ),
         viewability_factor=viewability(screen_type) if daily_audience > 0 else None,
         pool_key=candidate.pool_key if candidate else None,
         pricing=pricing,

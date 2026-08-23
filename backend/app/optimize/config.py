@@ -34,7 +34,7 @@ LOOP_PASSES_PER_TRIP = 8
 # Upstream audience volume is PEOPLE PASSING, not people who look at the screen. The
 # attention discount lives here, applied exactly once, in `exposure.py`.
 VIEWABILITY_IN_VEHICLE = 0.65  # captive for the whole ride
-VIEWABILITY_STATIC = 0.35  # brief dwell, more distraction
+VIEWABILITY_STOP_MOUNTED = 0.35  # brief dwell, more distraction
 
 # Pooled-reach saturation constant, used for a REPORTED DIAGNOSTIC ONLY. It is no longer in
 # the solver's objective either: `R <= min(E, P)` is exact, lambda-free, and is the same

@@ -392,6 +392,25 @@ and is **not** the ceiling. The conversion lives in exactly one module,
 `app/optimize/exposure.py`, called from exactly one place — the constants are ASSUMED, so
 the single call site matters more than the values.
 
+**A pool's reach ceiling is `pool_reachable_daily_audience`, and every screen in a pool must
+agree on it.** The per-screen `reachable_daily_audience` is NOT the pool's: a vehicle's figure
+is its share of the corridor (`v_corridor_block_demand` divides by vehicle count), so capping
+a corridor's reach against it understates the pool by up to ~9x. The solver always
+reconstructed the corridor total while `_package_metrics` and the validator capped at one
+vehicle's share, so `curve_reach_bounded` failed on **every** package containing mobile
+inventory — 132,724 against 14,682 on one brief. The pool figure is now published once on
+`ScreenEconomics` and all three read it. Three independent implementations of one definition
+is the goal; three implementations of three definitions is the bug.
+
+The same class of defect hit fixed inventory through `TERMINUS_WEIGHT`. It was 1.5, applied
+per `location_id`, while `pool_key` merges location rows into a site — and a route that
+terminates on one side of a road runs mid-route on the other, so one physical stop carried
+two crowd figures 1.5x apart on **196 (site x block) cells**. It is now **1.0**: the
+disagreement drops to zero, verification passes, and an ASSUMED constant stops reaching a
+validated client-facing number (reported reach moved 16,637 -> 15,940 on an otherwise
+identical package; that 4.2% was the assumption). If the terminus effect is wanted back,
+weight the SITE, not the location.
+
 **A `pool_key` is a SITE, not a `location_id`.** One physical station is modelled as
 several location rows — opposite platforms, separate entrances — and screens on them see the
 same crowd, so a raw `location_id` let reach count that crowd twice. `v_location_site`
@@ -540,18 +559,40 @@ This is not a new decision column — `head(top_n)` was *already* a decision abo
 screens are handed on, and only how that truncation is made has changed. No screen is
 picked for the optimizer.
 
-Two things deliberately NOT done, both needing a decision rather than a default:
-- **No per-type floor when no mix is requested.** That would change what a candidate pool
-  means on every brief ever run.
-- **`create_campaign_spec` does not expose `screen_type_mix` yet**, so no agent can set it.
-  The engine behaviour is tested directly. Wiring the intake parameter and the prompt is a
-  Master-session change.
+**Intake and the solver are now both wired.** `create_campaign_spec` takes
+`screen_type_mix`, and `or_agent_tools._solve` builds one **elastic** coverage group per
+requested type (`screen_type:<t>`, min 1 cell). `COVERAGE_PENALTY` is a tenth of the total
+reachable population per unit of shortfall — far above what one screen's marginal reach can
+earn — so the mix is honoured unless a HARD constraint leaves no room, and then the plan
+yields and reports instead of failing.
 
-Also **not** wired: `app/optimize/solver.py` already implements elastic group coverage
-(`coverage={label: {"mask", "min"}}`), and `or_agent_tools._solve` passes only
-`unit_coverage`, only for zones. Pointing it at `screen_type` masks would let the solver
-enforce a mix in the *package* rather than only in the pool. `screen_type` is already on
-`ScreenCandidate`, so no new data is needed. That is an OR-session change.
+**Elastic, not hard, and that is the decision.** A mix is a media judgement, so the package
+always ships. What is not optional is saying so: `validation.screen_type_mix_disclosed`
+validates the **disclosure**, not the constraint — a requested type missing from the package
+passes only if `unmet_coverage` names it, and fails otherwise. That inversion is the point.
+The original failure was not that bus screens were absent; it was that nothing said so while
+every layer reported success.
+
+**The two costs are different quantities and conflating them overstates the smaller one.**
+- The **coverage rule** costs ~0. Measured on several briefs: dropping the coverage rows from
+  the same candidate pool returns the same reach, because reach saturates per `pool_key` and a
+  cheap bus_stop is a *fresh* pool — good value, not a concession. The optimizer buys them
+  anyway; on one 60k brief it chose 13 bus_stop against 6 metro_station unprompted.
+- The **pool stratification** upstream is where the real cost sits: a stratified 120-screen
+  pool reached 8,190 where a metro-only pool of the same size reached 15,940. That belongs to
+  candidate selection. `reach_cost_of_the_coverage_rule` reports only the first, and the OR
+  prompt forbids attributing the second to it.
+
+**Why the pool cut excludes a type at all, measured — it is not price and not impressions.**
+Relevance carries no price term and no impressions term (`transit_score` is reported at
+weight 0.0). Permitting `metro_station` + `bus_stop` and taking the top 120 of 6,304 returned
+**120 metro_station, 0 bus_stop** — not because bus stops score badly, but because there are
+**4,224 metro_station eligible against 735 bus_stop** and the score ranges overlap heavily
+(bus_stop 0.4432-0.7692, metro_station 0.4673-0.7831; means 0.5618 vs 0.6114). The scarcer
+type loses every slot to a truncation artifact. Do not describe this as a quality judgement.
+
+Still deliberately NOT done: **no per-type floor when no mix is requested.** That would change
+what a candidate pool means on every brief ever run.
 
 Why it is worth building rather than just disclosing: reach saturates per `pool_key`. Once a
 geography's metro sites are bought out, the marginal metro screen is worth ~0 and a bus

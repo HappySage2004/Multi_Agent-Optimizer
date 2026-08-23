@@ -8,6 +8,7 @@ LLM decides when to call them, the code decides what the answer is.
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 from langchain_core.tools import tool
 from pydantic import ValidationError
@@ -18,7 +19,10 @@ from app.logging_utils import debug, error, info
 from app.ml.levers import PricingLevers
 from app.models.campaign import (
     AUDIENCE_TERMS,
+    ENFORCED_HARD_CONSTRAINTS,
     INDUSTRY_VERTICALS,
+    SCREEN_TYPES,
+    TIME_BLOCK_IDS,
     AudienceTarget,
     CampaignSpec,
 )
@@ -30,12 +34,37 @@ from app.models.clarification import (
 from app.models.economics import ScreenEconomics
 from app.services import clarifications, documents, local_db, run_state
 from app.services.artifact_store import read_models
+from app.tools import coerce
+from app.tools.coerce import ArgumentError
 
 MAX_CLARIFYING_QUESTIONS = 3
 
 
+def _bad_argument(tool_name: str, exc: ArgumentError, **extra: Any) -> dict:
+    """An unusable argument, described so the agent can fix it on the next call.
+
+    Never raised out of a tool: an exception aborts the SSE stream and the rep loses the
+    whole turn, while a `status: "invalid"` result costs one model call. See
+    `tools/coerce.py` for why the coercion happens at all.
+
+    `extra` carries the closed vocabularies the caller may need to pick again from. The
+    same keys the spec-validation path returns, so an agent sees one contract whether the
+    value failed on its shape or on its meaning.
+    """
+    error(f"{tool_name} rejected an argument: {exc}")
+    return {
+        "status": "invalid",
+        "errors": str(exc),
+        "detail": (
+            "Fix the argument's SHAPE and call again. Do not change the campaign's values "
+            "to work around this, and do not retry the same shape."
+        ),
+        **extra,
+    }
+
+
 @tool
-def resolve_geography_terms(terms: list[str]) -> dict:
+def resolve_geography_terms(terms: list[str] | str) -> dict:
     """Map natural-language places or ID-like strings onto real city/zone/corridor IDs.
 
     Call this before create_campaign_spec whenever the brief names places in prose.
@@ -43,10 +72,23 @@ def resolve_geography_terms(terms: list[str]) -> dict:
     or record it in missing_information.
 
     Args:
-        terms: Place names or IDs from the brief, e.g. ["Las Hackland", "Downtown Core"].
+        terms: Place names or IDs from the brief, as a LIST — e.g.
+            ["Las Hackland", "Downtown Core"]. A single place still goes in a list.
     """
-    resolved, unresolved = resolve_geography(terms)
-    debug(f"geography: {terms} -> {resolved}, unresolved={unresolved}")
+    try:
+        places = coerce.as_str_list(
+            terms, field="terms", example='["Las Hackland", "Downtown Core"]'
+        )
+    except ArgumentError as exc:
+        return _bad_argument("resolve_geography_terms", exc)
+    if not places:
+        return {
+            "status": "invalid",
+            "detail": "No place names supplied. Pass the places the brief names.",
+        }
+
+    resolved, unresolved = resolve_geography(places)
+    debug(f"geography: {places} -> {resolved}, unresolved={unresolved}")
     if unresolved:
         info(f"geography terms could not be resolved: {unresolved}")
     return {
@@ -66,7 +108,7 @@ def resolve_geography_terms(terms: list[str]) -> dict:
 def ask_clarifying_questions(
     session_id: str,
     understood: str,
-    questions: list[dict],
+    questions: list[dict] | dict | str,
 ) -> dict:
     """Ask the rep to fill the gaps in a brief, as selectable options in the UI.
 
@@ -97,25 +139,50 @@ def ask_clarifying_questions(
                 `option_a_value`, `option_b_value` (the machine-readable answer when the
                 label is prose).
     """
-    if not questions:
+    # The questions land as a list of objects, but a model asked for one question sends the
+    # question itself, and a model that serialized its arguments sends the whole list as a
+    # string. Both are unambiguous, so both are reshaped rather than refused.
+    try:
+        asked = coerce.as_dict_list(
+            questions,
+            field="questions",
+            example=(
+                '[{"field": "audience_terms", "question": "...", "option_a": "commuters", '
+                '"option_b": "students", "recommended": "A", "recommendation_reason": "..."}]'
+            ),
+        )
+    except ArgumentError as exc:
+        return _bad_argument("ask_clarifying_questions", exc)
+
+    # A session that does not exist would take the questions, store them where nothing
+    # reads them, and leave the rep with a request and no options to click.
+    if local_db.get_record(local_db.SESSIONS, session_id) is None:
+        error(f"ask_clarifying_questions called with unknown session_id={session_id!r}")
+        return {
+            "status": "invalid",
+            "detail": (
+                f"No session '{session_id}'. Use the session_id exactly as printed in the "
+                f"user message — the questions are stored against it, and the rep sees "
+                f"nothing if it does not match."
+            ),
+        }
+
+    if not asked:
         return {
             "status": "invalid",
             "detail": "No questions supplied. If nothing is missing, call create_campaign_spec.",
         }
-    if len(questions) > MAX_CLARIFYING_QUESTIONS:
+    if len(asked) > MAX_CLARIFYING_QUESTIONS:
         return {
             "status": "invalid",
             "detail": (
-                f"{len(questions)} questions asked; the limit is {MAX_CLARIFYING_QUESTIONS}. "
+                f"{len(asked)} questions asked; the limit is {MAX_CLARIFYING_QUESTIONS}. "
                 f"Ask about the most load-bearing gaps only."
             ),
         }
 
     built = []
-    for index, raw in enumerate(questions, start=1):
-        if not isinstance(raw, dict):
-            return {"status": "invalid", "detail": f"Question {index} is not an object."}
-
+    for index, raw in enumerate(asked, start=1):
         field = str(raw.get("field") or "").strip()
         if field not in ASKABLE_FIELDS:
             return {
@@ -141,20 +208,39 @@ def ask_clarifying_questions(
         # fail loudly downstream, it neutralizes a chunk of every relevance score. Offering
         # the rep an option the spec will later reject is the worst version of that.
         vocabulary = {"audience_terms": AUDIENCE_TERMS, "industry_vertical": INDUSTRY_VERTICALS}
+        option_values: dict[str, Any] = {
+            "option_a_value": raw.get("option_a_value"),
+            "option_b_value": raw.get("option_b_value"),
+        }
         if (allowed := vocabulary.get(field)) is not None:
-            proposed = [
-                str(raw.get("option_a_value") or raw.get("option_a")),
-                str(raw.get("option_b_value") or raw.get("option_b")),
-            ]
-            off_list = [v for v in proposed if v not in allowed]
-            if off_list:
-                return {
-                    "status": "invalid",
-                    "detail": (
-                        f"Question {index} proposes {field} values {off_list}, which the "
-                        f"pipeline does not accept. Use values from {list(allowed)}."
-                    ),
-                }
+            # Normalized through the same coercion `create_campaign_spec` applies, so a
+            # case or separator variant resolves here too. Rejecting 'Young Professionals'
+            # while the spec accepts it would refuse a correct answer on formatting — and
+            # the canonical form is written BACK onto the option, so what the rep selects
+            # is the exact token the spec will take.
+            for key, label in (("option_a_value", "option_a"), ("option_b_value", "option_b")):
+                try:
+                    resolved = coerce.as_str_list(
+                        option_values[key] or raw.get(label),
+                        field=f"question {index} {label}",
+                        vocabulary=allowed,
+                        example=f'"{allowed[0]}"',
+                    )
+                except ArgumentError as exc:
+                    # `detail` rather than `_bad_argument`: every other rejection in this
+                    # tool names the offending value there, and the agent has to know WHICH
+                    # option it must replace, not merely that one was wrong.
+                    error(f"ask_clarifying_questions rejected an option: {exc}")
+                    return {"status": "invalid", "detail": str(exc)}
+                if len(resolved) != 1:
+                    return {
+                        "status": "invalid",
+                        "detail": (
+                            f"Question {index}'s {label} must name exactly one {field} "
+                            f"value, from {list(allowed)}. Got {resolved or 'nothing'}."
+                        ),
+                    }
+                option_values[key] = resolved[0]
 
         try:
             built.append(
@@ -168,8 +254,8 @@ def ask_clarifying_questions(
                     recommendation_reason=str(raw.get("recommendation_reason") or ""),
                     option_a_detail=raw.get("option_a_detail"),
                     option_b_detail=raw.get("option_b_detail"),
-                    option_a_value=raw.get("option_a_value"),
-                    option_b_value=raw.get("option_b_value"),
+                    option_a_value=option_values["option_a_value"],
+                    option_b_value=option_values["option_b_value"],
                 )
             )
         except ValueError as exc:
@@ -203,23 +289,32 @@ def create_campaign_spec(
     start_date: str,
     duration_days: int,
     budget: float,
-    city_ids: list[str] | None = None,
-    zone_ids: list[str] | None = None,
-    corridor_ids: list[str] | None = None,
+    # Every list and dict below is annotated to ALSO accept the string a model writes it
+    # as. That is not laxity, it is what makes the coercion in the body reachable:
+    # langchain validates arguments against these annotations BEFORE the function runs, so
+    # a strict `list[str]` turns `city_ids="LH"` into a schema error the tool never sees
+    # and cannot explain. The declared shape still lives in the docstring, where the model
+    # reads it, and every value is normalized to the strict type before it is used.
+    city_ids: list[str] | str | None = None,
+    zone_ids: list[str] | str | None = None,
+    corridor_ids: list[str] | str | None = None,
     industry_vertical: str | None = None,
     ad_type: str | None = None,
     audience_age_min: int | None = None,
     audience_age_max: int | None = None,
     audience_commuter: bool | None = None,
-    audience_terms: list[str] | None = None,
+    audience_terms: list[str] | str | None = None,
     day_type_focus: str | None = None,
     requested_num_screens: int | None = None,
-    preferred_time_blocks: list[str] | None = None,
-    preferred_dayparts: list[str] | None = None,
-    hard_constraints: dict | None = None,
-    soft_preferences: dict | None = None,
+    # Ints as well: a block id is a number in `dim_slot`, so a model writes `[2, 5]` about
+    # as often as `["2", "5"]`, and everything downstream compares strings.
+    preferred_time_blocks: list[str | int] | str | int | None = None,
+    preferred_dayparts: list[str] | str | None = None,
+    screen_type_mix: list[str] | str | None = None,
+    hard_constraints: dict | str | None = None,
+    soft_preferences: dict | str | None = None,
     original_query: str | None = None,
-    missing_information: list[str] | None = None,
+    missing_information: list[str] | str | None = None,
     session_id: str | None = None,
 ) -> dict:
     """Validate and persist the normalized campaign brief, opening a new run.
@@ -253,22 +348,43 @@ def create_campaign_spec(
             Weekday and weekend ridership differ by roughly 6x. Omit if the brief does not
             say.
         requested_num_screens: Exact screen count, only if the brief demands one.
-        preferred_time_blocks: dim_slot time_block_ids, "1".."6".
+        preferred_time_blocks: dim_slot time_block_ids as a LIST of strings "1".."6",
+            e.g. ["2", "5"] for the morning and evening peaks. Not daypart names.
         preferred_dayparts: Named dayparts, e.g. ["morning", "evening"].
-        hard_constraints: Non-negotiable limits the brief states. ONLY these keys are
-            enforced by a stage, and a key outside this list FAILS verification rather
-            than being ignored, so record the brief's constraint under the right one or
-            put it in missing_information instead:
-            min_screens, max_screens, allowed_screen_types, excluded_screen_types,
-            excluded_zone_ids, excluded_positions, required_time_blocks,
-            min_zone_coverage, min_budget_utilization, max_slots_per_day.
+        screen_type_mix: Screen types the brief wants REPRESENTED in the package, from
+            bus_stop, metro_station, bus, metro_rail_coach. Different from
+            hard_constraints["allowed_screen_types"], which only PERMITS types: permitting
+            metro_station and bus_stop returned a pool that was 100% metro_station, because
+            one global relevance cut fills every slot from the type with the most inventory
+            (4,224 metro_station eligible against 735 bus_stop, mean relevance 0.6114 against
+            0.5618 — the ranges overlap heavily, so this is a truncation artifact and not a
+            verdict on bus stops). Use this whenever the brief asks for more than one kind
+            ("metro stations and buses"), and it makes the pool stratified per named type
+            so a mixed brief is servable at all.
+        hard_constraints: Non-negotiable limits the brief states, as a JSON OBJECT — e.g.
+            {"max_slots_per_day": 1, "allowed_screen_types": ["metro_station"]}. Not a
+            string containing one. ONLY these keys are enforced by a stage, and a key
+            outside this list is REJECTED here rather than ignored, so record the brief's
+            constraint under the right one or put it in missing_information instead:
+            min_screens (int), max_screens (int), min_zone_coverage (int),
+            max_slots_per_day (int), min_budget_utilization (0-1 fraction),
+            allowed_screen_types (list), excluded_screen_types (list),
+            excluded_zone_ids (list), excluded_positions (list),
+            required_time_blocks (list of "1".."6").
+            EVERY LIST-VALUED KEY TAKES A LIST, even for a single value: write
+            {"allowed_screen_types": ["metro_station"]}, never
+            {"allowed_screen_types": "metro_station"} — a bare string used to be read as
+            one character per letter, which matched no screen and emptied the whole pool.
             `max_slots_per_day` is the leasing structure: how many of a screen's 6 daily
             rotation slots the client is buying, counted PER SCREEN PER DAY across all
             time blocks. "1 rotating slot on each screen" is
             {"max_slots_per_day": 1}. Record it whenever the brief describes the slot,
             loop or airtime structure — it changes the package materially, and a brief
             that asked for one slot once shipped as three because nothing captured it.
-        soft_preferences: Nice-to-haves that must not be enforced as hard limits.
+            Do NOT record a display type here ("digital screens only"): every screen in
+            this network is digital, so there is nothing to filter and the key is dropped.
+        soft_preferences: Nice-to-haves that must not be enforced as hard limits, as a
+            JSON object.
         original_query: The user's verbatim brief, for traceability.
         missing_information: Fields the brief did not specify.
         session_id: Chat session this run belongs to, if any.
@@ -277,6 +393,54 @@ def create_campaign_spec(
     if audience_age_min is not None and audience_age_max is not None:
         age_range = (audience_age_min, audience_age_max)
 
+    # Shape first, meaning second. Everything below arrives from a language model, so a
+    # list may be a comma-separated string and a dict may be a string containing JSON —
+    # see `tools/coerce.py` for the three failures this closes. Coercing here rather than
+    # in `CampaignSpec` keeps the model able to load older specs off disk unchanged.
+    try:
+        constraints, constraint_notes = coerce.normalize_hard_constraints(hard_constraints)
+        cities = coerce.as_str_list(city_ids, field="city_ids", example='["LH"]')
+        zones = coerce.as_str_list(zone_ids, field="zone_ids", example='["LH-ZONE-001"]')
+        corridors = coerce.as_str_list(corridor_ids, field="corridor_ids", example='["LH-RT-B001"]')
+        terms = coerce.as_str_list(
+            audience_terms,
+            field="audience_terms",
+            vocabulary=AUDIENCE_TERMS,
+            example='["young_professionals", "commuters"]',
+        )
+        blocks = coerce.as_str_list(
+            preferred_time_blocks,
+            field="preferred_time_blocks",
+            vocabulary=TIME_BLOCK_IDS,
+            example='["2", "5"]',
+        )
+        dayparts = coerce.as_str_list(
+            preferred_dayparts, field="preferred_dayparts", example='["morning", "evening"]'
+        )
+        mix = coerce.as_str_list(
+            screen_type_mix,
+            field="screen_type_mix",
+            vocabulary=SCREEN_TYPES,
+            example='["metro_station", "bus"]',
+        )
+        omitted = coerce.as_str_list(
+            missing_information, field="missing_information", example='["budget"]'
+        )
+        preferences = coerce.as_dict(
+            soft_preferences, field="soft_preferences", example='{"prefer_evening": true}'
+        )
+    except ArgumentError as exc:
+        return _bad_argument(
+            "create_campaign_spec",
+            exc,
+            audience_terms_allowed=list(AUDIENCE_TERMS),
+            screen_types_allowed=list(SCREEN_TYPES),
+            hard_constraints_allowed=sorted(ENFORCED_HARD_CONSTRAINTS),
+        )
+
+    if constraint_notes:
+        info(f"intake normalized hard_constraints: {'; '.join(constraint_notes)}")
+
     try:
         spec = CampaignSpec(
             campaign_objective=campaign_objective,
@@ -284,21 +448,22 @@ def create_campaign_spec(
             start_date=date.fromisoformat(start_date),
             duration_days=duration_days,
             budget=budget,
-            city_ids=city_ids or [],
-            zone_ids=zone_ids or [],
-            corridor_ids=corridor_ids or [],
+            city_ids=cities,
+            zone_ids=zones,
+            corridor_ids=corridors,
             industry_vertical=industry_vertical,
             ad_type=ad_type,
             target_audience=AudienceTarget(age_range=age_range, commuter=audience_commuter),
-            audience_terms=audience_terms or [],
+            audience_terms=terms,
             day_type_focus=day_type_focus,  # type: ignore[arg-type]
             requested_num_screens=requested_num_screens,
-            preferred_time_blocks=[str(b) for b in (preferred_time_blocks or [])],
-            preferred_dayparts=preferred_dayparts or [],
-            hard_constraints=hard_constraints or {},
-            soft_preferences=soft_preferences or {},
+            preferred_time_blocks=blocks,
+            preferred_dayparts=dayparts,
+            screen_type_mix=mix,
+            hard_constraints=constraints,
+            soft_preferences=preferences,
             original_query=original_query,
-            missing_information=missing_information or [],
+            missing_information=omitted,
         )
     except (ValidationError, ValueError) as exc:
         error(f"campaign spec rejected: {str(exc).splitlines()[0]}")
@@ -348,10 +513,15 @@ def create_campaign_spec(
             "requested_num_screens": spec.requested_num_screens,
             "preferred_time_blocks": spec.preferred_time_blocks,
             "audience_terms": spec.audience_terms,
+            "screen_type_mix": spec.screen_type_mix,
             "day_type_focus": spec.day_type_focus,
             "hard_constraints": spec.hard_constraints,
         },
         "missing_information": spec.missing_information,
+        # What was reshaped on the way in. Empty on a well-formed call. Read it: a
+        # constraint that was dropped or re-read is a constraint the answer must not claim
+        # was honoured as written.
+        "argument_notes": constraint_notes,
     }
 
 
@@ -423,6 +593,12 @@ def get_active_run(session_id: str) -> dict:
             "preferred_time_blocks": spec.preferred_time_blocks,
             "day_type_focus": spec.day_type_focus,
             "hard_constraints": spec.hard_constraints,
+            # A mix request IS a campaign input: it changes which screens the optimizer was
+            # allowed to leave out, so "also put some buses in" is a REBUILD, not a question
+            # answerable from the existing package. It was absent from this dict, and the
+            # triage rule above says a field absent from it cannot have changed the package —
+            # so that follow-up was being answered off a package that had ignored it.
+            "screen_type_mix": spec.screen_type_mix,
             "soft_preferences": spec.soft_preferences,
             # Levers are a campaign input in the sense that matters here: they change the
             # prices the optimizer consumed, so a request to move one is a REBUILD, not a
@@ -587,14 +763,16 @@ def get_client_negotiation_profile(client: str) -> dict:
 @tool
 def set_pricing_levers(
     run_id: str,
-    seasonality_weight: float = 1.0,
-    event_weight: float = 1.0,
-    industry_weight: float = 1.0,
-    occupancy_gamma: float = 1.0,
+    seasonality_weight: float | None = None,
+    event_weight: float | None = None,
+    industry_weight: float | None = None,
+    demand_premium_weight: float | None = None,
+    occupancy_gamma: float | None = None,
     band_position: float | None = None,
-    commercial_multiplier: float = 1.0,
-    respect_band_floor: bool = True,
+    commercial_multiplier: float | None = None,
+    respect_band_floor: bool | None = None,
     note: str | None = None,
+    reset: bool = False,
 ) -> dict:
     """Adjust HOW the pricing stage prices, based on what the sales rep told you.
 
@@ -604,9 +782,14 @@ def set_pricing_levers(
     are stored on the run and the pricing stage picks them up automatically, so do not
     repeat them in the delegation message.
 
-    Every lever defaults to identity: omit the ones the rep did not speak to. Values are
-    CLAMPED to a permitted range rather than rejected — the result tells you the effective
-    value, and you must quote that rather than what you asked for.
+    OMIT EVERY LEVER THE REP DID NOT SPEAK TO. An omitted lever keeps whatever the run
+    already carries, so calling this twice adds to the previous call instead of erasing it —
+    a rep who asked for a 5% discount on turn two and no weekend haircut on turn four gets
+    both. Pass `reset=True` to throw the run's levers away and start from the engine's own
+    derived values, which is also the only way back to the occupancy-driven band position.
+
+    Values are CLAMPED to a permitted range rather than rejected — the result tells you the
+    effective value, and you must quote that rather than what you asked for.
 
     None of these can overrule inventory. A sold-out screen stays infeasible, availability
     is untouched, and the band still comes from real comparable bookings.
@@ -620,32 +803,51 @@ def set_pricing_levers(
         event_weight: 0.0-2.0. How much of the nearby-event premium to apply.
         industry_weight: 0.0-2.0. How much of the industry-vertical band adjustment to
             apply. The effective adjustment stays inside [0.85, 1.20] regardless.
+        demand_premium_weight: 0.0-2.0. How much of the per-screen demand premium to apply.
+            This is the one lever that DOES something at its 1.0 default: the demand model
+            finds screens underpriced for the audience they deliver and raises them up to
+            15%. Set 0.0 only if the rep wants a quote purely off historical comparables —
+            it undersells the screens the model flags.
         occupancy_gamma: 0.25-4.0. Reshapes occupancy into a position in the band. Below
             1.0 quotes higher on partly-empty inventory; above 1.0 quotes lower. Empty
             still quotes at floor, full still quotes at cap.
         band_position: 0.0-1.0, or omit. Quote at a fixed position instead of an
-            occupancy-driven one: 0.0 floor, 0.5 midpoint, 1.0 cap.
+            occupancy-driven one: 0.0 floor, 0.5 midpoint, 1.0 cap. Omitting it keeps
+            whatever the run has; `reset=True` is how you go back to the occupancy rule.
         commercial_multiplier: 0.70-1.30. Blanket adjustment applied last — the
             negotiation lever.
         respect_band_floor: Keep the quote at or above the band floor. Set False only to
             authorise a sub-floor quote; rows then disclose that they went below it.
         note: The rep's reason, in their words. Stored with the levers.
+        reset: Discard the run's existing levers first and price from the engine's own
+            derived values. Use when the rep withdraws an earlier instruction.
     """
     try:
         run_state.get_spec(run_id)  # existence check; levers on an unknown run are useless
     except KeyError as exc:
         return {"status": "error", "detail": str(exc)}
 
-    requested = PricingLevers(
-        seasonality_weight=seasonality_weight,
-        event_weight=event_weight,
-        industry_weight=industry_weight,
-        occupancy_gamma=occupancy_gamma,
-        band_position=band_position,
-        commercial_multiplier=commercial_multiplier,
-        respect_band_floor=respect_band_floor,
-        note=note,
-    )
+    # Merge onto what the run already carries, because a lever the rep set two turns ago is
+    # still their instruction. Rebuilding from the identity defaults silently reverted every
+    # earlier decision, and the tool reported success while doing it — an omitted argument
+    # meant "reset this" when the docstring said "I did not speak to it".
+    base = PricingLevers() if reset else run_state.get_pricing_levers(run_id)
+    supplied = {
+        name: value
+        for name, value in (
+            ("seasonality_weight", seasonality_weight),
+            ("event_weight", event_weight),
+            ("industry_weight", industry_weight),
+            ("demand_premium_weight", demand_premium_weight),
+            ("occupancy_gamma", occupancy_gamma),
+            ("band_position", band_position),
+            ("commercial_multiplier", commercial_multiplier),
+            ("respect_band_floor", respect_band_floor),
+            ("note", note),
+        )
+        if value is not None
+    }
+    requested = base.model_copy(update=supplied)
     effective, clamped = requested.clamp()
     run_state.set_pricing_levers(run_id, effective)
 
@@ -660,11 +862,18 @@ def set_pricing_levers(
         "run_id": run_id,
         "effective_levers": effective.model_dump(mode="json"),
         "changes_from_default": changes,
+        "levers_you_set_this_call": sorted(supplied),
+        "carried_from_earlier_calls": sorted(
+            name
+            for name in PricingLevers.model_fields
+            if name not in supplied and getattr(effective, name) != getattr(PricingLevers(), name)
+        ),
         "clamped": clamped,
         "detail": (
             "Stored on the run. Stage 4 will apply these automatically — do not restate "
             "them when you delegate. If the package already exists, it was priced with the "
-            "PREVIOUS levers and must be rebuilt for these to take effect."
+            "PREVIOUS levers and must be rebuilt for these to take effect. Levers you did "
+            "not pass were kept from earlier calls; pass reset=True to clear them."
         ),
     }
 
@@ -810,18 +1019,31 @@ def inspect_package(run_id: str, limit: int = 60) -> dict:
 
 
 @tool
-def check_explanations(run_id: str, explained_screen_ids: list[str]) -> dict:
+def check_explanations(run_id: str, explained_screen_ids: list[str] | str) -> dict:
     """Confirm every screen you are about to explain is actually in the package.
 
     Run this on the screen IDs in your draft recommendation before returning it.
+
+    Args:
+        run_id: Handle for the campaign run.
+        explained_screen_ids: The screen IDs you name in the draft, as a LIST — e.g.
+            ["SCR-001234", "SCR-005678"]. A single ID still goes in a list.
     """
+    try:
+        screen_ids = coerce.as_str_list(
+            explained_screen_ids,
+            field="explained_screen_ids",
+            example='["SCR-001234", "SCR-005678"]',
+        )
+    except ArgumentError as exc:
+        return _bad_argument("check_explanations", exc)
     try:
         result = run_state.get_optimization(run_id)
     except KeyError as exc:
         return {"status": "error", "detail": str(exc)}
     if result is None or result.package is None:
         return {"status": "error", "detail": "No package on this run."}
-    check = validate_explanations(result.package, explained_screen_ids)
+    check = validate_explanations(result.package, screen_ids)
     return check.model_dump()
 
 

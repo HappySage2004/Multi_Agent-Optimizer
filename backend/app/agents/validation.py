@@ -187,7 +187,13 @@ def _reach_checks(
             continue
         key = (line.pool_key or line.screen_id, str(a.time_block_id))
         grouped[key] = grouped.get(key, 0.0) + a.viewed_exposures
-        caps[key] = max(caps.get(key, 0.0), line.reachable_daily_audience)
+        # The POOL's ceiling, not the line's. For a vehicle the per-screen figure is its
+        # share of the corridor, so capping against it understates a mobile pool by the
+        # vehicle count. Fallback covers artifacts predating the field.
+        caps[key] = max(
+            caps.get(key, 0.0),
+            line.pool_reachable_daily_audience or line.reachable_daily_audience,
+        )
 
     if unmatched:
         return [
@@ -447,6 +453,7 @@ def _hard_constraint_checks(spec: CampaignSpec, package: OptimizedPackage) -> li
         )
 
     checks.extend(_slot_cap_checks(spec, package))
+    checks.extend(_screen_type_mix_checks(spec, package))
     checks.append(_recognized_constraint_check(spec))
 
     if len(checks) == 1:
@@ -509,6 +516,62 @@ def _slot_cap_checks(spec: CampaignSpec, package: OptimizedPackage) -> list[Vali
             else f"Screens over the declared slot cap: {offenders[:5]}",
             f"<= {cap} per screen per day",
             f"{busiest} on the busiest screen",
+        )
+    ]
+
+
+def _screen_type_mix_checks(spec: CampaignSpec, package: OptimizedPackage) -> list[ValidationCheck]:
+    """A requested screen type must be in the package, or reported as missing. Not both silent.
+
+    `screen_type_mix` is enforced BEST EFFORT, so a missing type is not automatically a
+    failure — a mix costs measured reach and whether to pay it belongs to the client. What is
+    not permitted is dropping it in silence, which is the failure mode that produced an
+    all-metro package against a brief that asked for buses and reported success at every
+    layer.
+
+    So this check has an unusual shape and it is deliberate: it validates the DISCLOSURE, not
+    the constraint. A package missing `bus_stop` passes if `unmet_coverage` says so, and
+    fails if it does not. That keeps the elastic constraint honest without turning a media
+    judgement into a hard gate.
+
+    Screen types come from reference data rather than the package, so a solver that
+    mislabelled its own allocations cannot satisfy this by relabelling them.
+    """
+    if not spec.screen_type_mix:
+        return []
+    facts = screen_facts()
+    present = {facts[s].screen_type for s in package.screen_ids if s in facts}
+    missing = [t for t in spec.screen_type_mix if t not in present]
+    if not missing:
+        return [
+            _check(
+                "screen_type_mix_disclosed",
+                True,
+                f"Every requested screen type is in the package: {sorted(present)}.",
+                spec.screen_type_mix,
+                sorted(present),
+            )
+        ]
+
+    # `unmet_coverage` is keyed `screen_type:<t>` by `or_agent_tools._solve`.
+    disclosed = {k.split(":", 1)[1] for k in package.unmet_coverage if k.startswith("screen_type:")}
+    undisclosed = [t for t in missing if t not in disclosed]
+    return [
+        _check(
+            "screen_type_mix_disclosed",
+            not undisclosed,
+            f"Requested types absent from the package: {missing}; reported as unmet: "
+            f"{sorted(disclosed)}."
+            if not undisclosed
+            else (
+                f"Requested screen type(s) {undisclosed} are absent from the package AND "
+                f"absent from unmet_coverage — the brief asked for them and nothing says "
+                f"they were dropped. Disclose or include."
+            ),
+            f"missing types disclosed: {missing}",
+            f"{len(undisclosed)} undisclosed: {undisclosed}"
+            if undisclosed
+            else f"all {len(missing)} disclosed",
         )
     ]
 

@@ -134,13 +134,26 @@ class ScreenEconomics(BaseModel):
             "who looked, not everyone who walked past."
         ),
     )
+    pool_reachable_daily_audience: float = Field(
+        default=0.0,
+        description=(
+            "THE REACH CEILING FOR THE WHOLE POOL: distinct people who look at any screen "
+            "sharing this `pool_key` on a typical day. For a stop-mounted screen this equals "
+            "`reachable_daily_audience` — every screen at the stop is passed by the same "
+            "crowd. For a VEHICLE it is larger: `v_corridor_block_demand` divides a "
+            "corridor's riders by its vehicle count to get one vehicle's share, so the "
+            "per-screen figure is a fraction of the pool and capping reach against it "
+            "understates the corridor by that same factor (up to ~9x). Cap deduplicated "
+            "reach against THIS field, never against the per-screen one."
+        ),
+    )
     viewability_factor: float | None = Field(
         default=None,
         ge=0.0,
         le=1.0,
         description=(
             "Share of passers-by assumed to look at this screen type (in-vehicle 0.65, "
-            "static 0.35). ASSUMED, no ground truth in the source data — recorded per row "
+            "stop-mounted 0.35). ASSUMED, no ground truth in the source data — recorded per row "
             "so any exposure figure is traceable to it."
         ),
     )

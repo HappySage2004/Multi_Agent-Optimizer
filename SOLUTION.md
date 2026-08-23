@@ -1158,6 +1158,66 @@ the constraint cannot be filtered and is already satisfied by every screen. Say 
 answer rather than inventing a filter; `describe_inventory` returns the same statement in
 `no_digital_flag` so an agent does not have to infer it.
 
+## 11.8 The brief's screen-type mix
+
+A brief asking for metro stations **and** buses came back all metro, and every layer reported
+success. Three separate holes, all now closed.
+
+**1. `allowed_screen_types` is a filter, not a mix.** It only PERMITS a type. One global
+relevance cut then fills every slot from whichever type has the most inventory. Measured:
+permitting `metro_station` + `bus_stop` and taking the top 120 of 6,304 eligible returned
+**120 metro_station and 0 bus_stop**.
+
+That is a truncation artifact, not a verdict on bus stops, and the distinction matters
+because it changes the fix:
+
+```text
+eligible          metro_station 4,224   bus_stop 735      (5.7 : 1)
+mean relevance          0.6114             0.5618
+range             0.4673 - 0.7831    0.4432 - 0.7692      heavy overlap
+```
+
+Relevance carries **no price term and no impressions term** — `transit_score` is computed and
+reported at weight 0.0. So the exclusion is not "metro earns more"; the scarcer type simply
+loses every slot in a 120-of-6,304 cut. `CampaignSpec.screen_type_mix` stratifies that cut
+per named type.
+
+**2. The optimizer had no screen-type obligation.** A stratified pool is necessary and not
+sufficient. `or_agent_tools._solve` now builds one **elastic** coverage group per requested
+type, using the `coverage` mechanism `solver.solve` already had and nothing used.
+
+**3. Nothing re-derived the outcome.** `validation.screen_type_mix_disclosed` closes it, and
+it has a deliberately unusual shape: it validates the **disclosure**, not the constraint. A
+requested type absent from the package passes only if `unmet_coverage` names it. The original
+defect was not the missing bus screens — it was the silence.
+
+### Elastic, not hard
+
+The mix is penalized rather than enforced, so a package always ships and a brief never becomes
+infeasible because of it. A mix is a media judgement; the software's job is to make it visible.
+
+### Two different costs, and they must not be conflated
+
+```text
+the COVERAGE RULE      ~0        same pool, coverage rows dropped -> same reach
+                                 (reach saturates per pool; a cheap bus_stop is a FRESH
+                                  pool, so the solver buys it unprompted -- 13 bus_stop
+                                  against 6 metro_station on one 60k brief)
+
+the POOL STRATIFICATION  large   stratified 120-screen pool reached 8,190 where a
+                                 metro-only pool of the same size reached 15,940
+```
+
+`reach_cost_of_the_coverage_rule` reports only the first. The second belongs to candidate
+selection, and the OR agent's prompt forbids attributing it to the rule.
+
+### The mix is a campaign input
+
+`get_active_run`'s `campaign_inputs` now carries `screen_type_mix`. Its triage rule says a
+field absent from that dict cannot have changed the package — so while the mix was missing
+from it, "also add some buses" was answered off the old package instead of rebuilding, and
+the request was ignored a second time.
+
 ## 11.7 Unrecognized hard constraints fail verification
 
 The generalization, and the part that stops this class of miss recurring under a different

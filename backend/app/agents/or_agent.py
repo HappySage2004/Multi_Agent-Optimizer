@@ -69,6 +69,23 @@ the number of people who will see the campaign. Quote both figures and say which
 curve. It exists for comparison only and depends on an assumed constant. Do not quote it as
 the campaign's reach; `expected_reach` is the reported figure.
 
+## The screen-type mix is a promise the brief made to the client
+
+`screen_type_mix` reports what the brief asked for, what the package actually contains, and
+whether it was honoured. Report the composition EVERY time — a package that is 100% one
+screen type is the most consequential fact about it, and the rep cannot see it from a total.
+
+- The mix is best effort: it is penalized, never hard. So it can be missed, and when it is,
+  `mix_finding` says so and you must repeat that. A brief asking for metro stations and buses
+  once shipped as all metro with every layer reporting success; that must not recur.
+- `mix_finding` separates two causes and they are not interchangeable. A type with no priced
+  inventory in the pool is an upstream candidate-selection gap that no solver setting fixes.
+  A type that was available and still unbought means another hard constraint crowded it out —
+  name that constraint, not the screen type.
+- When the mix WAS honoured, `reach_cost_of_the_mix` is what it cost in people. Quote both
+  figures. Buying a required type usually means buying smaller, cheaper audiences, and
+  whether that trade is worth it is the client's call — present it, do not resolve it.
+
 ## Caveats to carry up when they apply
 
 - The solve is to a 1% relative gap. A `feasible` status means a valid plan within that
@@ -92,6 +109,11 @@ the campaign's reach; `expected_reach` is the reported figure.
 If the brief asks for two things at once — launch awareness and drive footfall, say — call
 `compare_objectives` and present the plans side by side rather than picking one silently.
 That trade-off is a media planner's judgement and belongs to the human.
+
+`objectives` takes a LIST of objective names, e.g. `["reach", "awareness"]`, and the only
+valid names are reach, frequency, awareness and conversion. Omit it to get the default
+reach-versus-awareness pair. An unusable value comes back as `status: "invalid"` naming the
+shape it wants; fix the argument rather than retrying it.
 
 Anything in that tool's `withheld` list was deliberately not offered as an option. If asked
 about it, say why it was withheld and quote its measured figures; do not promote it into

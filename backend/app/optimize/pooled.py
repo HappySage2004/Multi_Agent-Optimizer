@@ -55,6 +55,15 @@ def pool_population(cand: pd.DataFrame, pool_keys: list[str]) -> np.ndarray:
     `pool_partition_count`. Screens in a pool carry the same value, so `max` is the
     aggregate — it is a lookup, not an estimate.
 
+    THAT PREMISE IS LOAD-BEARING AND HAS BEEN BROKEN ONCE. `max` here is taken over the
+    whole candidate frame, while the reported reach (`or_agent_tools._package_metrics`) and
+    the validator take it over the ALLOCATED lines. Those agree only while every screen in a
+    pool reports the same audience. When `TERMINUS_WEIGHT` was 1.5 they did not — a site
+    merging both sides of a road held a route's terminus and a mid-route stop, 1.5x apart —
+    and the two ceilings diverged, so `curve_reach_bounded` failed on every package. Any
+    change that makes a pool's screens disagree has to be reconciled at the SOURCE, in
+    `app/data/db.py`, not papered over by picking a convention here.
+
     Port note: the handoff did `.reindex(keys).fillna(1.0)`. A pool silently assigned a
     population of ONE PERSON is not a conservative fallback — it makes that pool look
     instantly saturated, so the solver stops buying there and the shortfall is invisible.

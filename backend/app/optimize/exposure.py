@@ -57,24 +57,28 @@ from app.optimize import config as C
 # because it is what the ScreenCandidate contract carries.
 IN_VEHICLE_SCREEN_TYPES = frozenset({"bus", "metro_rail_coach"})
 
-STATIC_SCREEN_TYPES = frozenset({"bus_stop", "metro_station"})
+STOP_MOUNTED_SCREEN_TYPES = frozenset({"bus_stop", "metro_station"})
+"""Stop- and platform-mounted, as opposed to riding inside a vehicle. Nothing to do with
+how the screen displays — every screen in this network is digital."""
 
 
 def viewability(screen_type: str | None) -> float:
     """Share of passers-by who look at this screen type.
 
-    An unrecognized or missing screen_type takes the STATIC factor — the lower of the two,
+    An unrecognized or missing screen_type takes the STOP-MOUNTED factor — the lower of the two,
     so an unknown type is never flattered. Callers that need to disclose the substitution
     can compare against `is_viewability_assumed`.
     """
     if screen_type in IN_VEHICLE_SCREEN_TYPES:
         return C.VIEWABILITY_IN_VEHICLE
-    return C.VIEWABILITY_STATIC
+    return C.VIEWABILITY_STOP_MOUNTED
 
 
 def is_viewability_assumed(screen_type: str | None) -> bool:
     """True when `viewability` fell back rather than recognizing the screen type."""
-    return screen_type not in IN_VEHICLE_SCREEN_TYPES and screen_type not in STATIC_SCREEN_TYPES
+    return (
+        screen_type not in IN_VEHICLE_SCREEN_TYPES and screen_type not in STOP_MOUNTED_SCREEN_TYPES
+    )
 
 
 def viewed_exposures_per_slot_per_day(pool_daily_audience: float, screen_type: str | None) -> float:

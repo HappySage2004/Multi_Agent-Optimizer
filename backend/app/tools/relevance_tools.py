@@ -138,8 +138,16 @@ from app.models.campaign import (
 from app.models.screens import ScreenCandidate
 from app.services import run_state
 from app.services.artifact_store import write_records
+from app.tools import coerce
+from app.tools.coerce import ArgumentError
 
 ARTIFACT_KIND = "screen_candidates"
+
+# The widest pool any later stage can carry. `top_n` reaches the pricing engine as
+# pool x time blocks priced lines and the MILP as cells, so this is a latency ceiling
+# rather than a modelling one -- the configured default (250) is the tuned figure and
+# this is only the bound on an agent asking for more.
+MAX_CANDIDATE_POOL = 2000
 
 # A time block is a 4-hour window of the day. Within it all 6 rotation slots cycle
 # continuously (1->2->...->6->1), and the same structure repeats every day of the flight.
@@ -1086,9 +1094,6 @@ def describe_inventory(run_id: str) -> dict:
         "by_inventory_class": by_class,
         "distinct_zones_covered": len(zones),
         "source": "reference lookup (real data)",
-        # A brief asking for "digital screens only" is asking for something that cannot be
-        # filtered here, because there is nothing to filter against. Stated rather than
-        # left for an agent to infer a flag that does not exist.
         "screen_attributes_available": [
             "screen_type",
             "position",
@@ -1096,19 +1101,11 @@ def describe_inventory(run_id: str) -> dict:
             "inventory_class",
             "zone_id",
         ],
-        "no_digital_flag": (
-            "screens.csv records no digital/static attribute at all — its only descriptive "
-            "columns are screen_type, position and screen_size (S/M/L). The inventory model "
-            "itself implies digital: 6 ad slots rotating continuously through a 4-hour "
-            "block is not something a static poster does. So a brief specifying 'digital "
-            "screens only' cannot be filtered and is already satisfied by every screen. Say "
-            "that plainly rather than implying a filter was applied."
-        ),
     }
 
 
 @tool
-def build_screen_candidates(run_id: str, top_n: int | None = None) -> dict:
+def build_screen_candidates(run_id: str, top_n: int | str | None = None) -> dict:
     """Score the eligible inventory and persist the ranked candidate pool.
 
     Runs the deterministic audience relevance engine: hard-filters the inventory to the
@@ -1125,14 +1122,30 @@ def build_screen_candidates(run_id: str, top_n: int | None = None) -> dict:
 
     Args:
         run_id: Handle for the campaign run, from create_campaign_spec.
-        top_n: Candidate pool size. Defaults to the configured pool size (250).
+        top_n: Candidate pool size, 1-2000. Normally OMIT this — it
+            defaults to the configured pool size (250), which is tuned against what the
+            pricing stage and the MILP can carry. It is NOT the campaign's screen count:
+            the optimizer picks the package out of this pool, so raising it buys a wider
+            search and costs every later stage proportionally.
     """
     if not run_state.exists(run_id):
         error(f"STAGE 2-3 build_screen_candidates called with unknown run_id={run_id!r}")
         return run_state.unknown_run(run_id, tool="build_screen_candidates")
 
+    # Bounded rather than trusted. `top_n` reaches stage 4 as pool x blocks priced lines
+    # and stage 5 as MILP cells, so a model that read it as "the number of screens the
+    # client wants" and passed a few thousand turns a 90-second pipeline into a timeout.
+    argument_notes: list[str] = []
+    try:
+        bounded, note = coerce.clamp_int(top_n, field="top_n", low=1, high=MAX_CANDIDATE_POOL)
+    except ArgumentError as exc:
+        error(f"STAGE 2-3 build_screen_candidates rejected an argument: {exc}")
+        return {"status": "invalid", "errors": str(exc)}
+    if note:
+        argument_notes.append(note)
+
     spec = run_state.get_spec(run_id)
-    limit = top_n or get_settings().candidate_pool_size
+    limit = bounded or get_settings().candidate_pool_size
 
     eligible = eligible_screen_ids(spec.city_ids, spec.zone_ids, spec.corridor_ids)
     if not eligible:
@@ -1219,6 +1232,8 @@ def build_screen_candidates(run_id: str, top_n: int | None = None) -> dict:
         "screen_type_mix_requested": spec.screen_type_mix,
         "screen_type_mix_unfilled": summary["screen_type_mix_unfilled"],
         "constant_subscores": summary["constant_subscores"],
+        # Non-empty means an argument you passed was bounded. Report the applied figure.
+        "argument_notes": argument_notes,
         "top_screens_preview": [
             {
                 "screen_id": c.screen_id,
