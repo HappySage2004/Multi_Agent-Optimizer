@@ -27,7 +27,9 @@ import pandas as pd
 from app.logging_utils import debug, info
 from app.ml import loaders
 from app.ml.booking_probability import BookingProbabilityModel
+from app.ml.demand_value import DemandValueModel
 from app.ml.impressions import ImpressionsEstimator
+from app.ml.levers import DEFAULT_LEVERS, PricingLevers, effective_multiplier
 from app.ml.occupancy import OccupancyEngine
 from app.ml.price_band import PriceBandEngine
 from app.ml.price_optimizer import PriceOptimizer, ScreenPricing
@@ -48,6 +50,10 @@ _NULL_ROW_FIELDS = (
     "event_match_type",
     "pricing_internal_reach_proxy",
     "pricing_internal_reach_method",
+    "demand_value_index",
+    "historical_price_index",
+    "demand_premium",
+    "demand_value_reason",
 )
 
 
@@ -60,6 +66,7 @@ class PricingEngine:
         optimizer: PriceOptimizer,
         impressions_estimator: ImpressionsEstimator,
         seasonality_adjuster: SeasonalityAdjuster,
+        demand_value: DemandValueModel,
         screens_df: pd.DataFrame,
         dayparts: dict[str, str],
     ):
@@ -69,6 +76,7 @@ class PricingEngine:
         self.optimizer = optimizer
         self.impressions_estimator = impressions_estimator
         self.seasonality_adjuster = seasonality_adjuster
+        self.demand_value = demand_value
         self._screens = screens_df.set_index("screen_id")
         self._dayparts = dayparts
 
@@ -121,6 +129,10 @@ class PricingEngine:
             ridership, loaders.load_events(), screens, loaders.load_locations()
         )
 
+        # M7. Reads the same DuckDB views the relevance engine publishes, so it costs a
+        # query rather than a second copy of the audience model.
+        demand_value = DemandValueModel.build()
+
         engine = cls(
             occ_engine,
             band_engine,
@@ -128,6 +140,7 @@ class PricingEngine:
             optimizer,
             impressions_estimator,
             seasonality_adjuster,
+            demand_value,
             screens,
             loaders.time_block_dayparts(),
         )
@@ -158,7 +171,10 @@ class PricingEngine:
     # --- per-query path ------------------------------------------------------
 
     def price_candidates(
-        self, campaign: dict[str, Any], candidate_screens: list[str]
+        self,
+        campaign: dict[str, Any],
+        candidate_screens: list[str],
+        levers: PricingLevers | None = None,
     ) -> list[dict]:
         """Price one (time block x campaign context) against a candidate screen list.
 
@@ -167,14 +183,24 @@ class PricingEngine:
           slots_needed (default 1), city_id (optional -- otherwise each screen's own)
         }
 
+        `levers` are the run's pricing parameters (`app/ml/levers.py`). None means the
+        identity set, which reproduces the engine's behaviour before levers existed. Pass
+        them ALREADY CLAMPED — the tool layer clamps once and discloses, so clamping again
+        here would silently hide a bound the caller was never told about.
+
         Returns one dict per candidate screen, input order preserved. Infeasible screens
         are still returned (with feasible=False) rather than silently dropped, so the
         caller can see what was excluded and why.
         """
+        levers = levers or DEFAULT_LEVERS
         results: list[dict] = []
         slots_needed = campaign.get("slots_needed", 1)
         time_block_id = campaign["time_block_id"]
         daypart = campaign.get("daypart") or self.daypart_for(time_block_id)
+        # Deal shape. None means "use the blended band" and is what a caller that does not
+        # know the shape should send — never a guess, because guessing bundle on a
+        # single-screen quote reads 6.5-9% low.
+        is_bundle = campaign.get("is_bundle")
 
         t0 = time.perf_counter()
         unknown = 0
@@ -194,6 +220,19 @@ class PricingEngine:
             seasonality = self.seasonality_adjuster.get_adjustment(
                 screen_id, campaign["start_date"], campaign["end_date"]
             )
+            # The two seasonality terms are weighted SEPARATELY and only then multiplied.
+            # `SeasonalityAdjustment.combined_multiplier` is the unweighted product, so it
+            # is not usable here — a rep who wants the event premium but not the
+            # day-of-week haircut needs the terms to move independently.
+            season_multiplier = effective_multiplier(
+                seasonality.day_of_week_holiday_multiplier, levers.seasonality_weight
+            ) * effective_multiplier(seasonality.event_boost, levers.event_weight)
+
+            # M7. `premium` is already 1.0 for anything the gates excluded — mobile
+            # inventory, thin booking history, a screen that does not sell — so the weight
+            # only ever scales a premium the model actually granted.
+            demand = self.demand_value.for_screen(screen_id)
+            demand_premium = effective_multiplier(demand.premium, levers.demand_premium_weight)
 
             pricing: ScreenPricing = self.optimizer.price_screen(
                 screen_id=screen_id,
@@ -207,7 +246,10 @@ class PricingEngine:
                 start_date=campaign["start_date"],
                 end_date=campaign["end_date"],
                 slots_needed=slots_needed,
-                price_multiplier=seasonality.combined_multiplier,
+                price_multiplier=season_multiplier,
+                demand_premium=demand_premium,
+                is_bundle=is_bundle,
+                levers=levers,
             )
 
             result = _as_row(pricing)
@@ -221,13 +263,26 @@ class PricingEngine:
                 impressions = self.impressions_estimator.estimate(screen_id)
                 result["pricing_internal_reach_proxy"] = impressions.estimated_impressions
                 result["pricing_internal_reach_method"] = impressions.method
-                result["seasonality_multiplier"] = seasonality.combined_multiplier
+                # The multiplier ACTUALLY APPLIED, after the levers. Reporting the raw
+                # `combined_multiplier` here would show a figure the price was not
+                # computed from, which is the one thing a traceability field must not do.
+                result["seasonality_multiplier"] = round(season_multiplier, 4)
                 result["event_match_type"] = seasonality.event_match_type
+                result["demand_value_index"] = round(demand.merit, 4)
+                result["historical_price_index"] = (
+                    None if demand.price_index is None else round(demand.price_index, 4)
+                )
+                result["demand_premium"] = round(demand_premium, 4)
+                result["demand_value_reason"] = demand.reason
             else:
                 result["pricing_internal_reach_proxy"] = None
                 result["pricing_internal_reach_method"] = None
                 result["seasonality_multiplier"] = None
                 result["event_match_type"] = None
+                result["demand_value_index"] = None
+                result["historical_price_index"] = None
+                result["demand_premium"] = None
+                result["demand_value_reason"] = None
             result["reach_owner"] = "audience_engine"  # not this engine
 
             results.append(result)
@@ -236,9 +291,11 @@ class PricingEngine:
         # (~750 iterations on a default pool), so a per-screen line would bury the trace.
         feasible = [r for r in results if r["feasible"]]
         prices = [r["recommended_price"] for r in feasible]
+        moved = levers.changes()
         debug(
             f"pricing block {time_block_id} ({daypart}): {len(feasible)}/{len(results)} "
             f"feasible for {slots_needed} slot(s)/day"
+            + (f", levers [{', '.join(moved)}]" if moved else "")
             + (
                 f", price {min(prices):,.2f}..{max(prices):,.2f} "
                 f"(mean {sum(prices) / len(prices):,.2f})"

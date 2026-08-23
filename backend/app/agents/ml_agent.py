@@ -42,6 +42,18 @@ justify *why* the prices are credible, call `describe_pricing_model`.
 - Availability: day-by-day slot occupancy from live bookings. The figure you report is
   the tightest single day across the flight, not an average.
 
+## Pricing levers
+
+The run may carry pricing levers the Master set from what the sales rep said — a
+seasonality term dialled down, a fixed band position, a commercial adjustment. You do not
+set them and you do not need to pass them: `estimate_screen_economics` reads them from the
+run and returns `pricing_levers_applied`.
+
+If that list is non-empty, say so. A quote that a human moved is not the same claim as a
+quote the model derived, and the rep has to know which one they are holding. Report the
+levers that were applied and the `pricing_levers_note` if one is set. If the list is empty,
+the prices are the engine's own derived figures — say nothing about levers at all.
+
 ## What you do NOT own
 
 Audience volume. `viewed_exposures_per_slot_per_day`, `daily_unique_audience` and

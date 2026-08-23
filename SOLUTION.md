@@ -1157,10 +1157,64 @@ only as a bounded secondary adjustment, never as a primary key.
 Deterministic fallback ladder, bounded --- no free-form retries:
 
 ``` text
-Level A: screen_size x screen_type x position x city x daypart   n >= 30
-Level B: screen_size x screen_type x position x city             n >= 30
-Level C: screen_size x screen_type x position                    final floor
+Level Z1: screen_size x screen_type x position x ZONE x daypart  n >= 30
+Level Z2: screen_size x screen_type x position x ZONE            n >= 30
+Level A:  screen_size x screen_type x position x city x daypart  n >= 30
+Level B:  screen_size x screen_type x position x city            n >= 30
+Level C:  screen_size x screen_type x position                   final floor
 ```
+
+**Zone sits above city on measurement.** Holding city, size, type and
+position fixed, the median contracted price still varies **1.87x--2.52x
+across zones of the same city** --- DAT S metro_station platform runs from a
+33.47 zone median to an 84.30 one over 10 zones and 6,260 bookings.
+Segmenting on city alone quoted every one of those from the same blended
+band, underselling the strong zones and overselling the weak ones. Coverage
+supports the depth: 95.6% of bookings sit in a Z1 cell with n >= 30, 99.7%
+in a Z2 cell, and ~70% of screens resolve at a zone rung in practice.
+
+Zone is NULL for all 2,615 vehicle-mounted screens, so the zone rungs never
+match for them and mobile inventory falls through to the city levels. That
+is why there is no branch on inventory class in the lookup.
+
+**Each location rung is also split by DEAL SHAPE** (`is_bundle`) and tried
+split-first. `is_bundle=False` deals hold exactly one screen (max 1); bundled
+deals a median of 20. A package this system produces is therefore commercially
+a bundle, a single-screen quote is not, and they should not come off the same
+comparables.
+
+How big the effect is depends on how it is measured, and the two readings
+disagree:
+
+-   By **mean price index** at city+daypart grain the split looks inert: 1.0617
+    non-bundle against 1.0459 bundle, medians 0.9939 and 1.0017.
+-   By the **actual band quantiles** at zone+daypart grain --- the cells this
+    ladder resolves at --- across the 302 cells where both shapes clear n >= 30,
+    single-screen deals sit consistently higher: floor x1.090, target x1.079,
+    cap x1.065, on a band 7.5% narrower.
+
+The quantile reading governs, for two reasons. The price decision consumes
+QUANTILES (`floor + position x (cap - floor)`), and a mean of per-booking
+ratios against a blended median is a different statistic from the quantiles of
+each population. And zone grain is where the band actually resolves. End to
+end the split moves a single-screen quote ~3.8% above a bundled one. Coverage
+survives it: 89.5% of bookings sit in a Z1+shape cell with n >= 30, 98.9% at
+Z2+shape.
+
+Shape is nonetheless the **first** dimension surrendered when a cell runs
+short, being worth 6.5--9% against zone's 87--152%. `is_bundle=None` means "do
+not split" and is what a caller that does not know the shape must send ---
+never a guess, since guessing bundle on a single-screen quote reads ~9% low.
+The rung name records which shape was used (`..._bundle`,
+`..._single_screen`, or unsuffixed for a blended fallback).
+
+**One dimension was tested and rejected**, recorded in the module so it is not
+re-added on intuition:
+
+-   `duration_days`. Real but small once bundle is controlled, and only inside
+    the bundle population: 1.0577 (<=14d) -> 1.0648 (15--30) -> 1.0425
+    (31--60) -> 0.9924 (61--120) -> 0.9307 (>120). Between the buckets most
+    campaigns fall in, ~2%.
 
 Level C always resolves: all 15 `(screen_size, screen_type, position)`
 combinations present in `screens` appear in `bookings`. A test asserts this,
@@ -1289,6 +1343,208 @@ confound --- larger purchases skew toward cheaper inventory. Controlling for
 the price-band segment, the residual effect is ~1.6%, inside noise. The map
 is returned explicitly so the interface states this rather than leaving
 consumers to infer it.
+
+## Model C --- Demand Value and the mispricing premium  **[BUILT]**
+
+`app/ml/demand_value.py` (M7). Models A and B both answer the same question
+--- what did comparable inventory sell for --- which makes the engine a
+mirror. A screen that has always been sold cheap is quoted cheap forever, and
+no amount of history can say the history was wrong.
+
+This is the second opinion, and it **never sees a price**. `merit` scores a
+screen on what it physically delivers, as a percentile within its own
+`screen_type x city`:
+
+``` text
+merit = 0.50 x audience volume      (v_screen_demand_history, all day types)
+      + 0.20 x zone income_index
+      + 0.15 x daytime_population_multiplier
+      + 0.15 x weighted_nearby_footfall
+```
+
+Ranked within `screen_type x city` because the realized price index is
+normalized against a segment that already contains both --- ranking globally
+would reintroduce the pooling artifact this model exists to see past
+(`metro_station` median volume is ~380x `bus`, so a global volume rank is
+mostly a screen-type indicator).
+
+**Why it must not be fitted to price.** A model trained to PREDICT price from
+location and audience treats the historical average as correct, so a
+systematically underpriced category is learned as correct and reports no
+mispricing at all. It can find deviation from a norm, never a wrong norm.
+Measured: bus stops in the top audience quintile carry 6.2x the riders of the
+bottom quintile and 1.59x the price. A price-trained model calls that correct.
+
+Four gates, each of which withholds real screens. 385 of 6,690 eligible
+screens end up flagged:
+
+``` text
+fixed inventory only   merit/absorption correlation is +0.37 bus_stop and
+                       +0.31 metro_station but -0.28 bus and -0.20
+                       metro_rail_coach -- a symptom of the corridor/vehicle
+                       volume artifact, not a market fact. Mobile also has no
+                       zone demographics, so 3 of 4 components are zero, which
+                       is why its merit/price-rank correlation is 0.02-0.14
+                       against ~0.5 for the fixed types.
+>= 10 bookings         below that there is no reliable read on what the
+                       screen actually sells for.
+merit >= 0.50          a weak screen priced weakly is the market being right.
+                       The residual alone flags 191 below-median-merit screens.
+absorption >= 0.30     withholds 281 screens averaging 283,334 riders a day ---
+                       the HIGHEST of any bucket this model produces --- on an
+                       absorption rank of 0.166. Separates "undervalued" from
+                       "unwanted"; this is what makes the model defensible.
+```
+
+**A ranking trap this hit once, recorded so it is not reintroduced.**
+`pr_price` is a percentile among screens that HAVE a price index. Ranking the
+NULL-price screens in the same window partition squeezed the 181 priced
+bus_stop/ACS screens into ranks 0.000--0.257 rather than 0.000--1.000: every
+price rank depressed, every residual inflated, and screens transacting ABOVE
+their own comparables flagged as underpriced (811 premiums against the correct
+385). Hence the extra `(price_index IS NULL)` partition key.
+
+Premium ramps linearly from residual 0.20 (+0%) to 0.60 (+15%, the cap), so
+the gate is not a cliff. The cap is conservative by construction: at the
+observed mean of x1.056 the flagged set moves from an average transacted 64.51
+to 68.14, still well **below** the 88.31 of the screens the model leaves alone
+and far below the 118.23 it flags as overpriced --- it narrows a gap rather than
+closing it. Commercial risk is measured --- in `lost_leads`, deals lost to price
+wanted a third off (`price_gap_pct` 0.328 for `price_too_high`, 0.309 for
+`budget_mismatch`) against 0.025 for deals lost to a competitor.
+
+**The one adjustment that may carry a quote above the band cap**, deliberately:
+an underpriced screen's own comparables are what understate it, so clamping the
+premium back inside the band would delete exactly the correction it exists to
+make. A test asserts nothing else can exceed the cap and that the excess is
+bounded by the premium.
+
+Auto-applied at `demand_premium_weight = 1.0`, and self-correcting --- if a
+raised price stops a screen selling, occupancy falls and step 4 of section 8A
+pulls the quote back down on the next run. Measured on the canonical brief: 24
+priced lines carry a premium (mean x1.083), package cost 47,449 against 47,204,
+for **identical reach** of 288,446. Same audience delivered, more revenue.
+
+There is no ground truth for what a screen is worth, so merit ships with no
+held-out accuracy metric and cannot acquire one from this dataset. Validate
+forward: do premium-flagged screens keep their occupancy after the rise?
+
+------------------------------------------------------------------------
+
+## Model D --- Client Negotiation Profile  **[BUILT, advisory only]**
+
+`app/ml/client_profile.py` (M8). Wired to **no engine, no lever default and no
+artifact**. It answers one question for the salesperson holding the
+conversation: how has this client behaved on price before? Surfaced by the
+Master-owned read-only tool `get_client_negotiation_profile`, which resolves by
+`client_id` or company name and returns `ambiguous` rather than guessing.
+
+Worth building because the relationship data is dense: **96% of clients are
+repeat business** (499 of 520 have more than one deal; median 36 deals, mean
+109), and every one of the 807 lost leads with a known `client_id` belongs to a
+client who also has bookings. Every identified loss is a recorded price
+objection from a client still on the books.
+
+**Advisory is structural, not squeamish.** Price-driven loss rates are FLAT
+across leverage tiers --- 34.2% high, 32.5% medium, 34.8% low --- so posture says
+nothing about whether the deal is lost, only what it settles at. Applying it
+automatically would be pricing off the half of the finding that does not hold.
+`suggested_commercial_multiplier` exists, is capped to [0.90, 1.15], and only
+the rep may act on it, through `set_pricing_levers`.
+
+**`negotiation_leverage` is context, never a forecast.** It looks predictive
+only under line-item weighting:
+
+``` text
+weighting                   high    medium     low
+per line item (median)    0.9651    1.0167  1.0188   <- monotone, looks clean
+per line item (mean)      1.0128    1.0640  1.0778   <- monotone
+per CLIENT (median)       1.0394    1.0129  1.0528   <- ordering breaks
+per CLIENT (mean)         1.0513    1.0823  1.0659   <- ordering breaks
+```
+
+The label tracks ACCOUNT SIZE, not price behaviour: high-leverage clients carry
+a median 328 priced line items against 172 (low) and 165 (medium). Weighted by
+volume the big accounts dominate and do transact better; give every client one
+vote and the ordering inverts. The question here is about a client, so the
+per-client figure governs --- and it says the tier is a population reference.
+
+**What the profile leads with instead**, both measured per client:
+
+-   Their **realized price index** --- the mean of `price / its own segment
+    median` across their line items --- judged against its own STANDARD ERROR.
+-   Their **objection history**: price-driven losses, the discount they asked
+    for, negotiation rounds, competitor mentions.
+
+Confidence is deliberately a property of the DEPARTURE, not the sample size. A
+1.001 index on 500 line items is precisely measured and actionably meaningless,
+so it scores "weak" and suggests nothing. The gate is real: within-client spread
+averages 0.214 against a between-client spread of p10 0.956 to p90 1.239, so a
+client's index is a central tendency and a poor per-deal predictor.
+
+Two data traps handled explicitly:
+
+-   `price_gap_pct` is not populated on every price-driven lead. A missing gap
+    reads "discount asked not recorded", never "asking for 0% off", which would
+    tell a rep the exact opposite of the truth.
+-   The segment medians include the client's own bookings, so a client holding a
+    large share of a thin segment is partly measured against themselves. That
+    pulls their index toward 1.0 --- conservative rather than wrong --- and is
+    recorded as a known limitation rather than corrected.
+
+------------------------------------------------------------------------
+
+### Pricing levers --- the decision is parameterized  **[BUILT]**
+
+`app/ml/levers.py`. Steps 2, 3 and 4 above used to be derived once and applied on
+every run, so a second agent turn could not act on anything the sales rep said.
+Each is now a bounded parameter on the run:
+
+``` text
+    1. feasibility gate                          <- NO lever reaches this
+    2. band x industry adjustment                <- industry_weight
+    3. x day-of-week / holiday multiplier        <- seasonality_weight
+       x event boost                             <- event_weight
+    4. position = occupancy ** gamma             <- occupancy_gamma
+       or an explicit position                   <- band_position (overrides 4)
+    5. price = floor + position x (cap - floor)
+    6. x per-screen demand premium               <- demand_premium_weight
+    7. x commercial adjustment                   <- commercial_multiplier
+    8. price = max(price, floor)                 <- respect_band_floor
+```
+
+Four invariants, each pinned by `tests/test_pricing_levers.py`:
+
+-   **All defaults are identity**, where identity means "use the model's derived
+    value" --- `seasonality_weight = 1.0` applies the derived seasonality
+    multiplier. Only `demand_premium_weight` *does* something at its default,
+    because Model C is auto-applied by design; 0.0 returns the engine to pricing
+    purely off historical comparables.
+-   **Clamped in code, not in the prompt.** `clamp()` bounds and reports rather
+    than raising, because a rejected tool call in an agent loop becomes a retry
+    against a per-minute rate limit. `industry_weight` is re-clamped after
+    weighting, so Model A's [0.85, 1.20] guarantee holds at any weight.
+-   **No lever reaches feasibility.** Availability and occupancy are inventory
+    truth; a sold-out screen stays sold out.
+-   **Weights dial influence, not magnitude.**
+    `effective_multiplier(m, w) = 1 + w(m-1)`, so `w=0` means exactly "off"
+    whichever side of 1.0 the multiplier sits on.
+
+The two seasonality terms are weighted **separately** and only then multiplied, so
+a rep can keep the event premium while dropping the weekday haircut. That makes
+`seasonality_weight = 0.0` the documented answer to the double-count in the next
+section. `SeasonalityAdjustment.combined_multiplier` is the *unweighted* product
+and is no longer what the engine applies;
+`ScreenEconomics.seasonality_multiplier` reports the figure the price was actually
+computed from.
+
+Levers live on the run, set by `master_tools.set_pricing_levers` and read by
+`estimate_screen_economics` --- never passed through a delegation message, per the
+"run handles, not payloads" rule in section 19. They surface in
+`get_active_run`'s `campaign_inputs` (so moving one is a REBUILD), on the
+`screen_economics` artifact summary, and in `inspect_package`: a quote a human
+moved is a different claim from a quote the model derived, and the recommendation
+must say which one it is.
 
 ### Seasonality --- two caveats carried forward
 

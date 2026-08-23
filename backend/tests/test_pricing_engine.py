@@ -141,7 +141,16 @@ def test_large_screens_price_above_small_ones(engine, screens):
 
 
 def test_fallback_ladder_reports_the_level_it_used(engine, screens):
-    levels = {"full_with_daypart": 0, "city_no_daypart": 0, "attrs_only": 0}
+    """Every band must name the rung it resolved at, and it must be a rung that exists.
+    Asserting against the closed set is the point — a typo'd or unreported level would
+    otherwise make a quote untraceable to its sample."""
+    levels = {
+        "zone_with_daypart": 0,
+        "zone_no_daypart": 0,
+        "full_with_daypart": 0,
+        "city_no_daypart": 0,
+        "attrs_only": 0,
+    }
     sample = screens["screen_id"].sample(150, random_state=1).tolist()
     for sid in sample:
         band = engine.band_engine.get_price_band(sid, "night", "healthcare")

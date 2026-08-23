@@ -46,7 +46,14 @@ export const STAGES: StageDefinition[] = [
  */
 export const PIPELINE_ENTRY_TOOL = "create_campaign_spec";
 
-/** Master-owned tools that pin a stage directly. */
+/**
+ * Master-owned tools that pin a stage directly.
+ *
+ * `set_pricing_levers` is deliberately absent. It configures the pricing stage rather than
+ * being part of it, and the Master may call it at any point before delegating — mapping it
+ * to `economics` would advance the rail past stages that have not run. An unmapped tool
+ * returns null from `stageForTool`, which leaves the rail where it is.
+ */
 const TOOL_STAGES: Record<string, StageId> = {
   resolve_geography_terms: "intake",
   create_campaign_spec: "intake",

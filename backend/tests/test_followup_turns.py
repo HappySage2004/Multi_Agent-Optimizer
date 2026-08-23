@@ -125,8 +125,31 @@ def test_campaign_inputs_cover_every_optimizer_input() -> None:
         "day_type_focus",
         "hard_constraints",
         "soft_preferences",
+        # Not a CampaignSpec field, but it belongs here on the same test: levers change the
+        # prices the optimizer consumed, so a request to move one is a REBUILD. Reported as
+        # the list of non-default levers, so an untouched run shows an empty list.
+        "pricing_levers",
     }
     assert set(inputs) == expected
+
+
+def test_campaign_inputs_report_pricing_levers() -> None:
+    """A lever the agent cannot see is a repricing it would answer from a stale package."""
+    from app.ml.levers import PricingLevers
+    from app.services import run_state
+
+    session_id = _new_session()
+    run_id = _spec(session_id)["run_id"]
+
+    assert _get_active_run(session_id)["campaign_inputs"]["pricing_levers"] == []
+
+    levers, _ = PricingLevers(commercial_multiplier=1.1, band_position=0.75).clamp()
+    run_state.set_pricing_levers(run_id, levers)
+
+    assert _get_active_run(session_id)["campaign_inputs"]["pricing_levers"] == [
+        "band_position=0.75",
+        "commercial_multiplier=1.1",
+    ]
 
 
 def test_campaign_inputs_are_json_safe() -> None:
