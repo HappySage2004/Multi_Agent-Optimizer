@@ -5,7 +5,7 @@
  * Per UI.md §2 Panel 2.
  */
 
-import { DownloadDocIcon, SpinnerIcon } from "@/components/ui/Icon";
+import { DownloadDocIcon, MailIcon, SpinnerIcon } from "@/components/ui/Icon";
 import type { RunStatus } from "@/hooks/useCampaignRun";
 import type { Provenance } from "@/lib/types";
 
@@ -16,6 +16,7 @@ export function TopHeader({
   hasPackage,
   onReset,
   onExport,
+  onEmail,
 }: {
   title: string;
   status: RunStatus;
@@ -23,6 +24,7 @@ export function TopHeader({
   hasPackage: boolean;
   onReset: () => void;
   onExport: () => void;
+  onEmail: () => void;
 }) {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-zinc-100 bg-white px-6">
@@ -48,6 +50,15 @@ export function TopHeader({
           className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-800"
         >
           Reset
+        </button>
+        <button
+          type="button"
+          onClick={onEmail}
+          disabled={!hasPackage}
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:text-zinc-300"
+        >
+          <MailIcon className="h-3.5 w-3.5" />
+          <span>Send Email</span>
         </button>
         <button
           type="button"

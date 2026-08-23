@@ -16,6 +16,8 @@ drift.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import pandas as pd
 
 from app.logging_utils import debug, error, info
@@ -40,17 +42,102 @@ class ContractError(ValueError):
     """An input the solver cannot honestly optimize against."""
 
 
+@dataclass(frozen=True)
+class SlotCap:
+    """The slot ceiling in force, and where it came from.
+
+    `source` is load-bearing, not commentary. Only a cap the BRIEF declared is a client
+    commitment: it becomes a hard per-screen constraint in the MILP, is re-derived by
+    `validation._hard_constraint_checks`, and is named in the infeasibility report if it is
+    what blocks the solve. A caller override or the default is our own search choice and is
+    disclosed as such.
+    """
+
+    limit: int
+    source: str  # "brief" | "caller_override" | "default"
+
+    @property
+    def declared(self) -> bool:
+        """True only when the brief asked for this. See `source`."""
+        return self.source == "brief"
+
+    def describe(self) -> dict:
+        return {
+            "slots_per_screen_per_day_cap": self.limit,
+            "source": self.source,
+            "semantics": (
+                "PER SCREEN PER DAY, summed across time blocks — one physical screen "
+                "carries the creative in at most this many of its 6 rotation positions, "
+                "however many blocks it is bought in"
+            ),
+            "enforced_as": "hard constraint in the MILP" if self.declared else "search bound",
+        }
+
+
+def resolve_slot_cap(spec: CampaignSpec, override: int | None = None) -> SlotCap:
+    """The slot ceiling for this run, off the spec — not off an LLM's tool argument.
+
+    Same rule `PricingLevers` follows: a constraint that has to survive an LLM paraphrase is
+    a constraint that will eventually arrive wrong. The brief's own
+    `hard_constraints["max_slots_per_day"]` wins; `override` is a caller lever for
+    exploration and cannot silently widen a declared cap.
+    """
+    declared = spec.hard_constraints.get("max_slots_per_day")
+    if declared is not None:
+        # `bool` and a fractional float are both rejected rather than coerced. `int(True)`
+        # is 1 and `int(1.5)` is 1, so coercion would turn a nonsense value into a
+        # plausible cap and enforce it as if the client had asked for it — the same class of
+        # silent misread this whole channel exists to close.
+        if isinstance(declared, bool) or (
+            isinstance(declared, float) and not float(declared).is_integer()
+        ):
+            raise ContractError(
+                f"hard constraint max_slots_per_day={declared!r} is not a whole number of "
+                f"slots. Record a slot count, not a flag or a fraction."
+            )
+        try:
+            limit = int(declared)
+        except (TypeError, ValueError):
+            raise ContractError(
+                f"hard constraint max_slots_per_day={declared!r} is not a whole number of "
+                f"slots. Intake must record a slot count, not prose."
+            ) from None
+        if not 1 <= limit <= C.SLOTS_PER_CELL:
+            raise ContractError(
+                f"hard constraint max_slots_per_day={limit} is outside 1-"
+                f"{C.SLOTS_PER_CELL}. A screen has exactly {C.SLOTS_PER_CELL} rotation "
+                f"slots per time block per day, so no other value is purchasable."
+            )
+        # An override may TIGHTEN a declared cap but never widen it — widening is the
+        # "quietly relax the constraint until a package appears" failure this whole change
+        # exists to prevent.
+        if override is not None and int(override) < limit:
+            return SlotCap(limit=int(override), source="caller_override")
+        return SlotCap(limit=limit, source="brief")
+
+    if override is not None:
+        return SlotCap(limit=max(1, min(int(override), C.SLOTS_PER_CELL)), source="caller_override")
+    return SlotCap(limit=C.DEFAULT_SLOTS_PER_DAY_CAP, source="default")
+
+
 def build_candidate_frame(
     economics: list[ScreenEconomics],
     candidates: dict[str, ScreenCandidate],
     spec: CampaignSpec,
+    slot_cap: SlotCap | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Priced lines + audience facts -> one row per purchasable (screen, time block) cell.
 
     Returns the frame and the notes worth reporting about how it was built (dropped rows,
     substituted defaults, pruning). Notes are surfaced in the solver log, never swallowed.
+
+    `slot_cap` defaults to whatever the spec declares. It tightens `available` per cell
+    (implied by the per-screen limit, and it shrinks the search) and sets the pool pruning
+    allowance. The per-screen limit itself is a solver constraint, not a frame property —
+    clipping a cell cannot express "one slot across all blocks".
     """
     notes: list[str] = []
+    cap = slot_cap if slot_cap is not None else resolve_slot_cap(spec)
 
     purchasable = [
         e
@@ -120,7 +207,9 @@ def build_candidate_frame(
             "time_block_id": int(block),
             "pool_key": pool_key,
             "price": e.pricing.recommended_price,
-            "available": e.max_slots_per_day,
+            # A per-screen cap of k implies no cell may exceed k, so clipping here is a
+            # valid tightening. It is NOT the constraint — see the module docstring.
+            "available": min(e.max_slots_per_day, cap.limit),
             "exposures_per_slot_per_day": e.viewed_exposures_per_slot_per_day,
             "reachable_daily_audience": e.reachable_daily_audience,
             "pool_population": pool_population,
@@ -175,6 +264,9 @@ def build_candidate_frame(
             f"contract: pruned {pruned} cell(s) beyond {C.MAX_CELLS_PER_POOL} per pool "
             f"(reach saturates; extras add search symmetry, not audience)"
         )
+    notes.append(
+        f"slots_per_screen_per_day_cap={cap.limit} (source={cap.source}, summed across time blocks)"
+    )
 
     frame = validate(frame)
     debug(f"contract: candidate frame ready {describe(frame)}")
@@ -209,6 +301,22 @@ def _prune_saturated_pools(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     The handoff applied this in its demo scripts and never in the solver, while its
     `diagnose` tool reported "audience saturation within pools" as binding by comparing
     against the constant. Enforced here so the report and the model agree.
+
+    DELIBERATELY NOT SCALED BY THE SLOT CAP, and this was tested rather than assumed. The
+    intuition is that 4 cells at a declared 1-slot cap buy a third of the depth 4 cells buy
+    at 3 slots, so a pool that used to saturate no longer can and reach must come from more
+    cells. It is wrong here, in the same direction on all three briefs measured: one slot on
+    one cell already over-saturates its pool, because exposures accumulate over the whole
+    flight (>=30 days) while reach is capped at the pool's DAILY reachable audience.
+
+    Scaling the allowance to hold slot depth constant (4 -> 12 cells at a 1-slot cap) was
+    implemented and measured on a 2-zone 30-day brief: reach identical at 173,603, spend
+    34,334 -> 115,628, exposures per person 40.0 -> 112.2, screens 14 -> 40. It bought
+    nothing but frequency nobody asked for, because the extra cells let the solver stack
+    SCREENS into an already-saturated pool once it could no longer stack slots.
+
+    So this constant is what makes a declared slot cap actually reduce repetition rather
+    than merely relocate it. Do not scale it on intuition.
     """
     if frame.empty:
         return frame, 0

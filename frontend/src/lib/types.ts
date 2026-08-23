@@ -47,8 +47,21 @@ export interface CampaignSpec {
 
   preferred_dayparts: string[];
   preferred_time_blocks: string[];
+  /**
+   * Score relevance against weekday or weekend traffic only; null scores both. Affects
+   * scoring only — the flight still runs every day in its window.
+   */
+  day_type_focus: "weekday" | "weekend" | null;
 
   optimization_goal: OptimizationGoal;
+
+  /**
+   * Screen types the brief wants REPRESENTED in the package. Different from
+   * `hard_constraints.allowed_screen_types`, which only PERMITS types: permitting bus and
+   * metro_station returned a pool that was 100% metro_station, because one global relevance
+   * cut kept 250 and bus's best score sat below metro's worst. Empty means none requested.
+   */
+  screen_type_mix: string[];
 
   hard_constraints: Record<string, unknown>;
   soft_preferences: Record<string, unknown>;
@@ -116,8 +129,10 @@ export interface ScreenCandidate {
   hard_constraints_passed: boolean;
 
   /**
-   * The physical-audience unit: location_id for stop-mounted screens, corridor_id for
-   * vehicle-mounted ones. Screens sharing it see the SAME people, so never sum
+   * The physical-audience unit: a synthetic SITE id for stop-mounted screens,
+   * corridor_id for vehicle-mounted ones. A site is (city, name, serving corridors), not a
+   * raw location_id — one physical station is several location rows, and 910 stop-mounted
+   * location_ids resolve to 878 sites. Screens sharing it see the SAME people, so never sum
    * impressions across a shared pool_key and call the result reach.
    */
   pool_key: string | null;
@@ -135,9 +150,32 @@ export interface ScreenCandidate {
   impressions_by_block: Record<string, number>;
   impressions_weekday: number;
   impressions_weekend: number;
+  /**
+   * ESTIMATE, NOT A MEASUREMENT, keyed `weekday` / `weekend`. Block 1 (00:00-04:00) has no
+   * scheduled service so its measured volume is 0 everywhere, yet 8,544 real bookings sit
+   * there. This is an 8% baseline assumption relative to the same screen's block-6 volume,
+   * excluded from every total and from commuter_score. Label it as an estimate on screen.
+   */
+  impressions_block_1_estimated: Record<string, number>;
+  /**
+   * Foot-traffic proxy from nearby POIs. Verified to correlate weakly with transit
+   * ridership and can disagree by up to ~20x at one location. Supplementary signal only —
+   * never a reach or pricing input, and never added into any impressions figure.
+   */
+  nearby_ambient_footfall: number;
 
   city_id: string | null;
+  /**
+   * The site's real name — "Grant Rd & Kingsley Rd". Null for vehicle-mounted screens.
+   * Show this rather than `pool_key`, which is an internal handle.
+   */
+  location_name: string | null;
   zone_id: string | null;
+  /**
+   * The zone's real name — "Financial Row", not "LH-ZONE-005". A planning unit, so it is a
+   * fallback behind `location_name`. Null for vehicle-mounted screens.
+   */
+  zone_name: string | null;
   corridor_id: string | null;
   screen_type: string | null;
 }
@@ -159,6 +197,17 @@ export interface ScreenCandidatesSummary {
   naive_daily_audience?: number;
   demand_source?: string;
   defaults_applied?: string[];
+  /** Candidate count per screen type. A pool that is 100% one type is worth surfacing. */
+  pool_composition_by_screen_type?: Record<string, number>;
+  eligible_by_screen_type?: Record<string, number>;
+  screen_type_mix_requested?: string[];
+  /** Requested screen types the pool could not represent, and why. */
+  screen_type_mix_unfilled?: Record<string, string>;
+  /**
+   * Sub-scores identical across the whole pool. Each contributes nothing but its weight,
+   * so the effective model is smaller than the published one for that brief.
+   */
+  constant_subscores?: string[];
 }
 
 // ------------------------------------------------------------ screen economics
@@ -238,6 +287,23 @@ export interface ScreenEconomics {
   seasonality_multiplier: number | null;
   /** location_match | zone_match | none | not_applicable */
   event_match_type: string | null;
+
+  // --- demand value / mispricing, from app/ml/demand_value.py -------------------
+  /**
+   * MERIT: what this screen is worth on what it physically delivers, as a percentile of
+   * its own screen_type x city. Computed WITHOUT ever seeing a price, which is what lets
+   * it disagree with the market instead of reproducing it.
+   */
+  demand_value_index: number | null;
+  /** What it has actually transacted at, relative to its own comparables. 1.0 = median. */
+  historical_price_index: number | null;
+  /**
+   * Multiplier applied because merit exceeds the realized price rank. 1.0 = none. The one
+   * adjustment that may carry a quote above the band cap, deliberately.
+   */
+  demand_premium: number | null;
+  /** Why a premium was or was not applied, citing real figures. */
+  demand_value_reason: string | null;
   /**
    * NOT client-facing and NOT campaign reach. Pricing-internal heuristic with mismatched
    * fixed/mobile units. Do not render this as an audience figure.
@@ -449,9 +515,55 @@ export interface HealthOut {
   status: string;
   tables: number;
   ridership_actuals_provisioned: boolean;
+  /** Retained for older builds; prefer `model_providers_configured`. */
   gemini_api_key_configured: boolean;
+  /** Per-provider credential state, keyed by provider id. */
+  model_providers_configured: Record<string, boolean>;
+  /** The sidebar warns only when nothing at all is wired up. */
+  any_model_provider_configured: boolean;
+  default_provider: string;
   master_model: string;
   specialist_model: string;
+}
+
+// ------------------------------------------------------------- model selection
+
+/**
+ * The model picker, from `GET /models` <- app/api/providers.py.
+ *
+ * The catalogue is fetched rather than hard-coded: a static list goes stale the moment a
+ * key is added or an Azure deployment is renamed, and the rep would be offered an option
+ * that 503s.
+ */
+export interface ModelOption {
+  id: string;
+  label: string;
+  /** On Azure, the deployment the id resolves to. Shown as a subtitle. */
+  description: string;
+}
+
+export interface ProviderInfo {
+  id: string;
+  label: string;
+  models: ModelOption[];
+  default_model: string;
+  configured: boolean;
+  /** Names the missing env var. Empty when `configured`. */
+  unconfigured_reason: string;
+  /** The client-side request cap the backend applies to this provider. */
+  requests_per_minute: number;
+}
+
+export interface ModelsOut {
+  default_provider: string;
+  default_model: string;
+  providers: ProviderInfo[];
+}
+
+/** What the rep picked. Sent on every campaign turn; `null` means "use the default". */
+export interface ModelSelection {
+  provider: string;
+  model: string;
 }
 
 // ------------------------------------------------- pre-flight clarification
@@ -515,6 +627,19 @@ export interface StreamUpdateEvent {
 }
 
 /** `event: done` — terminal success. */
+/**
+ * The session's name, emitted before the first model call.
+ *
+ * The backend names a session from the brief the moment a run starts, but that name used
+ * to reach the client only on `done` — a minute or more later. The sidebar row spent the
+ * whole run showing a placeholder or the rep's raw sentence. `done` carries the final
+ * name, which may be the resolved campaign objective rather than this provisional one.
+ */
+export interface StreamSessionEvent {
+  session_id: string;
+  session_title: string;
+}
+
 export interface StreamDoneEvent {
   session_id: string;
   /** The session's title after this run named it from the brief. */

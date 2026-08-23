@@ -32,6 +32,15 @@ AUDIENCE_Q = {
 }
 
 
+def _sample_value(field: str, index: int) -> str:
+    """A value the field will actually accept, for the field-allowlist sweep."""
+    if field == "audience_terms":
+        return ("students", "families")[index]
+    if field == "industry_vertical":
+        return ("retail", "finance")[index]
+    return ("first", "second")[index]
+
+
 def _ask(**overrides):
     payload = {
         "session_id": SESSION,
@@ -114,13 +123,51 @@ def test_off_vocabulary_audience_terms_are_rejected():
     assert clarifications.get_open(SESSION) is None
 
 
+def test_off_vocabulary_industry_verticals_are_rejected():
+    """Same reason as the audience list: an off-list value neutralizes 25% of every score.
+
+    Offering the rep an option `create_campaign_spec` will later refuse is the worst version
+    of that — the gate exists to prevent a bad input, not to introduce one.
+    """
+    out = _ask(
+        questions=[
+            {
+                "field": "industry_vertical",
+                "question": "Which vertical?",
+                "option_a": "automotive",
+                "option_b": "retail",
+                "recommended": "A",
+                "recommendation_reason": "it is a car launch",
+            }
+        ]
+    )
+    assert out["status"] == "invalid"
+    assert "automotive" in out["detail"]
+
+    # `auto` is the real value, and it is accepted.
+    ok = _ask(
+        questions=[
+            {
+                "field": "industry_vertical",
+                "question": "Which vertical?",
+                "option_a": "auto",
+                "option_b": "retail",
+                "recommended": "A",
+                "recommendation_reason": "it is a car launch",
+            }
+        ]
+    )
+    assert ok["status"] == "asked"
+
+
 def test_every_askable_field_is_accepted_and_nothing_else_is():
     for field in ASKABLE_FIELDS:
         question = {
             "field": field,
             "question": f"What about {field}?",
-            "option_a": "students" if field == "audience_terms" else "first",
-            "option_b": "families" if field == "audience_terms" else "second",
+            # Both closed-vocabulary fields need real values; the rest are free text.
+            "option_a": _sample_value(field, 0),
+            "option_b": _sample_value(field, 1),
             "recommended": "A",
             "recommendation_reason": "because",
         }

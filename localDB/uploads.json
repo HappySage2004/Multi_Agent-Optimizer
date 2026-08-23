@@ -23,5 +23,21 @@
     "extraction_detail": "",
     "text_path": "stage\\ses-5bb138a3d93c\\53beafb6-campaign_1.docx.extracted.txt",
     "preview": "Customer Campaign Briefs Digital Out-of-Home Campaign Portfolio CLIENT BRIEF 1: ZEPHYR EV \u2014 THE FUTURE HAS NO TAILPIPE 1. Executive Summary & Objective Voltaic Motors is launching the Zephyr EV, its f"
+  },
+  {
+    "id": "upl-af74271f7f80",
+    "created_at": "2026-08-23T18:34:18",
+    "session_id": "ses-480dc7b5fa7f",
+    "filename": "campaign_1.docx",
+    "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "size_bytes": 3513188,
+    "stored_path": "stage\\ses-480dc7b5fa7f\\210ce4ae-campaign_1.docx",
+    "extraction_status": "ok",
+    "char_count": 3336,
+    "page_count": null,
+    "truncated": false,
+    "extraction_detail": "",
+    "text_path": "stage\\ses-480dc7b5fa7f\\210ce4ae-campaign_1.docx.extracted.txt",
+    "preview": "Customer Campaign Briefs Digital Out-of-Home Campaign Portfolio CLIENT BRIEF 1: ZEPHYR EV \u2014 THE FUTURE HAS NO TAILPIPE 1. Executive Summary & Objective Voltaic Motors is launching the Zephyr EV, its f"
   }
 ]

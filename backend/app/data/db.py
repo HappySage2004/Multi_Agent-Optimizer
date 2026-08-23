@@ -1,9 +1,9 @@
 """DuckDB access over the source CSVs.
 
-Scope note: this module exists so the Master Agent can verify specialist output against
-real data, and so the specialist stubs can return real screen IDs. The full analytical
-view layer (v_screen_demand_history, v_historical_pricing, ...) belongs to the Data
-Intelligence Agent and its owner — add views here rather than reading CSVs elsewhere.
+Scope note: this module is the one place the source CSVs are read. Add views here rather
+than reading CSVs elsewhere. `_create_audience_views` is the feature layer behind
+`app/tools/relevance_tools.py`; `app/ml/loaders.py` issues column-projected SQL against
+the base views for pricing.
 """
 
 from __future__ import annotations
@@ -246,19 +246,22 @@ def _create_audience_views(con: duckdb.DuckDBPyConnection) -> None:
             """
         )
 
+    _create_route_stop_weight_view(con)
+
     con.execute(
         """
         CREATE OR REPLACE VIEW v_screen_demand_history AS
-        -- Stop-mounted: SUM across every route serving the location. Multiple routes at
-        -- one stop genuinely means more people passing the screen.
+        -- Stop-mounted: SUM across every route serving the location, but each route
+        -- contributes only THIS STOP'S SHARE of its riders — see
+        -- `_create_route_stop_weight_view` for why the share is essential.
         SELECT
             g.screen_id,
             rb.time_block_id,
             rb.day_type,
-            sum(rb.avg_daily_ridership) AS daily_impressions
+            sum(rb.avg_daily_ridership * w.stop_share) AS daily_impressions
         FROM v_screen_geography g
-        JOIN route_stops rs         ON rs.location_id = g.location_id
-        JOIN v_route_block_demand rb ON rb.route_id = rs.route_id
+        JOIN v_route_stop_weight w   ON w.location_id = g.location_id
+        JOIN v_route_block_demand rb ON rb.route_id = w.route_id
         WHERE g.inventory_class = 'fixed'
         GROUP BY 1, 2, 3
 
@@ -276,8 +279,10 @@ def _create_audience_views(con: duckdb.DuckDBPyConnection) -> None:
         """
     )
 
+    _create_location_site_view(con)
+
     # Screen-level demographics and context. `pool_key` is the physical-audience unit:
-    # screens at one stop see the same passersby, screens on one corridor see the same
+    # screens at one SITE see the same passersby, screens on one corridor see the same
     # riders. Anything summing audience across screens must group by it first.
     con.execute(
         """
@@ -293,7 +298,8 @@ def _create_audience_views(con: duckdb.DuckDBPyConnection) -> None:
             g.zone_id,
             g.corridor_id,
             g.location_type,
-            coalesce(g.location_id, g.corridor_id)      AS pool_key,
+            l.name                                      AS location_name,
+            coalesce(site.site_key, g.corridor_id)      AS pool_key,
             -- How many partitions the pool's audience was divided into to produce this
             -- screen's figure. 1 for stop-mounted screens: every screen at a location is
             -- passed by the same crowd, so the per-screen figure IS the pool's. For
@@ -325,6 +331,132 @@ def _create_audience_views(con: duckdb.DuckDBPyConnection) -> None:
         LEFT JOIN zone_demographics z ON z.zone_id = g.zone_id
         LEFT JOIN v_screen_poi p      ON p.screen_id = g.screen_id
         LEFT JOIN v_corridor_vehicle_count cv ON cv.corridor_id = g.corridor_id
+        LEFT JOIN v_location_site site ON site.location_id = g.location_id
+        """
+    )
+
+
+def _create_location_site_view(con: duckdb.DuckDBPyConnection) -> None:
+    """`location_id` -> `site_key`, the real physical-audience unit for fixed screens.
+
+    THE BUG THIS FIXES. `pool_key` used to be the raw `location_id`, and one physical
+    station is modelled as SEVERAL location rows — 910 stop-mounted `location_id`s resolve
+    to 878 distinct sites. Screens on opposite platforms of one station see the same
+    people, so treating them as separate pools let reach count that crowd twice. Merging
+    makes reported reach slightly SMALLER and more honest.
+
+    Grouped on `(city_id, name, the set of corridors serving it)`. All three keys are
+    load-bearing, measured on this inventory:
+
+        910  raw location_id                 -- under-merges: splits one station
+        626  (city_id, name)                 -- OVER-merges by ~31%. Station names are a
+                                                low-cardinality template and unrelated
+                                                real stations coincidentally share one.
+        878  (city_id, name, corridor set)   -- correct on both counts
+
+    The corridor set is what separates two genuinely different stops that share a name:
+    same name AND the same serving corridors is a platform pair, not a coincidence.
+
+    `site_key` is a compact synthetic id rather than the composite string, because it is
+    carried on every candidate row, grouped on in the solver and written to parquet.
+    `dense_rank` over a deterministic ordering makes it stable across rebuilds. The human
+    name travels separately as `location_name`, which is what a reason string should cite.
+    """
+    con.execute(
+        """
+        CREATE OR REPLACE VIEW v_location_site AS
+        WITH corridor_set AS (
+            -- Sorted + deduplicated so two locations serving the same corridors produce
+            -- byte-identical keys regardless of route_stops row order.
+            SELECT location_id,
+                   array_to_string(list_sort(list_distinct(list(corridor_id))), ',')
+                       AS corridors
+            FROM route_stops
+            GROUP BY 1
+        ),
+        grouped AS (
+            SELECT
+                l.location_id,
+                l.city_id,
+                l.name,
+                coalesce(c.corridors, '') AS corridors
+            FROM locations l
+            LEFT JOIN corridor_set c ON c.location_id = l.location_id
+        )
+        SELECT
+            location_id,
+            'SITE-' || city_id || '-' || lpad(CAST(
+                dense_rank() OVER (
+                    PARTITION BY city_id ORDER BY name, corridors
+                ) AS VARCHAR), 4, '0') AS site_key
+        FROM grouped
+        """
+    )
+
+
+TERMINUS_WEIGHT = 1.5
+"""Weight a route's first/last stop carries relative to a mid-route stop.
+
+An ASSUMED constant, not a measured one: termini concentrate boardings and alightings, so
+more of a route's riders pass through them. Nothing the validator checks may depend on an
+assumed constant (CLAUDE.md 31), and nothing does — this only redistributes a route's
+riders between its own stops. Set it to 1.0 and every stop shares equally; the corridor
+total is identical either way, because `stop_share` renormalizes.
+"""
+
+
+def _create_route_stop_weight_view(con: duckdb.DuckDBPyConnection) -> None:
+    """Each stop's share of its route's riders. Shares sum to exactly 1.0 per route.
+
+    THE BUG THIS FIXES. The fixed-screen branch of `v_screen_demand_history` used to sum
+    each serving route's WHOLE ridership at every stop on it. A rider travelling one line
+    was therefore counted once at every stop they passed, so summing the modelled audience
+    of the stops along one corridor came to **20.4x (median) that corridor's measured
+    ridership** — a rider cannot be 20 different people. Bus routes average 12.58 stops and
+    metro routes 13.86, which is the scale of the over-count; do not hard-code a divisor,
+    because it varies per route and `stop_share` derives it.
+
+    A stop's share is its weight over its route's total weight, so a route's riders are
+    distributed across its stops and never multiplied by them. Multiple routes serving one
+    stop still SUM — that is genuinely more people passing the screen.
+
+    Termini are weighted `TERMINUS_WEIGHT`. If `is_first_stop`/`is_last_stop` ever stop
+    being clean booleans, every stop falls back to equal weight rather than failing: the
+    weighting is a refinement, the renormalization is the correction. Both columns are
+    clean `BOOLEAN` on all 2,436 rows today, so the fallback is defensive only.
+    """
+    terminus_expr = "CASE WHEN is_first_stop OR is_last_stop THEN {w} ELSE 1.0 END"
+    if _boolean_columns(con, "route_stops", ("is_first_stop", "is_last_stop")):
+        weight = terminus_expr.format(w=TERMINUS_WEIGHT)
+    else:
+        from app.logging_utils import info as _info
+
+        _info(
+            "route_stops.is_first_stop/is_last_stop are missing or not BOOLEAN — falling "
+            "back to equal stop weights. Corridor totals are unaffected; only the "
+            "distribution between a route's own stops is."
+        )
+        weight = "1.0"
+
+    con.execute(
+        f"""
+        CREATE OR REPLACE VIEW v_route_stop_weight AS
+        WITH weighted AS (
+            SELECT route_id, location_id, {weight} AS weight
+            FROM route_stops
+        ),
+        -- A route that visits one stop twice (a loop) legitimately passes it twice, so
+        -- the weights are summed per (route, location) rather than deduplicated.
+        per_stop AS (
+            SELECT route_id, location_id, sum(weight) AS weight
+            FROM weighted
+            GROUP BY 1, 2
+        )
+        SELECT
+            route_id,
+            location_id,
+            weight / sum(weight) OVER (PARTITION BY route_id) AS stop_share
+        FROM per_stop
         """
     )
 
@@ -374,6 +506,20 @@ def _has_table(con: duckdb.DuckDBPyConnection, name: str) -> bool:
         "SELECT 1 FROM information_schema.tables WHERE table_name = ? LIMIT 1", [name]
     ).fetchall()
     return bool(rows)
+
+
+def _boolean_columns(con: duckdb.DuckDBPyConnection, table: str, columns: tuple[str, ...]) -> bool:
+    """True when every named column exists on `table` AND is typed BOOLEAN.
+
+    Same explicit-connection reason as `_has_table`: this runs during view creation, while
+    `_lock` is held.
+    """
+    rows = con.execute(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name = ? AND column_name IN ? AND data_type = 'BOOLEAN'",
+        [table, list(columns)],
+    ).fetchall()
+    return len(rows) == len(columns)
 
 
 def has_ridership_actuals() -> bool:

@@ -17,7 +17,7 @@ from __future__ import annotations
 from datetime import date
 
 from app.data.reference import eligible_screen_ids, screen_facts, time_block_ids
-from app.models.campaign import CampaignSpec
+from app.models.campaign import ENFORCED_HARD_CONSTRAINTS, CampaignSpec
 from app.models.economics import ScreenEconomics
 from app.models.optimization import OptimizedPackage
 from app.models.recommendation import ValidationCheck, ValidationResult
@@ -446,9 +446,102 @@ def _hard_constraint_checks(spec: CampaignSpec, package: OptimizedPackage) -> li
             )
         )
 
-    if not checks:
-        checks.append(_skip("hard_constraints", "Spec declared no additional hard constraints."))
+    checks.extend(_slot_cap_checks(spec, package))
+    checks.append(_recognized_constraint_check(spec))
+
+    if len(checks) == 1:
+        checks.insert(0, _skip("hard_constraints", "Spec declared no additional hard constraints."))
     return checks
+
+
+def _slot_cap_checks(spec: CampaignSpec, package: OptimizedPackage) -> list[ValidationCheck]:
+    """Re-derive slots per SCREEN per day and compare against the brief's declared cap.
+
+    The check that did not exist, and whose absence let a package ship 3 slots/day against a
+    brief asking for one rotating slot. Nothing surfaced the miss: the constraint reached the
+    run, was echoed back to the Master, and was read by no consumer.
+
+    Two things make this the right shape. It sums the brief's own allocations rather than
+    trusting anything the optimizer reported, so a solver that ignores the constraint is
+    caught rather than believed. And it sums ACROSS TIME BLOCKS, which is the semantics
+    `optimize/solver.py` enforces: a screen bought at 1 slot in Block 3 and 1 in Block 5
+    carries 2 slots that day, and under the per-cell reading that passed.
+
+    Distinct from `inventory_availability`, which asserts something else entirely —
+    `slots_per_day <= max_slots_per_day` there is INVENTORY truth (what is unsold), not a
+    client commitment, and a plan can satisfy it while breaching the brief.
+    """
+    declared = spec.hard_constraints.get("max_slots_per_day")
+    if declared is None:
+        return []
+    try:
+        cap = int(declared)
+    except (TypeError, ValueError):
+        return [
+            _check(
+                "max_slots_per_day",
+                False,
+                f"hard constraint max_slots_per_day={declared!r} is not a slot count, so "
+                f"the package cannot be verified against it.",
+                "a whole number of slots",
+                repr(declared),
+            )
+        ]
+
+    per_screen: dict[str, int] = {}
+    for a in package.allocations:
+        per_screen[a.screen_id] = per_screen.get(a.screen_id, 0) + a.slots_per_day
+    offenders = sorted(
+        (
+            f"{sid}: {slots} slots/day across blocks"
+            for sid, slots in per_screen.items()
+            if slots > cap
+        )
+    )
+    busiest = max(per_screen.values()) if per_screen else 0
+    return [
+        _check(
+            "max_slots_per_day",
+            not offenders,
+            f"No screen carries more than {cap} slot(s) per day, summed across time blocks "
+            f"(busiest carries {busiest})."
+            if not offenders
+            else f"Screens over the declared slot cap: {offenders[:5]}",
+            f"<= {cap} per screen per day",
+            f"{busiest} on the busiest screen",
+        )
+    ]
+
+
+def _recognized_constraint_check(spec: CampaignSpec) -> ValidationCheck:
+    """FAIL on a declared hard constraint that no stage enforces.
+
+    The generalization of the slot-cap bug, and the part that stops it recurring under a
+    different key. `hard_constraints` is a free-form dict, but every consumer matches it
+    against a hardcoded key list, so an unrecognized key is accepted, persisted, echoed back
+    to the Master in `normalized_spec` and `campaign_inputs`, and then silently dropped. The
+    rep believes their constraint was honoured; the package says nothing either way.
+
+    A fail rather than a warning, because the outcomes are not symmetric. A false fail costs
+    one turn: the Master tells the rep the constraint cannot be enforced and they restate it.
+    A silent pass ships a package that breaches a written brief. `ENFORCED_HARD_CONSTRAINTS`
+    is the vocabulary, and it lives next to the spec so adding a key without its enforcing
+    code is a visible act.
+    """
+    unknown = sorted(set(spec.hard_constraints) - ENFORCED_HARD_CONSTRAINTS)
+    return _check(
+        "hard_constraints_recognized",
+        not unknown,
+        "Every declared hard constraint maps to a stage that enforces it."
+        if not unknown
+        else (
+            f"No stage enforces {unknown}, so the package cannot be verified against them. "
+            f"Tell the user this constraint was not applied rather than implying it was. "
+            f"Enforced keys: {sorted(ENFORCED_HARD_CONSTRAINTS)}"
+        ),
+        "all keys enforced",
+        f"{len(unknown)} unenforced: {unknown}" if unknown else "0 unenforced",
+    )
 
 
 # --- availability and model confidence ----------------------------------------

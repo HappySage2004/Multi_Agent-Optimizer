@@ -156,7 +156,9 @@ function InventoryMix({ candidates }: { candidates: ScreenCandidate[] }) {
   const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   const icons = [BuildingIcon, InterchangeIcon, RetailIcon];
 
-  const zones = new Set(candidates.map((c) => c.zone_id).filter(Boolean));
+  // Counted on the name so this figure and the labels in D2 agree. Vehicle-mounted
+  // screens have no zone at all, so they drop out rather than counting as one.
+  const zones = new Set(candidates.map((c) => c.zone_name ?? c.zone_id).filter(Boolean));
 
   return (
     <InspectorSection

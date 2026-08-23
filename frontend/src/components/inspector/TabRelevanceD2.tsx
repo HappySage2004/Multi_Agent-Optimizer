@@ -127,7 +127,7 @@ function CandidateRow({
           <div className="mt-0.5 truncate text-[12px] text-zinc-400">
             {[
               candidate.screen_type ? titleCase(candidate.screen_type) : null,
-              candidate.zone_id,
+              candidate.zone_name ?? candidate.zone_id,
               candidate.city_id,
             ]
               .filter(Boolean)

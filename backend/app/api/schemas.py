@@ -88,6 +88,50 @@ class CampaignQuery(BaseModel):
     upload_ids: list[str] = Field(
         default_factory=list, description="Ids of documents staged via POST /uploads"
     )
+    # The model choice rides on the request rather than on server config, so the rep can
+    # switch providers between turns without a restart. Both default to whatever GET
+    # /models reports as the default -- an older client that sends neither keeps working.
+    provider: str | None = Field(
+        default=None, description="Model provider id from GET /models, e.g. 'azure_openai'"
+    )
+    model: str | None = Field(
+        default=None, description="Model id from GET /models, e.g. 'gpt-5.4-mini'"
+    )
+
+
+# ------------------------------------------------------------------ model picker
+
+
+class ModelOptionOut(BaseModel):
+    """One selectable model. `id` is what a CampaignQuery carries."""
+
+    id: str
+    label: str
+    description: str = ""
+
+
+class ProviderOut(BaseModel):
+    """One provider as the settings dialog renders it.
+
+    Unconfigured providers are still listed, with `unconfigured_reason` naming the missing
+    env var -- more useful to the operator than a capability that quietly vanishes.
+    """
+
+    id: str
+    label: str
+    models: list[ModelOptionOut] = []
+    default_model: str = ""
+    configured: bool = False
+    unconfigured_reason: str = ""
+    requests_per_minute: float = 0.0
+
+
+class ModelsOut(BaseModel):
+    """Everything the model picker needs in one call."""
+
+    default_provider: str
+    default_model: str
+    providers: list[ProviderOut] = []
 
 
 class CampaignRunOut(BaseModel):

@@ -14,6 +14,10 @@ dependencies = [
     "pyarrow>=18.0",
     "deepagents>=0.2",
     "langchain-google-genai>=4.3",
+    # The second provider. Both are declared, not optional: the model picker in the UI
+    # offers whichever has credentials, and an import that fails at pick time would
+    # look like a broken backend rather than a missing extra.
+    "langchain-openai>=1.6",
     "langgraph>=0.3",
     # HiGHS MILP backend for app/optimize/solver.py, via scipy.optimize.milp. Was already
     # present transitively through scikit-learn; declared because we call it directly.

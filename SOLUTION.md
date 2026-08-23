@@ -236,12 +236,22 @@ audience pool from one vehicle's share.
 ### Important known limitations
 
 - Vehicle-mounted screens currently have NULL demographics because vehicles have no zone.
-  They therefore receive a scoring floor rather than a measured demographic score.
+  They therefore receive a scoring floor rather than a measured demographic score. They are
+  also excluded from the POI context judgement rather than penalized by it: POIs join on
+  `location_id`, which a vehicle does not have, so an empty POI set is architectural and
+  scoring it as a mismatch was measuring nothing.
 - `daytime_population_multiplier` is carried but not currently used by relevance scoring.
 - Event features are not part of the audience profile. Events affect pricing seasonality only.
 - Volume is schedule/ridership-derived; there is no pedestrian/ambient term.
-- Time block 1 (00:00–04:00) therefore reports zero audience even though real bookings exist.
-  **Zero means “not modelled”, not “nobody there”.**
+- Time block 1 (00:00–04:00) reports zero **measured** audience because no scheduled service
+  starts in it — while 8,544 of 191,110 bookings (4.5%) sit there, so the inventory
+  demonstrably sells. This is a **gap in the model, not a fact about block 1**: zero means
+  “not modelled”, not “nobody there”. `impressions_block_1_estimated` publishes an
+  8%-of-block-6 **assumption** per day type, deliberately excluded from every total, from
+  off-peak and from `commuter_score` so that no validated figure moves with it.
+- `nearby_ambient_footfall` (POI foot traffic) is carried but quarantined: it correlates only
+  weakly with transit ridership (~0.12–0.26) and can disagree ~20x at one location, so it is
+  used only as a relevance tie-break and never added into volume, reach or price.
 
 ## 5.3 Relevance funnel
 
@@ -287,16 +297,40 @@ which belongs to optimization rather than audience fit.
 Audience score columns are normalized once over the full inventory:
 
 ```text
-income_score        = min-max income_index
-professional_score  = 0.7*income_score + 0.3*white_collar_flag
-young_adult_score   = min-max pct_age_18_34, scaled 0.85
-student_score       = 0.6*young_adult_score + 0.4*university_nearby
-family_score        = (min-max pct_35_54 + 0.25*min-max pct_18_34) / 1.25
-commuter_score      = peak-block impressions / total impressions
+income_score               = min-max income_index
+young_adult_score          = min-max pct_age_18_34
+middle_age_score           = min-max pct_age_35_54
+professional_score         = 0.6*income + 0.4*occ_professional
+young_professionals_score  = 0.4*young_adult + 0.3*income + 0.3*occ_professional
+student_score              = 0.4*young_adult + 0.3*university_nearby + 0.3*occ_student
+family_score               = 0.6*middle_age + 0.2*young_adult + 0.2*occ_family
+high_income_score          = income_score
+commuter_score             = peak-block impressions / total impressions
+```
+
+Every weight set sums to 1.0 over inputs already bounded 0–1, so each score is inside the
+contract's range **by construction**. `family_score` previously summed a 1.0- and a
+0.25-weighted term, peaked at 1.140 on real data, and had to be divided by a 1.25 ceiling;
+that constant is gone.
+
+`occ_*` grades `zone_demographics.dominant_occupation`, which has exactly five values across
+30 zones — `mixed` (14), `white_collar` (7), `blue_collar` (3), `retail_service` (3),
+`student` (3). The previous binary `white_collar_flag` scored `mixed`, the most common value
+by a wide margin, identically to `student`. Three affinity maps cover all five values; an
+unmapped value warns loudly (schema drift) while a NULL from a vehicle having no zone is the
+documented mobile floor, and the two are deliberately not conflated.
+
+Audience terms map to the column that actually measures them:
+
+```text
+young_professionals -> young_professionals_score   (was mean(professional, STUDENT))
+high_income         -> high_income_score           (was professional_score, 40% occupation)
 ```
 
 Every sub-score either computes a real value or falls back to **0.5 with an explicit
-reason**. Defaults must never be hidden.
+reason**. Defaults must never be hidden — and a sub-score that comes out **identical across
+the whole pool** is reported as `constant_subscores`, because it contributes nothing but its
+weight while looking exactly like a normal ranking.
 
 `ScreenCandidate` must carry:
 
@@ -405,8 +439,13 @@ Consequences:
 - `expected_reach` = distinct people; saturates within a pool.
 - Buying more screens/slots at an already saturated pool mostly increases frequency.
 - `reach <= exposures` is always enforced.
-- Naively summing per-screen exposures over-counted the audience by ~23x on a realistic
-  candidate pool.
+- Naively summing per-screen exposures over-counted the audience by ~25x on a realistic
+  candidate pool (1,656,829 against 65,801 on the canonical brief).
+- The dedupe unit is the **site**, not the `location_id`. One physical station is modelled as
+  several location rows, and screens on opposite platforms see the same crowd: 910
+  stop-mounted `location_id`s resolve to 878 sites, for 972 pools in total including the 94
+  corridors. Grouping on name alone would over-merge by ~31% (626), because station names are
+  a low-cardinality template unrelated stations share — hence `(city, name, corridor set)`.
 
 The same definition is used by:
 
@@ -1019,6 +1058,7 @@ allowed screen types
 required time blocks
 min_zone_coverage
 min_budget_utilization only if explicitly declared by the brief
+max_slots_per_day      only if declared; binds PER SCREEN PER DAY, across blocks
 ```
 
 ## 11.5 Elastic constraints
@@ -1033,6 +1073,103 @@ wear-out frequency cap
 If a hard constraint forces an elastic breach, return the package and disclose the breach.
 
 **Never invent a minimum budget-utilization requirement.**
+
+## 11.6 The brief's slot structure
+
+`hard_constraints["max_slots_per_day"]` is how a brief states the leasing structure — "1
+rotating slot (15 seconds per minute) on digital screens only" and similar phrasings, which
+are common because that is how the rate card is written.
+
+**The incident this closes.** There was no channel for it at all. `CampaignSpec` has no slot
+field; `hard_constraints` is a free-form dict that every consumer reads against its own
+hardcoded key list; and the only real control was `optimize_package`'s `slots_per_day_cap=3`
+default argument, mentioned in neither the OR agent's prompt nor the Master's, so no model
+ever set it. A brief asking for one slot shipped a package buying three,
+`verify_package` passed it clean, and the constraint sat visible in
+`normalized_spec.hard_constraints` and in `get_active_run`'s `campaign_inputs` the whole
+time. Every layer reported success.
+
+**It binds per SCREEN per day, summed across time blocks.**
+
+```text
+for each screen s:   sum over its cells i, over slot levels k:  y[i,k]  <=  cap
+```
+
+The alternative reading — cap each `(screen, time block)` cell — is all that an `available`
+clip can express, and it is wrong for the constraint briefs actually write: under it a screen
+bought in Block 3 and Block 5 takes 1 + 1 = 2 slots that day and passes. Measured on a
+45-day brief, a per-cell cap of 1 returned a plan whose busiest screen carried 2 slots/day.
+The per-screen reading is also the stricter one, and for a compliance constraint the stricter
+reading is the right default. The applied cap, its `source` and the semantics string travel
+in the package payload, so the reported figure always says which reading produced it. The
+`available` clip stays, as an implication of the per-screen limit that shrinks the search —
+never as the constraint.
+
+**Read off the run, never off a tool argument** — the same rule `PricingLevers` follows. A
+constraint that has to survive an LLM paraphrase is a constraint that will eventually arrive
+wrong, and one that arrives wrong here ships as an over-delivery the client is contractually
+owed. A caller override may tighten a declared cap and never widen it: widening on request is
+precisely how a constraint gets relaxed until a package appears.
+
+**Honouring it costs no reach, and that was measured rather than assumed.** Across four
+briefs, four cap levels and all four objectives, reach is identical at every cap — 45,328 /
+44,717 / 173,603 / 169,439 / 95,355 — because reach is bounded by each pool's *daily*
+reachable audience while exposures accumulate over a flight of 30 days or more, so one slot
+already over-saturates its pool and extra depth buys frequency rather than people. This is
+the claim to lead with: it is the same on every brief measured, and it means the compliance
+argument costs the client nothing.
+
+**Whether it also reduces repetition is brief-dependent.** The intuitive claim — a 1-slot
+cap pulls frequency toward the flight floor — holds only where the cap actually binds. Two
+measurements, opposite results:
+
+```text
+2-zone 30-day reach brief, 150k budget
+  cap 3 -> 111.8 exposures/person, spend 92,417   |  cap 1 -> 40.0, spend 34,334
+  (40.0 is exactly the flight's unavoidable floor; reach 173,603 either way)
+
+2-zone 45-day brief, 50k budget
+  cap 1 / 3 / 6 are IDENTICAL on every objective, because the solver was already
+  choosing 1 slot per screen — the cap never bound
+```
+
+And on the exposure-weighted objectives (`awareness`, `frequency`, `conversion`) the cap does
+not bound frequency **at all**: those profiles reward exposures, so the solver stacks extra
+SCREENS into the same pool once it cannot stack slots, and the 45-day brief returns 169.6
+exposures per person at every cap level. A slot cap constrains the depth bought on one
+screen. It is not a frequency cap, and must not be sold as one — the wear-out cap is the
+frequency instrument, and it is elastic.
+
+**`MAX_CELLS_PER_POOL = 4` is what bounds that screen-stacking, and it must not be
+"fixed".** The intuition is that 4 cells at a 1-slot cap buy a third of the depth 4 cells buy
+at 3 slots, so the allowance should scale to hold pool depth constant. That was implemented
+and measured on the 30-day brief above: reach identical, spend 34,334 → 115,628, exposures
+per person 40.0 → 112.2. The extra cells let the solver stack *screens* into a pool it could
+no longer stack slots into. That is the same mechanism that makes the cap inert on the
+exposure-weighted objectives, and widening the allowance would hand it to every objective
+including `reach`. The constant is deliberately cap-independent and
+`contract._prune_saturated_pools` records why.
+
+**"On digital screens only" is a no-op in this dataset.** `datasets/screens.csv` carries
+`screen_id, city_id, screen_type, location_id, vehicle_id, position, screen_size` — verified,
+and no digital/static attribute among them. The inventory model itself implies digital: 6 ad
+slots rotating continuously through a 4-hour block is not something a static poster does. So
+the constraint cannot be filtered and is already satisfied by every screen. Say that in the
+answer rather than inventing a filter; `describe_inventory` returns the same statement in
+`no_digital_flag` so an agent does not have to infer it.
+
+## 11.7 Unrecognized hard constraints fail verification
+
+The generalization, and the part that stops this class of miss recurring under a different
+key. `hard_constraints` stays free-form, but `ENFORCED_HARD_CONSTRAINTS` in
+`app/models/campaign.py` is the closed vocabulary of keys some stage actually enforces, and
+the `hard_constraints_recognized` check **fails** a package whose spec carries a key outside
+it.
+
+A fail rather than a warning, because the outcomes are not symmetric. A false fail costs one
+turn — the Master tells the rep the constraint cannot be enforced and they restate it. A
+silent pass ships a package that breaches a written brief. Adding a key to that set without
+the code that enforces it re-creates the bug the set exists to prevent.
 
 ---
 
@@ -1211,7 +1348,7 @@ and converted through the single exposure module.
 `app/tools/or_agent_tools.py`
 
 ```python
-optimize_package(run_id, slots_per_day_cap=3)
+optimize_package(run_id, slots_per_day_cap=None)
 compare_objectives(run_id, objectives=None)
 ```
 
@@ -1355,6 +1492,7 @@ duration_within_campaign
 start_date_not_in_past
 inventory_availability
 hard_constraints
+hard_constraints_recognized
 model_confidence
 ```
 
@@ -1369,7 +1507,15 @@ max_screens
 allowed_screen_types
 required_time_blocks
 min_zone_coverage
+max_slots_per_day
 ```
+
+`max_slots_per_day` re-sums slots **per screen across time blocks** from the allocations,
+which is a different assertion from `inventory_availability`. That one checks
+`slots_per_day <= max_slots_per_day` per *cell* — inventory truth about what is unsold, not a
+client commitment — and a plan can satisfy it while breaching the brief. Only an independent
+re-derivation surfaces a constraint the optimizer ignored; without one the miss is silent,
+which is exactly what happened.
 
 The validator independently recomputes:
 
@@ -1415,6 +1561,14 @@ never a speculative partial package.
 
 Relaxation options must include actionable numbers whenever possible.
 
+A declared `max_slots_per_day` is diagnosed by **re-solving without it**, the same way the
+utilisation floor and the exact screen count are. A 1-slot cap removes up to five sixths of a
+screen's purchasable depth, so it can make a brief infeasible that the budget alone would
+have covered, and reporting `BUDGET_CONSTRAINT` for it sends the rep to ask for money that
+would not help. The report names the cap, states the depth an uncapped plan would have used,
+and offers relaxing it as the client's decision — the cap is never quietly widened to make a
+package appear.
+
 Known upstream issue: top-N relevance selection is not coverage-aware. A candidate pool
 can contain only one of two required zones, making `min_zone_coverage` impossible before
 the solver sees it. If changing candidate selection, preserve hard geography filtering
@@ -1431,16 +1585,28 @@ Tests should protect **invariants**, not merely restate implementation.
 Must hold:
 
 ```text
-all scores ∈ [0,1]
+all scores ∈ [0,1]                      (no renormalization constant: weights sum to 1.0)
 12 impression columns exist and contain no NaNs
-pool_key never null
-block 1 remains the known zero-audience gap
+pool_key never null, and there are exactly 972 pools (878 sites + 94 corridors)
+locations sharing (city, name, corridor set) share a pool_key
+stop shares sum to exactly 1.0 per route
+a corridor's stops sum to exactly 1.000x its ridership (same source)
+mobile volume is untouched by the stop-share correction
+block 1's MEASURED value stays zero; its estimate is a separate field
+peak + offpeak == total exactly, on measured columns only
 all audience terms map to real score columns/blocks
+set(INDUSTRY_VERTICALS) == set(INDUSTRY_TO_POI_CONTEXT)
+unknown audience terms AND unknown industry verticals are rejected
+every dominant_occupation value is mapped
 geography is hard-filtered
 allowed screen types are enforced
+no mobile screen takes the POI mismatch penalty
+exact relevance ties are ordered by size, then footfall, then screen_id
+a requested screen_type_mix yields every available requested type
+a corridor pool is never smaller than a station on it
 different audience terms can change blocks and ranking
-unknown audience terms are rejected
 missing data is recorded in defaults_applied
+a pool-wide constant sub-score is reported loudly
 reasons cite real values
 pooled audience < naive screen sum
 real weekday/weekend calendar mix is used
@@ -1512,12 +1678,18 @@ reach <= min(total exposures, total reachable population)
 gross exposures cannot be reported as reach
 declared spend floor is enforced/reported
 wear-out cap is relative to the flight floor
+declared slot cap binds per SCREEN across blocks, not per cell
+the slot cap is read off the run; an override may tighten it, never widen it
+honouring a 1-slot cap costs no reach and does not increase repetition
+pool pruning is NOT scaled by the slot cap
 ```
 
 Also protect the known adversarial case:
 
 ```text
 A package claiming gross exposures as reach MUST fail validation.
+A package breaching a brief-declared slot cap MUST fail validation.
+A spec carrying a hard constraint no stage enforces MUST fail validation.
 ```
 
 ---
@@ -1531,8 +1703,19 @@ data/model changes:
 2. `REACH_LAMBDA` is diagnostic-only and not used for reported reach.
 3. Demand has no held-out accuracy metric or confidence interval.
 4. Vehicle-mounted screens lack demographic data and currently receive a scoring floor.
-5. Block 1 has zero modelled audience despite real bookings.
-6. No ambient/pedestrian audience term.
+   They are excluded from the POI context judgement rather than penalized by it.
+5. Block 1 has zero **modelled** audience despite 8,544 real bookings — a gap in the model,
+   not a fact about block 1. The 8%-of-block-6 figure is an explicit assumption and is kept
+   out of every measured total.
+6. No ambient/pedestrian audience term. `nearby_ambient_footfall` exists but is quarantined
+   to a tie-break.
+12. The candidate pool is a relevance truncation, and truncation can be categorical: a whole
+    screen type can sit below another's floor (`bus_stop` 0.5891 vs `metro_station` 0.6066 —
+    2.9% — and 0 of 250 kept). `CampaignSpec.screen_type_mix` stratifies the cut;
+    `allowed_screen_types` is a filter and cannot produce a mix.
+13. A corridor's pool population is built from scheduled ridership while a stop's audience is
+    built from observed actuals. The two reconcile to ~0.97x, and
+    `corridor_pool_sanity()` asserts the ordering invariant between them.
 7. Events affect pricing, not demand.
 8. Booking probability is highly saturated because the historical win rate is ~99.79%;
    it is diagnostic, not price-setting.
@@ -1595,6 +1778,15 @@ share of voice; it does not make the loop run faster.
 ### 6. Hard constraints are deterministic
 Budget, inventory, geography, dates, screen count, required blocks, and declared hard
 constraints cannot be “explained away”.
+
+And a constraint the brief declares must be **read from the run and independently
+re-derived by validation**, or it is not enforced at all. A declared input qualifies for a
+validator check in a way an assumed constant like `REACH_LAMBDA` does not (principle 8b), and
+without the re-derivation a miss is silent: a slot-depth constraint was dropped end to end
+while intake recorded it, the run persisted it, the Master echoed it back, and verification
+passed the breaching package. `hard_constraints` keys therefore live in the closed
+`ENFORCED_HARD_CONSTRAINTS` vocabulary, and one outside it fails verification rather than
+being ignored.
 
 ### 7. Do not invent constraints
 In particular, do not introduce a minimum budget utilization unless the campaign spec

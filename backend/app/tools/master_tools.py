@@ -13,10 +13,15 @@ from langchain_core.tools import tool
 from pydantic import ValidationError
 
 from app.agents.validation import validate_explanations, validate_package
-from app.data.reference import resolve_geography, screen_facts
+from app.data.reference import resolve_geography, screen_facts, time_block_labels
 from app.logging_utils import debug, error, info
 from app.ml.levers import PricingLevers
-from app.models.campaign import AUDIENCE_TERMS, AudienceTarget, CampaignSpec
+from app.models.campaign import (
+    AUDIENCE_TERMS,
+    INDUSTRY_VERTICALS,
+    AudienceTarget,
+    CampaignSpec,
+)
 from app.models.clarification import (
     ASKABLE_FIELDS,
     ClarificationRequest,
@@ -132,19 +137,22 @@ def ask_clarifying_questions(
         # The audience vocabulary is closed because an off-list term does not fail loudly —
         # it collapses the audience sub-score to a flat 0.5, which is the exact failure this
         # whole gate exists to prevent.
-        if field == "audience_terms":
+        # Both vocabularies are closed, and for the same reason: an off-list value does not
+        # fail loudly downstream, it neutralizes a chunk of every relevance score. Offering
+        # the rep an option the spec will later reject is the worst version of that.
+        vocabulary = {"audience_terms": AUDIENCE_TERMS, "industry_vertical": INDUSTRY_VERTICALS}
+        if (allowed := vocabulary.get(field)) is not None:
             proposed = [
                 str(raw.get("option_a_value") or raw.get("option_a")),
                 str(raw.get("option_b_value") or raw.get("option_b")),
             ]
-            off_list = [v for v in proposed if v not in AUDIENCE_TERMS]
+            off_list = [v for v in proposed if v not in allowed]
             if off_list:
                 return {
                     "status": "invalid",
                     "detail": (
-                        f"Question {index} proposes audience terms {off_list}, which the "
-                        f"relevance engine does not score. Use values from "
-                        f"{list(AUDIENCE_TERMS)}."
+                        f"Question {index} proposes {field} values {off_list}, which the "
+                        f"pipeline does not accept. Use values from {list(allowed)}."
                     ),
                 }
 
@@ -247,7 +255,19 @@ def create_campaign_spec(
         requested_num_screens: Exact screen count, only if the brief demands one.
         preferred_time_blocks: dim_slot time_block_ids, "1".."6".
         preferred_dayparts: Named dayparts, e.g. ["morning", "evening"].
-        hard_constraints: Non-negotiable limits, e.g. {"max_screens": 40}.
+        hard_constraints: Non-negotiable limits the brief states. ONLY these keys are
+            enforced by a stage, and a key outside this list FAILS verification rather
+            than being ignored, so record the brief's constraint under the right one or
+            put it in missing_information instead:
+            min_screens, max_screens, allowed_screen_types, excluded_screen_types,
+            excluded_zone_ids, excluded_positions, required_time_blocks,
+            min_zone_coverage, min_budget_utilization, max_slots_per_day.
+            `max_slots_per_day` is the leasing structure: how many of a screen's 6 daily
+            rotation slots the client is buying, counted PER SCREEN PER DAY across all
+            time blocks. "1 rotating slot on each screen" is
+            {"max_slots_per_day": 1}. Record it whenever the brief describes the slot,
+            loop or airtime structure — it changes the package materially, and a brief
+            that asked for one slot once shipped as three because nothing captured it.
         soft_preferences: Nice-to-haves that must not be enforced as hard limits.
         original_query: The user's verbatim brief, for traceability.
         missing_information: Fields the brief did not specify.
@@ -703,16 +723,25 @@ def verify_package(run_id: str) -> dict:
 
 
 @tool
-def inspect_package(run_id: str, limit: int = 10) -> dict:
-    """Return the package's headline numbers and its highest-value lines, with real
-    screen attributes.
+def inspect_package(run_id: str, limit: int = 60) -> dict:
+    """Every line in the package, named the way a salesperson would name it.
 
-    Use this to ground screen-level explanations in actual zones, screen types, prices
-    and impression figures. Never restate analytical numbers you have not read here.
+    This is what the Headline Package Overview table is built from, so it returns
+    presentation-ready labels alongside the raw ids: `zone` is the zone's real name
+    ("Financial Row"), `screen_type` is title-cased, and `time_block` carries the clock
+    hours and daypart. Use those labels in the answer — a client-facing table must not
+    show `LH-ZONE-005`, `metro_station` or a bare block number.
+
+    Lines come back highest viewed exposures first. `lines_returned` against
+    `totals.allocations` tells you whether you have the whole package; if it was capped,
+    say so in the answer rather than presenting a partial table as complete.
+
+    Never restate an analytical number you have not read here.
 
     Args:
         run_id: Handle for the campaign run.
-        limit: How many allocation lines to return, highest viewed exposures first.
+        limit: How many allocation lines to return. The default covers a typical package
+            whole; raise it if `totals.allocations` is larger.
     """
     try:
         result = run_state.get_optimization(run_id)
@@ -723,13 +752,35 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
 
     pkg = result.package
     facts = screen_facts()
-    top = sorted(pkg.allocations, key=lambda a: -a.viewed_exposures)[:limit]
+    blocks = time_block_labels()
+    top = sorted(pkg.allocations, key=lambda a: -a.viewed_exposures)[: max(1, limit)]
 
-    zones = {facts[s].zone_id for s in pkg.screen_ids if s in facts and facts[s].zone_id}
+    # Named places, deduplicated. Counted on the label rather than the id so a rep reading
+    # "3 zones" and reading the table sees the same three names.
+    places = {facts[s].place_label for s in pkg.screen_ids if s in facts}
     types: dict[str, int] = {}
     for s in pkg.screen_ids:
         if s in facts:
-            types[facts[s].screen_type] = types.get(facts[s].screen_type, 0) + 1
+            label = facts[s].screen_type_label
+            types[label] = types.get(label, 0) + 1
+
+    def line(a) -> dict:
+        f = facts.get(a.screen_id)
+        block = str(a.time_block_id)
+        return {
+            "screen_id": a.screen_id,
+            # Display label first, raw id kept beside it for traceability.
+            "zone": f.place_label if f else None,
+            "zone_id": f.zone_id if f else None,
+            "screen_type": f.screen_type_label if f else None,
+            "time_block": blocks.get(block, f"Block {block}"),
+            "time_block_id": block,
+            "slots_per_day": a.slots_per_day,
+            "duration_days": a.duration_days,
+            "price_per_slot_per_day": round(a.price_per_slot_per_day, 2),
+            "line_cost": round(a.line_cost, 2),
+            "viewed_exposures": round(a.viewed_exposures, 0),
+        }
 
     return {
         "status": "ok",
@@ -743,25 +794,18 @@ def inspect_package(run_id: str, limit: int = 10) -> dict:
             "expected_frequency": round(pkg.expected_frequency, 3),
             "optimization_method": pkg.optimization_method,
         },
-        "composition": {"zones_covered": len(zones), "by_screen_type": types},
+        "composition": {
+            "places_covered": len(places),
+            "place_names": sorted(places),
+            "by_screen_type": types,
+        },
         # Empty means these prices are the engine's own derived figures. Non-empty means a
         # human moved them, and the recommendation has to disclose that rather than
         # presenting an adjusted quote as a purely modelled one.
         "pricing_levers_applied": run_state.get_pricing_levers(run_id).changes(),
-        "top_lines": [
-            {
-                "screen_id": a.screen_id,
-                "zone_id": facts[a.screen_id].zone_id if a.screen_id in facts else None,
-                "screen_type": facts[a.screen_id].screen_type if a.screen_id in facts else None,
-                "time_block_id": a.time_block_id,
-                "slots_per_day": a.slots_per_day,
-                "duration_days": a.duration_days,
-                "price_per_slot_per_day": a.price_per_slot_per_day,
-                "line_cost": round(a.line_cost, 2),
-                "viewed_exposures": round(a.viewed_exposures, 0),
-            }
-            for a in top
-        ],
+        "lines_returned": len(top),
+        "lines_truncated": max(0, len(pkg.allocations) - len(top)),
+        "lines": [line(a) for a in top],
     }
 
 

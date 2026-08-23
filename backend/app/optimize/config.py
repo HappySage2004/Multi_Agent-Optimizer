@@ -111,8 +111,26 @@ MIN_SPEND_FRACTION_DEFAULT = 0.0
 # no longer pure reach. At 1e-6 the threshold is ~0.02 people — a true tie-break.
 COST_TIE_BREAKER = 1e-6
 
+# Slots bought per screen per day when the BRIEF DOES NOT DECLARE A LIMIT.
+#
+# Tagged honestly: this is a fabricated constraint of the same family as the removed
+# MIN_SPEND_FRACTION, and it is kept only because removing it is a separate change needing
+# its own measurements. What has changed is that it is now DISCLOSED — `optimize_package`
+# reports the applied cap and its `source`, so a default can never again be mistaken for
+# something the client asked for, which is precisely how a brief's "1 rotating slot"
+# constraint went missing while the package shipped 3.
+#
+# A brief-declared `hard_constraints["max_slots_per_day"]` supersedes it, binds PER SCREEN
+# PER DAY (see optimize/solver.py), and is re-derived by the validation layer.
+DEFAULT_SLOTS_PER_DAY_CAP = 3
+
 # Reach saturates, so beyond a few screens in one audience pool the extra cells add
 # symmetry for the solver to thrash on and frequency the client did not ask for.
+#
+# NOT scaled by the slot cap, and that is load-bearing rather than incidental: this constant
+# is what makes a declared 1-slot cap actually reduce repetition instead of relocating it
+# from slots into extra screens in the same pool. The measurement, and the reason the
+# obvious scaling is wrong, are in `contract._prune_saturated_pools`.
 MAX_CELLS_PER_POOL = 4
 
 # Weight on the coverage-shortfall slack, on the normalized objective scale: one unit of

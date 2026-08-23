@@ -49,6 +49,15 @@ export function SettingsIcon(props: IconProps) {
   );
 }
 
+export function MailIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m2 7 10 6 10-6" />
+    </Svg>
+  );
+}
+
 export function DownloadDocIcon(props: IconProps) {
   return (
     <Svg {...props}>

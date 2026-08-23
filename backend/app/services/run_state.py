@@ -62,6 +62,31 @@ def _require(run_id: str) -> dict[str, Any]:
     return record
 
 
+def exists(run_id: str) -> bool:
+    return local_db.get_record(local_db.RUNS, run_id) is not None
+
+
+def unknown_run(run_id: str, *, tool: str) -> dict[str, Any]:
+    """Recoverable payload for a `run_id` that does not exist.
+
+    An LLM will occasionally invent a handle — `"temp"`, `"pending"`, the string `"run_id"` —
+    when it wants to call a tool before the run exists. Raising `KeyError` out of a tool
+    aborts the whole SSE stream and the rep loses the turn, so every run-scoped tool returns
+    this instead: an error the agent can read and recover from by doing the thing it skipped.
+    """
+    return {
+        "status": "error",
+        "run_id": run_id,
+        "detail": (
+            f"No run '{run_id}' exists, so {tool} has nothing to read. A run_id is created "
+            f"ONLY by create_campaign_spec — never invent one, and never pass a placeholder. "
+            f"If you have not built a spec yet, call create_campaign_spec first and use the "
+            f"run_id it returns. If you are answering a follow-up, get the run_id from "
+            f"get_active_run."
+        ),
+    }
+
+
 def get_spec(run_id: str) -> CampaignSpec:
     return CampaignSpec.model_validate(_require(run_id)["campaign_spec"])
 

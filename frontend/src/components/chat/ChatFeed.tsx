@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { ClarificationCard } from "@/components/chat/ClarificationCard";
 import { ImpactMetricsDeck } from "@/components/chat/ImpactMetricsDeck";
 import { Markdown } from "@/components/chat/Markdown";
+import { PackageTable } from "@/components/chat/PackageTable";
 import { StageProgress, ThinkingIndicator } from "@/components/chat/StageProgress";
 import { StrategySummaryCard } from "@/components/chat/StrategySummaryCard";
 import { PaperclipIcon, WarningIcon } from "@/components/ui/Icon";
@@ -157,6 +158,16 @@ function AssistantBlock({
             the package below is the stored result but the agent&rsquo;s written answer was
             never recorded.
           </p>
+        ) : null}
+
+        {/* First, above the prose: the package is what the rep came for. Absent on a
+            plain enquiry, which answers off the existing run and carries no runId. */}
+        {run && pkg ? (
+          <PackageTable
+            pkg={pkg}
+            spec={run.campaign_spec}
+            candidates={runData.packagedCandidates}
+          />
         ) : null}
 
         {message.text ? <Markdown>{message.text}</Markdown> : null}

@@ -302,15 +302,39 @@ def test_price_by_slot_count_is_flat_and_bounded_by_availability(engine):
 
 
 def test_recommended_price_sits_inside_the_band(engine):
-    rows = engine.price_candidates(_campaign(), _some_screens(engine, 60))
-    for row in (r for r in rows if r["feasible"]):
+    """Occupancy positions the quote inside the band — EXCEPT where the demand premium
+    applies, which is the one adjustment documented as allowed to exceed the cap.
+
+    This used to assert strict containment on every feasible row and passed only because
+    no screen in this 60-screen sample happened to be flagged as underpriced. Correcting
+    the rider counts (stop shares) re-ranked `demand_value`'s merit percentiles, two of
+    these screens became flagged, and the accidental pass ended. Split explicitly, so the
+    exception is asserted rather than relied upon.
+    """
+    priced = engine.price_candidates(_campaign(), _some_screens(engine, 60))
+    rows = [r for r in priced if r["feasible"]]
+    assert rows
+
+    def _has_premium(row) -> bool:
+        return any("demand premium" in a for a in row.get("assumptions", []))
+
+    unflagged = [r for r in rows if not _has_premium(r)]
+    assert unflagged, "sample had no un-flagged screen; the band check below is vacuous"
+
+    for row in unflagged:
         assert row["floor_price"] <= row["recommended_price"] <= row["cap_price"]
-        # Occupancy is what positions the price inside the band.
         if row["cap_price"] > row["floor_price"]:
             position = (row["recommended_price"] - row["floor_price"]) / (
                 row["cap_price"] - row["floor_price"]
             )
             assert abs(position - row["occupancy_rate"]) < 0.01
+
+    # A flagged screen may exceed the cap — clamping it back would delete the correction,
+    # since its own comparables are what understate it — but only by the premium's +15%.
+    for row in rows:
+        if _has_premium(row):
+            assert row["recommended_price"] <= row["cap_price"] * 1.15 + 0.02
+        assert row["recommended_price"] >= row["floor_price"]
 
 
 def test_time_block_is_echoed_on_every_row(engine):

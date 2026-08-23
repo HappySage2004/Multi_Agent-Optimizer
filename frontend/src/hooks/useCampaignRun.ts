@@ -29,6 +29,7 @@ import {
   getHealth,
   getRun,
   listMessages,
+  listModels,
   listRuns,
   listSessions,
   stageUpload,
@@ -46,6 +47,8 @@ import type {
   ChatMessageRecord,
   ClarificationRequest,
   HealthOut,
+  ModelSelection,
+  ModelsOut,
   RunRecord,
   ScreenCandidate,
   ScreenEconomics,
@@ -55,11 +58,35 @@ import type {
 } from "@/lib/types";
 
 /**
- * The placeholder a session carries until a brief names it. The backend renames the
- * session when a run starts (`_ensure_session`), so this is what the client sees only
- * before the first brief.
+ * Where the rep's model choice is remembered.
+ *
+ * localStorage rather than the backend: the selection is a per-operator preference, and
+ * putting it on the server would make one rep's switch change everyone's next run. It is
+ * always re-validated against `GET /models` on load — a key that has since been removed,
+ * or a deployment renamed, would otherwise send a model id the backend rejects with a 400.
  */
-const DEFAULT_SESSION_TITLE = "New Campaign";
+const MODEL_SELECTION_KEY = "agentiq.model-selection";
+
+function readStoredSelection(): ModelSelection | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(MODEL_SELECTION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ModelSelection>;
+    if (typeof parsed.provider === "string" && typeof parsed.model === "string") {
+      return { provider: parsed.provider, model: parsed.model };
+    }
+  } catch {
+    // Corrupt or unreadable storage is not worth surfacing; fall back to the default.
+  }
+  return null;
+}
+
+/** True when the catalogue still offers this exact choice on a configured provider. */
+function isSelectable(catalogue: ModelsOut, choice: ModelSelection): boolean {
+  const provider = catalogue.providers.find((p) => p.id === choice.provider);
+  return Boolean(provider?.configured && provider.models.some((m) => m.id === choice.model));
+}
 
 /** Ranked rows pulled for the D2 candidate list. */
 const RANKED_ROW_LIMIT = 60;
@@ -69,6 +96,14 @@ const RANKED_ROW_LIMIT = 60;
  * for the widest package the optimizer can return.
  */
 const PACKAGED_ROW_LIMIT = 1000;
+
+/**
+ * How many times the repair effect may try to load one run. Three, because the failure it
+ * exists for is transient (a request that lost a race with a session switch, a backend
+ * still starting up) — and because an unbounded retry against a genuinely broken run would
+ * be a request loop.
+ */
+const MAX_RUN_LOAD_ATTEMPTS = 3;
 
 export type RunStatus = "idle" | "streaming" | "done" | "error";
 
@@ -144,6 +179,14 @@ function toChatMessage(record: ChatMessageRecord): ChatMessage {
 
 export function useCampaignRun() {
   const [health, setHealth] = useState<HealthOut | null>(null);
+  const [models, setModels] = useState<ModelsOut | null>(null);
+  const [modelsError, setModelsError] = useState<string | null>(null);
+  /**
+   * Null until the catalogue lands, and again whenever the stored choice is no longer
+   * offered. Null means "send no provider/model and let the backend pick", which is what
+   * keeps a turn working while /models is still in flight.
+   */
+  const [modelSelection, setModelSelection] = useState<ModelSelection | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
@@ -172,8 +215,16 @@ export function useCampaignRun() {
   >({});
 
   const abortRef = useRef<AbortController | null>(null);
-  /** Sessions already loaded, so switching back reads the cache instead of refetching. */
+  /** Sessions whose transcript load has been attempted, so a revisit reads the cache. */
   const hydratedRef = useRef<Set<string>>(new Set());
+  /** `sessionId:runId` pairs being fetched right now, so renders cannot stack duplicates. */
+  const runLoadInFlight = useRef<Set<string>>(new Set());
+  /**
+   * Attempts per `sessionId:runId`. The repair effect below is bounded by this rather than
+   * by a "tried once" flag: one transient failure must not leave the inspector empty for
+   * the life of the tab, but a permanent one must not spin either.
+   */
+  const runLoadAttempts = useRef<Map<string, number>>(new Map());
 
   const messages = useMemo(
     () => (activeSessionId ? transcripts[activeSessionId] ?? [] : []),
@@ -189,6 +240,18 @@ export function useCampaignRun() {
     () => (activeSessionId ? clarificationBySession[activeSessionId] ?? null : null),
     [clarificationBySession, activeSessionId],
   );
+
+  /**
+   * Adopt a title the backend reports, so the sidebar and the centre header never disagree.
+   *
+   * Both the `session` and `done` events carry one: the first is provisional (from the
+   * brief), the second may be the campaign objective intake resolved. Applying them the
+   * same way is what keeps the rail showing a campaign name rather than a chat log.
+   */
+  const adoptSessionTitle = useCallback((sessionId: string, title: string | null | undefined) => {
+    if (!title) return;
+    setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, title } : s)));
+  }, []);
 
   const appendMessage = useCallback((sessionId: string, message: ChatMessage) => {
     setTranscripts((prev) => ({ ...prev, [sessionId]: [...(prev[sessionId] ?? []), message] }));
@@ -206,9 +269,10 @@ export function useCampaignRun() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [healthResult, sessionsResult] = await Promise.allSettled([
+      const [healthResult, sessionsResult, modelsResult] = await Promise.allSettled([
         getHealth(),
         listSessions(),
+        listModels(),
       ]);
       if (cancelled) return;
 
@@ -217,6 +281,22 @@ export function useCampaignRun() {
         setSessions(sessionsResult.value);
       } else {
         setError(describeError(sessionsResult.reason));
+      }
+
+      // The model list failing is not a run-blocking error — omitting provider/model runs
+      // the backend default — so it goes to its own slot rather than the chat error banner.
+      if (modelsResult.status === "fulfilled") {
+        const catalogue = modelsResult.value;
+        setModels(catalogue);
+        setModelsError(null);
+        const stored = readStoredSelection();
+        setModelSelection(
+          stored && isSelectable(catalogue, stored)
+            ? stored
+            : { provider: catalogue.default_provider, model: catalogue.default_model },
+        );
+      } else {
+        setModelsError(describeError(modelsResult.reason));
       }
     })();
     return () => {
@@ -239,6 +319,15 @@ export function useCampaignRun() {
    */
   const loadRun = useCallback(
     async (sessionId: string, runId: string, prefetched?: RunRecord) => {
+      // The effect below may ask for the same run on several renders before the first
+      // fetch resolves, so collapse concurrent calls and cap total attempts.
+      const key = `${sessionId}:${runId}`;
+      if (runLoadInFlight.current.has(key)) return;
+      const attempts = runLoadAttempts.current.get(key) ?? 0;
+      if (attempts >= MAX_RUN_LOAD_ATTEMPTS) return;
+      runLoadInFlight.current.add(key);
+      runLoadAttempts.current.set(key, attempts + 1);
+
       patchRunData(sessionId, { loadingArtifacts: true });
       try {
         const run = prefetched ?? (await getRun(runId));
@@ -298,6 +387,8 @@ export function useCampaignRun() {
       } catch (cause) {
         patchRunData(sessionId, { ...EMPTY_RUN_DATA });
         setError(describeError(cause));
+      } finally {
+        runLoadInFlight.current.delete(key);
       }
     },
     [patchRunData],
@@ -350,12 +441,71 @@ export function useCampaignRun() {
         }));
         await loadRun(sessionId, run.id, run);
       } catch (cause) {
-        hydratedRef.current.delete(sessionId);
+        // The mark stays: a persistent failure must not spin. The repair effect below
+        // still retries the *package* once the transcript is in hand, which is the case
+        // that actually recovers.
         setError(describeError(cause));
       }
     },
     [loadRun],
   );
+
+  /**
+   * The run the active session's transcript says the panels should be showing.
+   *
+   * Derived from the transcript rather than tracked separately, so it is correct whether
+   * the message arrived live or came back from localDB.
+   */
+  const expectedRunId = useMemo(() => {
+    const list = activeSessionId ? transcripts[activeSessionId] : undefined;
+    if (!list) return null;
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      if (list[i].runId) return list[i].runId as string;
+    }
+    return null;
+  }, [transcripts, activeSessionId]);
+
+  /**
+   * Keep the inspector in step with the active session, declaratively.
+   *
+   * Hydration used to fire only from `selectSession`'s click handler, guarded by a ref. Any
+   * path that left a session active without its run data — a remount that reset the cache
+   * but not the guard, a load that raced a session switch, a first paint that never saw a
+   * click — left D1-D4 permanently empty while the transcript sat there describing a
+   * package. Stating the invariant ("the loaded run matches the one the transcript names")
+   * and repairing it is what makes that unreachable, rather than one more special case.
+   *
+   * Bounded by `runLoadAttempts` inside `loadRun`, so this cannot loop.
+   */
+  useEffect(() => {
+    const sessionId = activeSessionId;
+    if (!sessionId) return;
+
+    if (!hydratedRef.current.has(sessionId)) {
+      void hydrateSession(sessionId);
+      return;
+    }
+    if (expectedRunId && runDataBySession[sessionId]?.run?.id !== expectedRunId) {
+      void loadRun(sessionId, expectedRunId);
+    }
+  }, [activeSessionId, expectedRunId, runDataBySession, hydrateSession, loadRun]);
+
+  // -------------------------------------------------------------------- model
+
+  /**
+   * Switch the model the next turn runs on. Persisted immediately, so a reload keeps it.
+   *
+   * Deliberately not applied to the turn in flight: the graph is compiled per selection
+   * and swapping mid-stream would leave half a run on each provider.
+   */
+  const selectModel = useCallback((choice: ModelSelection) => {
+    setModelSelection(choice);
+    try {
+      window.localStorage.setItem(MODEL_SELECTION_KEY, JSON.stringify(choice));
+    } catch {
+      // Private-mode storage refusals must not lose the in-memory choice.
+    }
+  }, []);
 
   // ------------------------------------------------------------------ sessions
 
@@ -374,9 +524,10 @@ export function useCampaignRun() {
       if (sessionId === activeSessionId) return;
       setActiveSessionId(sessionId);
       resetTurnState();
-      void hydrateSession(sessionId);
+      // Loading is the effect's job, keyed on the active session — see above for why this
+      // is not done here any more.
     },
-    [activeSessionId, hydrateSession, resetTurnState],
+    [activeSessionId, resetTurnState],
   );
 
   const newCampaign = useCallback(async () => {
@@ -402,6 +553,9 @@ export function useCampaignRun() {
         await deleteSession(sessionId);
         setSessions((prev) => prev.filter((s) => s.id !== sessionId));
         hydratedRef.current.delete(sessionId);
+        for (const key of [...runLoadAttempts.current.keys()]) {
+          if (key.startsWith(`${sessionId}:`)) runLoadAttempts.current.delete(key);
+        }
         setTranscripts((prev) => {
           const next = { ...prev };
           delete next[sessionId];
@@ -517,8 +671,16 @@ export function useCampaignRun() {
 
       try {
         await streamCampaign(
-          { query: trimmed, session_id: sessionId, upload_ids: attachments.map((u) => u.id) },
           {
+            query: trimmed,
+            session_id: sessionId,
+            upload_ids: attachments.map((u) => u.id),
+            // Omitted while the catalogue is still loading, which runs the backend default.
+            provider: modelSelection?.provider,
+            model: modelSelection?.model,
+          },
+          {
+            onSession: (event) => adoptSessionTitle(sessionId, event.session_title),
             onUpdate: (event) => {
               for (const name of event.summary.tool_calls ?? []) {
                 if (!name) continue;
@@ -530,15 +692,9 @@ export function useCampaignRun() {
               }
             },
             onDone: (event) => {
-              // The backend named the session from this brief; adopt its title so the
-              // sidebar and the header agree with what is on disk.
-              if (event.session_title) {
-                setSessions((prev) =>
-                  prev.map((s) =>
-                    s.id === sessionId ? { ...s, title: event.session_title as string } : s,
-                  ),
-                );
-              }
+              // The final name, which is the resolved campaign objective when intake
+              // produced one -- the same string the centre header shows.
+              adoptSessionTitle(sessionId, event.session_title);
               // The backend reports whether this turn rebuilt the package. A follow-up
               // resolves to the same run, so attaching it to the message would repeat the
               // metrics deck under every answer — and completing the stage rail would
@@ -588,7 +744,16 @@ export function useCampaignRun() {
         abortRef.current = null;
       }
     },
-    [activeSessionId, appendMessage, loadRun, newCampaign, pendingUploads, status],
+    [
+      activeSessionId,
+      adoptSessionTitle,
+      appendMessage,
+      loadRun,
+      modelSelection,
+      newCampaign,
+      pendingUploads,
+      status,
+    ],
   );
 
   /**
@@ -629,30 +794,18 @@ export function useCampaignRun() {
     [activeStage, completedStages],
   );
 
-  /**
-   * Sidebar titles. The backend names a session from the brief the moment a run starts,
-   * but that name only reaches the client on the `done` event a minute or so later. Until
-   * then a still-unnamed session borrows its first user message, which the row shortens
-   * with CSS — so there is no second copy of the backend's title heuristic over here.
-   */
-  const displaySessions = useMemo(
-    () =>
-      sessions.map((session) => {
-        if (session.title !== DEFAULT_SESSION_TITLE) return session;
-        const brief = transcripts[session.id]?.find((m) => m.role === "user")?.text.trim();
-        return brief ? { ...session, title: brief } : session;
-      }),
-    [sessions, transcripts],
-  );
-
   const activeSession = useMemo(
-    () => displaySessions.find((s) => s.id === activeSessionId) ?? null,
-    [displaySessions, activeSessionId],
+    () => sessions.find((s) => s.id === activeSessionId) ?? null,
+    [sessions, activeSessionId],
   );
 
   return {
     health,
-    sessions: displaySessions,
+    models,
+    modelsError,
+    modelSelection,
+    selectModel,
+    sessions,
     activeSession,
     activeSessionId,
     messages,

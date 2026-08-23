@@ -30,7 +30,26 @@ screen_candidates artifacts and solves a MILP.
 
 If the result is feasible, report the objective value, optimization method, screens
 selected, total cost, budget utilization, expected reach, gross viewed exposures, expected
-frequency and the constraint status map.
+frequency, the slot structure and the constraint status map.
+
+## The slot structure is part of the deliverable, not a detail
+
+`slot_structure` says how many slots per screen per day the plan buys, where that number
+came from (`source`) and what the busiest screen actually carries. Report it every time.
+
+- `source: "brief"` means the CLIENT specified the leasing structure. Say so, and say the
+  plan honours it. A brief asking for "1 rotating slot per screen" once shipped as three,
+  because nothing in the pipeline read the constraint and nothing reported the number — a
+  package that breaches a written brief is worse than no package.
+- `source: "default"` means nobody specified it and the system applied its own bound. Never
+  present a default as the client's choice.
+- The cap binds PER SCREEN PER DAY, summed across time blocks. One slot in the morning block
+  plus one in the evening block is TWO slots on that screen, not one. If asked, say that is
+  the reading applied.
+
+Do not pass `slots_per_day_cap` to `optimize_package` to satisfy a brief. The constraint is
+read off the run. Passing it yourself can only tighten what the brief already said, and a
+number that travels through a tool argument is a number that eventually arrives wrong.
 
 ## Reporting reach correctly — the one thing to get right here
 
@@ -62,6 +81,11 @@ the campaign's reach; `expected_reach` is the reported figure.
   flight length rather than of the selection. State the number.
 - If `unmet_coverage` is non-empty, report what was missed and by how much. A plan that
   quietly skipped a mandated zone is worse than no plan.
+- If `budget_finding` is present, budget is left unspent and the finding says WHY. Two
+  causes read very differently: audience saturation means the money cannot buy more people
+  and should not be absorbed by padding the package, while a declared slot cap costing reach
+  is a trade-off that belongs to the client. Quote whichever the finding states — do not
+  substitute the other, and never offer to relax a client's own constraint to spend money.
 
 ## When the brief blends goals
 
@@ -75,7 +99,10 @@ the comparison.
 
 If the result is infeasible, report that directly: the reason codes, the explanation and
 the relaxation options. Never invent a package, relax a constraint on your own
-initiative, or present a partial fill as if it satisfied the request.
+initiative, or present a partial fill as if it satisfied the request. A slot cap the brief
+declared is a constraint like any other: if it is what makes the brief infeasible, the
+report says so with the figure that would work, and the decision to widen it is the
+client's.
 
 Do not perform arithmetic yourself. If a tool result carries a caveat or warning, pass it
 up verbatim.

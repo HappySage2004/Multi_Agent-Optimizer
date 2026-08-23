@@ -105,10 +105,12 @@ class ScreenCandidate(BaseModel):
     pool_key: str | None = Field(
         default=None,
         description=(
-            "The physical-audience unit: location_id for stop-mounted screens, "
-            "corridor_id for vehicle-mounted ones. Screens sharing a pool_key see the "
-            "SAME people — anything summing audience across screens MUST group by this "
-            "first or it over-counts (measured 23x on a 250-screen pool)."
+            "The physical-audience unit: a synthetic SITE id for stop-mounted screens, "
+            "corridor_id for vehicle-mounted ones. A site is (city, name, serving "
+            "corridors), not a raw location_id — one physical station is modelled as "
+            "several location rows, and 910 stop-mounted location_ids resolve to 878 "
+            "sites. Screens sharing a pool_key see the SAME people, so anything summing "
+            "audience across screens MUST group by this first or it over-counts."
         ),
     )
     pool_partition_count: int = Field(
@@ -141,9 +143,50 @@ class ScreenCandidate(BaseModel):
     impressions_weekend: float = Field(
         default=0.0, ge=0.0, description="People passing, not viewed exposures"
     )
+    impressions_block_1_estimated: dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "ESTIMATE, NOT A MEASUREMENT. Block 1 (00:00-04:00) has no scheduled transit "
+            "service, so its measured volume is exactly 0 for every screen — while "
+            "`bookings` holds 8,544 real block-1 bookings, so inventory there demonstrably "
+            "sells. This is an 8% baseline assumption relative to the same screen's block-6 "
+            "volume, keyed '{weekday|weekend}'. Kept strictly separate from "
+            "impressions_by_block['1_*'] (which stays at the measured 0) and excluded from "
+            "every total, peak, off-peak and commuter_score figure, so no validated number "
+            "moves with the assumption. Quote it only as an estimate."
+        ),
+    )
+    nearby_ambient_footfall: float = Field(
+        default=0.0,
+        ge=0.0,
+        description=(
+            "Foot-traffic proxy from nearby POIs. Independently verified to correlate "
+            "weakly with transit ridership and can disagree by up to ~20x at individual "
+            "locations. Supplementary signal only — not a reach or pricing input."
+        ),
+    )
 
     # Carried through so the optimizer and validator need no extra lookups.
     city_id: str | None = None
     zone_id: str | None = None
+    location_name: str | None = Field(
+        default=None,
+        description=(
+            "The stop or station name — 'Grant Rd & Kingsley Rd', 'East Commons Station'. "
+            "From `locations.name`. This is the label a CLIENT understands, so it is what "
+            "anything client-facing shows, ahead of the zone. Null for vehicle-mounted "
+            "screens, which have no fixed location; their corridor names them. Also the "
+            "only human-readable handle on a pool: `pool_key` is a synthetic site id, so "
+            "a reason string names the site through this field, never the key."
+        ),
+    )
+    zone_name: str | None = Field(
+        default=None,
+        description=(
+            "The zone's real name — 'Financial Row', not 'LH-ZONE-005'. Null for "
+            "vehicle-mounted screens, which have no zone; their geography is the corridor. "
+            "Anything shown to a salesperson should prefer this over zone_id."
+        ),
+    )
     corridor_id: str | None = None
     screen_type: str | None = None

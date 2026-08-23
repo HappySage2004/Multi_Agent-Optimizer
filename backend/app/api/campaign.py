@@ -17,11 +17,13 @@ from langchain_core.exceptions import (
     ModelRateLimitError,
 )
 from langgraph.checkpoint.memory import InMemorySaver
+from pydantic import ValidationError
 
+from app.agents import providers
 from app.agents.master import build_master_agent
+from app.agents.providers import ModelSelection
 from app.agents.tracing import AgentRunLogger
 from app.api.schemas import ArtifactRowsOut, CampaignQuery, CampaignRunOut
-from app.config import get_settings
 from app.logging_utils import error as log_error
 from app.logging_utils import info as log_info
 from app.services import (
@@ -38,7 +40,10 @@ router = APIRouter(tags=["campaign"])
 # One checkpointer per process keeps multi-turn refinement working within a session.
 # Swap for a persistent saver when runs need to survive a restart.
 _checkpointer = InMemorySaver()
-_agent = None
+#: Compiled graphs, keyed by model selection. The provider is a per-request choice, so a
+#: single slot would recompile on every switch -- and compiling is not free. Two providers
+#: times a handful of models is a small, bounded set.
+_agents: dict[ModelSelection, Any] = {}
 
 RECURSION_LIMIT = 80
 
@@ -49,42 +54,64 @@ RECURSION_LIMIT = 80
 #   ModelAPIError       -> upstream 5xx (503 UNAVAILABLE / 504 DEADLINE_EXCEEDED under
 #       load). Transient and worth retrying.
 #   auth / not-found    -> our own misconfiguration, not a client error.
-QUOTA_DETAIL = (
-    "Model quota exhausted. Gemini's free tier allows ~20 requests/day/model and one full "
-    "orchestration costs roughly 15-20 model calls. Enable billing on the API key, or "
-    "point MASTER_MODEL / SPECIALIST_MODEL at a model with remaining quota."
-)
+# Worded per provider, because the remedy differs: Gemini's is a hard daily allowance a
+# single run can exhaust, Azure's is a per-minute token cap that clears on its own.
+QUOTA_DETAIL = {
+    providers.GEMINI: (
+        "Model quota exhausted. Gemini's free tier allows ~20 requests/day/model and one "
+        "full orchestration costs roughly 15-20 model calls. Switch to Azure OpenAI in "
+        "Settings, or enable billing on the key."
+    ),
+    providers.AZURE_OPENAI: (
+        "The Azure deployment's rate limit was hit. This is a per-minute cap, so retrying "
+        "shortly usually works; lower AZURE_REQUESTS_PER_MINUTE if it recurs."
+    ),
+}
 MODEL_BUSY_DETAIL = (
     "The model is currently unavailable (the provider returned a 5xx under load). This is "
     "transient — retry the request."
 )
 
 
-def _provider_error(exc: ModelError) -> HTTPException:
-    """Map a provider failure onto an honest HTTP status instead of a blanket 500."""
+def _provider_error(exc: ModelError, selection: ModelSelection) -> HTTPException:
+    """Map a provider failure onto an honest HTTP status instead of a blanket 500.
+
+    `selection` is threaded through so the credential message names the env var for the
+    provider that actually failed — telling a rep on Azure to check GEMINI_API_KEY sends
+    them to the wrong file.
+    """
     if isinstance(exc, ModelRateLimitError):
-        return HTTPException(status_code=429, detail=f"{QUOTA_DETAIL} Provider said: {exc}")
+        detail = QUOTA_DETAIL.get(selection.provider, "Model quota exhausted.")
+        return HTTPException(status_code=429, detail=f"{detail} Provider said: {exc}")
     if isinstance(exc, ModelAPIError):
         return HTTPException(status_code=503, detail=f"{MODEL_BUSY_DETAIL} Provider said: {exc}")
     if isinstance(exc, (ModelAuthenticationError, ModelPermissionDeniedError)):
         return HTTPException(
             status_code=502,
-            detail=f"The model provider rejected our credentials. Check GEMINI_API_KEY. {exc}",
+            detail=(
+                f"The model provider rejected our credentials. Check "
+                f"{providers.credentials_hint(selection.provider)}. {exc}"
+            ),
         )
     if isinstance(exc, ModelNotFoundError):
         return HTTPException(
             status_code=502,
-            detail=f"Configured model id is not available on this key. {exc}",
+            detail=(
+                f"Model '{selection.master_model}' is not available on this key. On Azure "
+                f"this usually means the deployment name in AZURE_OPENAI_DEPLOYMENTS is "
+                f"wrong — the API wants the deployment, not the model name. {exc}"
+            ),
         )
     return HTTPException(status_code=502, detail=f"Model provider error: {exc}")
 
 
-def _agent_instance():
-    global _agent
-    if _agent is None:
-        log_info("compiling master agent graph (first request)")
-        _agent = build_master_agent(checkpointer=_checkpointer)
-    return _agent
+def _agent_instance(selection: ModelSelection):
+    agent = _agents.get(selection)
+    if agent is None:
+        log_info(f"compiling master agent graph for {selection.label}")
+        agent = build_master_agent(selection, checkpointer=_checkpointer)
+        _agents[selection] = agent
+    return agent
 
 
 def _run_config(session_id: str, tracer: AgentRunLogger) -> dict:
@@ -96,14 +123,22 @@ def _run_config(session_id: str, tracer: AgentRunLogger) -> dict:
     }
 
 
-def _require_api_key() -> None:
-    if not get_settings().gemini_api_key:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "GEMINI_API_KEY is not configured. Set it in the repo-root .env (or backend/.env)."
-            ),
-        )
+def _selection(payload: CampaignQuery) -> ModelSelection:
+    """The provider and models this turn runs on, validated against the catalogue.
+
+    A model id this build does not offer is the caller's mistake (400). Missing
+    credentials are ours (503). Collapsing both into one status made a stale localStorage
+    value in the browser look like a broken backend.
+    """
+    try:
+        selection = providers.resolve(payload.provider, payload.model)
+    except providers.UnknownModel as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        providers.require_credentials(selection)
+    except providers.ProviderNotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return selection
 
 
 def _ensure_session(session_id: str | None, query: str) -> str:
@@ -123,6 +158,28 @@ def _ensure_session(session_id: str | None, query: str) -> str:
 # read-only tools a follow-up uses.
 def _pipeline_ran(run_id: str | None, run_id_before: str | None) -> bool:
     return run_id is not None and run_id != run_id_before
+
+
+def _final_title(session_id: str, run_id: str | None) -> str:
+    """The session's name after this turn, upgraded to the resolved objective if there is one.
+
+    `_ensure_session` names a session provisionally from the rep's raw sentence, because a
+    45-90s run must not leave the sidebar showing a placeholder. But the raw sentence is
+    what made the sidebar read like a chat log while the header read like a campaign --
+    the header shows `campaign_spec.campaign_objective`. Once intake has resolved one,
+    that is the name, in both places.
+
+    A title the user typed is left alone; `session_titles` owns that rule.
+    """
+    if run_id is not None:
+        try:
+            objective = run_state.get_spec(run_id).campaign_objective
+        except (KeyError, ValidationError):
+            # A run that died before intake recorded a spec. The provisional name stands.
+            objective = ""
+        if objective:
+            return session_titles.rename_from_objective(session_id, objective)
+    return session_titles.title_of(session_id)
 
 
 def _staged(payload: CampaignQuery) -> list[dict[str, Any]]:
@@ -201,7 +258,7 @@ def _final_text(state: dict[str, Any]) -> str:
 @router.post("/campaign/run", response_model=CampaignRunOut)
 async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
     """Run the full orchestration for a brief and return the final recommendation."""
-    _require_api_key()
+    selection = _selection(payload)
     session_id = _ensure_session(payload.session_id, payload.query)
     staged = _staged(payload)
 
@@ -219,17 +276,17 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 
     tracer = AgentRunLogger(label=f"campaign/run session={session_id}")
     tracer.start()
-    log_info(f"brief received ({len(payload.query)} chars), model={get_settings().master_model_id}")
+    log_info(f"brief received ({len(payload.query)} chars), model={selection.label}")
 
     try:
-        state = await _agent_instance().ainvoke(
+        state = await _agent_instance(selection).ainvoke(
             {"messages": [{"role": "user", "content": _build_prompt(payload, session_id, staged)}]},
             config=_run_config(session_id, tracer),
         )
     except ModelError as exc:
         log_error(f"run aborted: {type(exc).__name__}")
         tracer.log_summary()
-        raise _provider_error(exc) from exc
+        raise _provider_error(exc, selection) from exc
 
     usage = tracer.log_summary()
 
@@ -264,7 +321,7 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 
     return CampaignRunOut(
         session_id=session_id,
-        session_title=session_titles.title_of(session_id),
+        session_title=_final_title(session_id, run_id),
         message_id=message["id"],
         run_id=run_id,
         pipeline_ran=pipeline_ran,
@@ -280,7 +337,7 @@ async def run_campaign(payload: CampaignQuery) -> CampaignRunOut:
 @router.post("/campaign/stream")
 async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
     """Server-sent events for the chat UI: one event per graph update, then a `done` event."""
-    _require_api_key()
+    selection = _selection(payload)
     session_id = _ensure_session(payload.session_id, payload.query)
     staged = _staged(payload)
     prompt = _build_prompt(payload, session_id, staged)
@@ -293,8 +350,19 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
         attachments=[r["filename"] for r in staged],
     )
 
+    log_info(f"brief received ({len(payload.query)} chars), model={selection.label}")
+
     async def events() -> AsyncIterator[str]:
-        agent = _agent_instance()
+        # Emitted first, before a single model call. `_ensure_session` has already named
+        # the session from this brief, and without this the client would not learn that
+        # name until `done` -- so the sidebar row spent the whole run showing whatever
+        # placeholder it had. The name is provisional; `done` carries the final one.
+        yield _sse(
+            "session",
+            {"session_id": session_id, "session_title": session_titles.title_of(session_id)},
+        )
+
+        agent = _agent_instance(selection)
         tracer = AgentRunLogger(label=f"campaign/stream session={session_id}")
         tracer.start()
         # `updates` mode carries progress, not the reply, so keep the latest assistant
@@ -320,7 +388,7 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
         except ModelError as exc:
             log_error(f"stream aborted: {type(exc).__name__}")
             tracer.log_summary()
-            err = _provider_error(exc)
+            err = _provider_error(exc, selection)
             yield _sse("error", {"status": err.status_code, "detail": err.detail})
             return
         except Exception as exc:  # noqa: BLE001 - any failure must reach the UI, not hang the stream
@@ -355,7 +423,7 @@ async def stream_campaign(payload: CampaignQuery) -> StreamingResponse:
             "done",
             {
                 "session_id": session_id,
-                "session_title": session_titles.title_of(session_id),
+                "session_title": _final_title(session_id, run_id),
                 "message_id": message["id"],
                 "run_id": run_id,
                 "pipeline_ran": pipeline_ran,

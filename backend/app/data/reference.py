@@ -22,6 +22,37 @@ class ScreenFacts:
     screen_type: str
     screen_size: str | None
     inventory_class: str
+    # Human-readable labels. Carried here so anything shown to a client can name a place
+    # the way they would — "Grant Rd & Kingsley Rd", not "LH-ZONE-005". Every location, all
+    # 30 zones and all 94 corridors have a name, so a null means the screen genuinely has no
+    # location or no zone (every vehicle-mounted screen) rather than a missing label.
+    location_name: str | None = None
+    zone_name: str | None = None
+    corridor_name: str | None = None
+
+    @property
+    def place_label(self) -> str:
+        """Where this screen is, in the words a CLIENT would use.
+
+        The stop or station name comes FIRST — "Grant Rd & Kingsley Rd", "East Commons
+        Station" — because that is the thing an advertiser can picture standing in front of.
+        A zone is a planning unit and a zone id means nothing outside this codebase.
+        Vehicle-mounted screens have no fixed location, so their route names them. The ids
+        are last and exist only so this never renders an empty cell.
+        """
+        return (
+            self.location_name
+            or self.corridor_name
+            or self.zone_name
+            or self.zone_id
+            or self.corridor_id
+            or self.city_id
+        )
+
+    @property
+    def screen_type_label(self) -> str:
+        """`metro_rail_coach` -> `Metro Rail Coach`. Snake case is an engineering artifact."""
+        return self.screen_type.replace("_", " ").title()
 
 
 @dataclass
@@ -54,12 +85,29 @@ def geography_index() -> GeographyIndex:
 
 @lru_cache(maxsize=1)
 def screen_facts() -> dict[str, ScreenFacts]:
-    """All 11,163 screens keyed by id. ~1 MB resident; loaded once per process."""
+    """All 11,163 screens keyed by id. ~1 MB resident; loaded once per process.
+
+    The name joins are LEFT joins on purpose. A vehicle-mounted screen has no zone at all,
+    so `zone_name` being null there is the correct answer rather than a gap to fill; the
+    route name is what names its geography.
+    """
     df = query_df(
         """
-        SELECT screen_id, city_id, zone_id, corridor_id, screen_type, screen_size,
-               inventory_class
-        FROM v_screen_geography
+        SELECT g.screen_id, g.city_id, g.zone_id, g.corridor_id, g.screen_type,
+               g.screen_size, g.inventory_class,
+               l.name AS location_name,
+               z.zone_name,
+               r.route_name AS corridor_name
+        FROM v_screen_geography g
+        LEFT JOIN locations l         ON l.location_id = g.location_id
+        LEFT JOIN zone_demographics z ON z.zone_id = g.zone_id
+        LEFT JOIN (
+            -- Exactly one route_name per corridor across all 94 of them, verified, so any
+            -- aggregate is the name rather than an arbitrary pick from several.
+            SELECT corridor_id, min(route_name) AS route_name
+            FROM route_stops
+            GROUP BY corridor_id
+        ) r ON r.corridor_id = g.corridor_id
         """
     )
     return {
@@ -71,7 +119,24 @@ def screen_facts() -> dict[str, ScreenFacts]:
             screen_type=row.screen_type,
             screen_size=None if _isnull(row.screen_size) else row.screen_size,
             inventory_class=row.inventory_class,
+            location_name=None if _isnull(row.location_name) else row.location_name,
+            zone_name=None if _isnull(row.zone_name) else row.zone_name,
+            corridor_name=None if _isnull(row.corridor_name) else row.corridor_name,
         )
+        for row in df.itertuples(index=False)
+    }
+
+
+@lru_cache(maxsize=1)
+def time_block_labels() -> dict[str, str]:
+    """time_block_id -> "16:00-20:00 (Evening)".
+
+    A rep reads a clock time and a daypart; "Block 5" on its own means nothing outside this
+    codebase. Both halves come from `dim_slot`, so neither is invented here.
+    """
+    df = query_df("SELECT time_block_id, time_block_label, nearest_daypart FROM dim_slot")
+    return {
+        str(row.time_block_id): f"{row.time_block_label} ({str(row.nearest_daypart).title()})"
         for row in df.itertuples(index=False)
     }
 

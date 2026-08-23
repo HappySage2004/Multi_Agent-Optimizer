@@ -2,7 +2,7 @@
  * The single boundary between the frontend and FastAPI. Nothing else fetches.
  *
  * Endpoints (backend/app/api/):
- *   GET    /health
+ *   GET    /health              GET /models
  *   POST   /sessions            GET /sessions            PATCH/DELETE /sessions/{id}
  *   GET    /sessions/{id}/messages   POST/DELETE the same path
  *   GET    /messages/{id}       PATCH/DELETE /messages/{id}
@@ -19,6 +19,7 @@ import type {
   ClarificationOut,
   ClarificationRequest,
   HealthOut,
+  ModelsOut,
   NewChatMessage,
   RunRecord,
   RunSnapshot,
@@ -27,6 +28,7 @@ import type {
   Session,
   StreamDoneEvent,
   StreamErrorEvent,
+  StreamSessionEvent,
   StreamUpdateEvent,
   Upload,
 } from "./types";
@@ -92,6 +94,18 @@ async function readDetail(response: Response): Promise<string> {
 
 export function getHealth(): Promise<HealthOut> {
   return request<HealthOut>("/health");
+}
+
+// -------------------------------------------------------------------- models
+
+/**
+ * The providers and models the backend can actually run, plus which one it defaults to.
+ *
+ * Fetched rather than hard-coded on purpose: whether a provider has credentials is a
+ * backend fact, and a stale local list would offer the rep an option that 503s.
+ */
+export function listModels(): Promise<ModelsOut> {
+  return request<ModelsOut>("/models");
 }
 
 // ------------------------------------------------------------------- sessions
@@ -220,6 +234,13 @@ export interface CampaignQuery {
   query: string;
   session_id?: string | null;
   upload_ids?: string[];
+  /**
+   * The model this turn runs on. Both optional — omitting them runs the backend default,
+   * which is what a client that has not fetched `/models` yet does. Sent per turn rather
+   * than configured server-side so the rep can switch providers mid-session.
+   */
+  provider?: string;
+  model?: string;
 }
 
 /**
@@ -245,6 +266,8 @@ export function runCampaign(payload: CampaignQuery): Promise<CampaignRunOut> {
 }
 
 export interface StreamHandlers {
+  /** Fires once, before any model call, with the session's provisional name. */
+  onSession?: (event: StreamSessionEvent) => void;
   onUpdate?: (event: StreamUpdateEvent) => void;
   onDone?: (event: StreamDoneEvent) => void;
   onError?: (event: StreamErrorEvent) => void;
@@ -253,8 +276,8 @@ export interface StreamHandlers {
 /**
  * SSE over POST, so `EventSource` (GET-only) is out and we parse the stream ourselves.
  *
- * The backend emits `update` events per graph node, then exactly one terminal `done` or
- * `error`. A run takes ~90s because of the shared Gemini rate limiter, so `signal` is how
+ * The backend emits one `session` event, then an `update` per graph node, then exactly
+ * one terminal `done` or `error`. A run takes ~90s because of the shared Gemini rate limiter, so `signal` is how
  * the UI cancels one.
  */
 export async function streamCampaign(
@@ -318,7 +341,8 @@ function dispatchFrame(frame: string, handlers: StreamHandlers): void {
     return; // A malformed frame should not kill the stream.
   }
 
-  if (name === "update") handlers.onUpdate?.(data as StreamUpdateEvent);
+  if (name === "session") handlers.onSession?.(data as StreamSessionEvent);
+  else if (name === "update") handlers.onUpdate?.(data as StreamUpdateEvent);
   else if (name === "done") handlers.onDone?.(data as StreamDoneEvent);
   else if (name === "error") handlers.onError?.(data as StreamErrorEvent);
 }

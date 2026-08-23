@@ -19,6 +19,7 @@ from datetime import date, timedelta
 
 import pytest
 
+from app.agents.validation import validate_package
 from app.models.economics import ScreenEconomics
 from app.models.screens import ScreenCandidate
 from app.optimize import config as C
@@ -67,6 +68,17 @@ def priced():
     candidates = {c.screen_id: c for c in candidate_rows}
     frame, _notes = contract.build_candidate_frame(economics, candidates, spec)
     return spec, economics, frame
+
+
+@pytest.fixture(scope="module")
+def priced_candidates():
+    """Spec, economics and the raw ScreenCandidate map — for tests that rebuild the frame
+    themselves under different slot caps."""
+    run_id = _priced_run()
+    spec = run_state.get_spec(run_id)
+    economics = read_models(run_state.require_artifact(run_id, "screen_economics"), ScreenEconomics)
+    rows = read_models(run_state.require_artifact(run_id, "screen_candidates"), ScreenCandidate)
+    return spec, economics, {c.screen_id: c for c in rows}
 
 
 # --- the reach definition -----------------------------------------------------
@@ -262,13 +274,18 @@ def test_relevance_cut_can_make_zone_coverage_unsatisfiable_and_says_so():
     """An upstream gap, pinned rather than papered over.
 
     Stage 2 ranks candidates on relevance alone, with no awareness of a declared coverage
-    minimum. On this brief the top 80 of 2,230 eligible screens are 80/80 in LH-ZONE-001, so
-    `min_zone_coverage=2` is unsatisfiable no matter what the solver does — at top_n=250 the
-    second zone contributes only 20 candidates. The optimizer must report that as a
-    constraint conflict naming the geography, not quietly return a one-zone package.
+    minimum. On this brief the top 60 of 2,230 eligible screens are 60/60 in LH-ZONE-001, so
+    `min_zone_coverage=2` is unsatisfiable no matter what the solver does — LH-ZONE-002
+    first appears at top_n=80 (75/5) and contributes only 22 of 250. The optimizer must
+    report that as a constraint conflict naming the geography, not quietly return a
+    one-zone package.
+
+    `top_n` was 80 here until stop-share volumes and the Fix-4 audience formulas re-ranked
+    the pool; 80 now admits 5 second-zone screens and the constraint becomes satisfiable.
+    The upstream gap is unchanged — the brief that exposes it just moved.
     """
     run_id = _priced_run(
-        top_n=80,
+        top_n=60,
         zone_ids=["LH-ZONE-001", "LH-ZONE-002"],
         hard_constraints={"min_zone_coverage": 2},
     )
@@ -331,3 +348,234 @@ def test_optimize_package_discloses_frequency_for_the_briefs_own_goal():
     assert result["status"] in SOLVED
     assert result["objective"] == "frequency"
     assert "wear_out_warning" in result
+
+
+# --- the brief's slot structure ----------------------------------------------
+#
+# A client brief specified "1 rotating slot on digital screens only" and the delivered
+# package bought 3 slots/day on three of its lines. There was no channel for the constraint:
+# `hard_constraints["max_slots_per_day"]` was persisted, echoed back to the Master and read
+# by nobody, and the only real control was an LLM-supplied tool argument no prompt mentioned.
+# These pin the channel, the semantics, and the independent re-derivation.
+
+
+def _named(result, name: str):
+    """The one check by name, so a test asserts on the check it means."""
+    return next(c for c in result.checks if c.name == name)
+
+
+def test_a_declared_slot_cap_binds_per_screen_across_time_blocks(priced):
+    """The semantics decision, and the reading it replaces.
+
+    A per-CELL cap of 1 lets a screen bought in two time blocks take 1 + 1 = 2 slots that
+    day, an over-delivery against a brief asking for one rotating slot however the blocks
+    are labelled. The cap therefore binds on the physical screen, summed across blocks —
+    see the SLOTS PER SCREEN PER DAY block in `optimize/solver.py`.
+    """
+    spec, _economics, frame = priced
+    # Only meaningful if some screen is purchasable in more than one block.
+    assert frame.groupby("screen_id").size().max() >= 2, (
+        "no screen spans two blocks on this brief, so it cannot exercise the bug"
+    )
+
+    clipped = frame.assign(available=frame["available"].clip(upper=1))
+
+    # The old behaviour: clip the cell, impose nothing on the screen.
+    per_cell = solver.solve(clipped, budget=spec.budget, days=spec.duration_days, objective="reach")
+    assert per_cell.plan is not None
+    assert per_cell.slots_on_busiest_screen > 1, (
+        "a per-cell clip alone was expected to let a screen exceed the cap across blocks — "
+        "if it no longer does, this test has stopped covering the bug"
+    )
+
+    # The constraint.
+    per_screen = solver.solve(
+        clipped,
+        budget=spec.budget,
+        days=spec.duration_days,
+        objective="reach",
+        max_slots_per_screen_per_day=1,
+    )
+    assert per_screen.plan is not None
+    assert per_screen.slots_on_busiest_screen == 1
+    assert per_screen.plan.groupby("screen_id")["slots"].sum().max() == 1
+
+
+def test_the_declared_cap_comes_off_the_run_not_off_a_tool_argument():
+    """The `PricingLevers` rule applied to a constraint: a caller may tighten what the brief
+    declared, never widen it. Widening on request is how a constraint gets quietly relaxed
+    until a package appears."""
+    spec = run_state.get_spec(_spec(hard_constraints={"max_slots_per_day": 2})["run_id"])
+
+    off_run = contract.resolve_slot_cap(spec)
+    assert (off_run.limit, off_run.source, off_run.declared) == (2, "brief", True)
+
+    widened = contract.resolve_slot_cap(spec, override=6)
+    assert widened.limit == 2, "an override must never widen a brief-declared cap"
+    assert widened.declared
+
+    tightened = contract.resolve_slot_cap(spec, override=1)
+    assert (tightened.limit, tightened.source) == (1, "caller_override")
+    assert not tightened.declared, "our own tightening is not a client commitment"
+
+    # No declared cap: the default applies and is labelled ours, never the brief's.
+    bare = contract.resolve_slot_cap(run_state.get_spec(_spec()["run_id"]))
+    assert (bare.limit, bare.source) == (C.DEFAULT_SLOTS_PER_DAY_CAP, "default")
+    assert not bare.declared
+
+    # Prose, a flag, a fraction, or a depth no screen can sell — all rejected rather than
+    # coerced. int(True) is 1 and int(1.5) is 1, so coercion would enforce a plausible cap
+    # the client never asked for.
+    for bad in ("one rotating slot", 0, 7, True, 1.5):
+        broken = run_state.get_spec(_spec(hard_constraints={"max_slots_per_day": bad})["run_id"])
+        with pytest.raises(contract.ContractError):
+            contract.resolve_slot_cap(broken)
+
+
+def test_no_allocation_exceeds_a_declared_slot_cap_end_to_end():
+    """The whole path: brief -> spec -> solver -> package -> verification."""
+    run_id = _priced_run(hard_constraints={"max_slots_per_day": 1})
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED, result
+
+    structure = result["slot_structure"]
+    assert structure["slots_per_screen_per_day_cap"] == 1
+    assert structure["source"] == "brief"
+    assert structure["slots_on_busiest_screen"] == 1
+    # The reported figure has to say WHICH reading produced it.
+    assert "PER SCREEN PER DAY" in structure["semantics"]
+    assert result["constraint_status"]["max_slots_per_day"] is True
+
+    package = run_state.get_optimization(run_id).package
+    per_screen: dict[str, int] = {}
+    for a in package.allocations:
+        per_screen[a.screen_id] = per_screen.get(a.screen_id, 0) + a.slots_per_day
+    assert max(per_screen.values()) == 1
+
+    verdict = master_tools.verify_package.invoke({"run_id": run_id})
+    assert verdict["status"] == "pass", verdict["failed_checks"]
+    # The check must have RUN, not merely not-failed — its absence is the original bug.
+    assert "max_slots_per_day" in {c["name"] for c in verdict["checks_run"]}
+
+
+def test_the_validator_fails_a_package_that_breaches_a_declared_cap():
+    """Independent re-derivation. A solver that ignored the constraint has to be caught
+    rather than believed, so the validator sums the allocations itself — and across blocks,
+    which is where `inventory_availability` (a different assertion, about unsold inventory)
+    passes happily."""
+    run_id = _priced_run(hard_constraints={"max_slots_per_day": 1})
+    or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    spec = run_state.get_spec(run_id)
+    economics = read_models(run_state.require_artifact(run_id, "screen_economics"), ScreenEconomics)
+    package = run_state.get_optimization(run_id).package
+
+    clean = validate_package(spec, package, economics)
+    assert clean.passed
+    assert _named(clean, "max_slots_per_day").status == "pass"
+
+    # Same screen, second block, one slot each: two slots that day. Every per-CELL figure
+    # still respects the cap, which is exactly why the per-cell reading passed this.
+    blocks = {a.time_block_id for a in package.allocations}
+    victim = package.allocations[0]
+    other = next(b for b in sorted(blocks) if b != victim.time_block_id)
+    breached = package.model_copy(
+        update={
+            "allocations": [
+                *package.allocations,
+                victim.model_copy(update={"time_block_id": other}),
+            ]
+        }
+    )
+    verdict = validate_package(spec, breached, economics)
+    assert not verdict.passed
+    slot_check = _named(verdict, "max_slots_per_day")
+    assert slot_check.status == "fail"
+    assert slot_check.observed is not None and "2" in slot_check.observed
+
+
+def test_a_hard_constraint_no_stage_enforces_fails_verification():
+    """The generalization, and the part that stops this recurring under another key.
+
+    An unrecognized `hard_constraints` key used to be persisted, echoed back to the Master
+    and dropped in silence — which is how the slot cap went missing with nobody told.
+    Verification now refuses to bless a package it cannot check.
+    """
+    run_id = _priced_run(hard_constraints={"digital_screens_only": True})
+    result = or_agent_tools.optimize_package.invoke({"run_id": run_id})
+    assert result["status"] in SOLVED, "the package still builds — it just cannot be blessed"
+
+    verdict = master_tools.verify_package.invoke({"run_id": run_id})
+    assert verdict["status"] == "fail"
+    # `checks_run` is name + status only; the prose lives on `failed_checks`.
+    assert "hard_constraints_recognized" in {c["name"] for c in verdict["checks_run"]}
+    failure = next(
+        c for c in verdict["failed_checks"] if c["name"] == "hard_constraints_recognized"
+    )
+    # The rep has to be told WHICH constraint went unenforced, not merely that one did,
+    # and what the enforceable keys are so the brief can be restated.
+    assert "digital_screens_only" in failure["detail"]
+    assert "min_zone_coverage" in failure["detail"]
+
+
+def test_honouring_the_slot_cap_costs_no_reach_and_no_extra_repetition(priced):
+    """Measured rather than assumed, and the reason the constraint is cheap to honour.
+
+    Reach is bounded by each pool's DAILY reachable audience while exposures accumulate over
+    the whole flight, so one slot over 30 days already over-saturates its pool and extra
+    depth buys frequency, not people. Asserted within the solver gap, like
+    `test_no_spend_floor_is_invented`: a strict ordering would be asserting a coin flip.
+    """
+    spec, economics, frame = priced
+
+    def solve_at(cap: int) -> tuple[float, float]:
+        capped = frame.assign(available=frame["available"].clip(upper=cap))
+        outcome = solver.solve(
+            capped,
+            budget=spec.budget,
+            days=spec.duration_days,
+            objective="reach",
+            max_slots_per_screen_per_day=cap,
+        )
+        assert outcome.plan is not None
+        _e, reach, frequency, _p = or_agent_tools._package_metrics(
+            or_agent_tools._allocations(spec, outcome), economics
+        )
+        return reach, frequency
+
+    reach_1, freq_1 = solve_at(1)
+    reach_default, freq_default = solve_at(C.DEFAULT_SLOTS_PER_DAY_CAP)
+
+    assert reach_1 >= reach_default * (1.0 - C.MIP_REL_GAP), (
+        f"a 1-slot cap reached {reach_1:,.0f} against {reach_default:,.0f} at "
+        f"{C.DEFAULT_SLOTS_PER_DAY_CAP} slots — further below than the {C.MIP_REL_GAP:.0%} "
+        f"gap explains, so honouring the brief would be costing real audience"
+    )
+    # Not a strict ordering, and not for float reasons alone. On this brief both plans sit
+    # ON the flight's exposure floor, so the two frequencies differ only in the last bits;
+    # and the relationship is genuinely non-monotone at wider caps, because nothing bounds
+    # screens per pool as tightly as MAX_CELLS_PER_POOL does. What must hold is that a
+    # tighter cap never buys MORE repetition than a looser one.
+    assert freq_1 <= freq_default * (1.0 + C.MIP_REL_GAP), (
+        f"a 1-slot cap delivered {freq_1:.2f} exposures per person against "
+        f"{freq_default:.2f} at {C.DEFAULT_SLOTS_PER_DAY_CAP} slots — a tighter cap must not "
+        f"increase repetition beyond the {C.MIP_REL_GAP:.0%} solver gap"
+    )
+    assert freq_1 >= solver.exposure_floor_per_person(spec.duration_days) - 0.01
+
+
+def test_pool_pruning_is_not_scaled_by_the_slot_cap(priced_candidates):
+    """`MAX_CELLS_PER_POOL` is deliberately cap-independent, and that is load-bearing.
+
+    Scaling it to hold slot depth constant (4 -> 12 cells at a 1-slot cap) was implemented
+    and measured: identical reach, spend 34,334 -> 115,628 and exposures per person
+    40.0 -> 112.2, because the extra cells let the solver stack SCREENS into pools it could
+    no longer stack slots into. The cap would then have relocated repetition rather than
+    reducing it. See `contract._prune_saturated_pools`.
+    """
+    spec, economics, candidates = priced_candidates
+    for cap in (1, C.DEFAULT_SLOTS_PER_DAY_CAP, C.SLOTS_PER_CELL):
+        frame, _notes = contract.build_candidate_frame(
+            economics, candidates, spec, contract.SlotCap(limit=cap, source="brief")
+        )
+        assert frame.groupby("pool_key").size().max() <= C.MAX_CELLS_PER_POOL
+        assert int(frame["available"].max()) <= cap

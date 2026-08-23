@@ -33,3 +33,59 @@ body[data-resizing="true"] {
   cursor: col-resize;
   user-select: none;
 }
+
+/* ---------------------------------------------------------------- printing
+ *
+ * "Export Proposal PDF" is `window.print()`, and the workspace is the worst possible thing
+ * to print: three resizable columns, two independent scroll containers, and a chat
+ * transcript. The browser printed whatever was in the viewport, which is why the output was
+ * unreadable.
+ *
+ * So printing swaps the document. `ProposalDocument` portals itself to <body>, which makes
+ * it a direct child, so hiding every OTHER direct child leaves the proposal as the whole
+ * page. `:not()` does that in one rule — no hide-everything-then-reshow pair whose outcome
+ * depends on specificity.
+ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body > *:not(#proposal-document) {
+    display: none !important;
+  }
+
+  /* Parked at -200vw on screen; un-position it or the sheet comes out blank. */
+  #proposal-document {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+  }
+
+  /* Repeat the schedule header on every sheet of a long flight. */
+  #proposal-document thead {
+    display: table-header-group;
+  }
+  #proposal-document tfoot {
+    display: table-footer-group;
+  }
+  #proposal-document tr,
+  #proposal-document section {
+    break-inside: avoid;
+  }
+
+  /* Colour-managed printers otherwise drop the rules and tints the table relies on. */
+  #proposal-document {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

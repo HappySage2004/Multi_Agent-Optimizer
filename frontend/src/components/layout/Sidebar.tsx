@@ -7,22 +7,27 @@
 
 import { ChatIcon, PlusIcon, SettingsIcon, TrashIcon } from "@/components/ui/Icon";
 import { formatNumber } from "@/lib/format";
-import type { HealthOut, Session } from "@/lib/types";
+import type { HealthOut, ModelSelection, Session } from "@/lib/types";
 
 export function Sidebar({
   sessions,
   activeSessionId,
   health,
+  modelSelection,
   onNewCampaign,
   onSelectSession,
   onDeleteSession,
+  onOpenSettings,
 }: {
   sessions: Session[];
   activeSessionId: string | null;
   health: HealthOut | null;
+  /** Shown under the gear so the running model is visible without opening the dialog. */
+  modelSelection: ModelSelection | null;
   onNewCampaign: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onOpenSettings: () => void;
 }) {
   return (
     <aside className="flex h-full flex-col justify-between border-r border-zinc-200/60 bg-white p-3.5">
@@ -48,7 +53,7 @@ export function Sidebar({
 
         <div className="flex-1 space-y-1 overflow-y-auto pr-1">
           <div className="mb-1.5 px-2 text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
-            Previous Sessions
+            Previous Campaigns
           </div>
 
           {sessions.length === 0 ? (
@@ -74,10 +79,21 @@ export function Sidebar({
 
         <button
           type="button"
+          onClick={onOpenSettings}
           className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-800"
         >
-          <SettingsIcon className="h-4 w-4 text-zinc-400" />
-          <span>Settings</span>
+          <SettingsIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+          <span className="shrink-0">Settings</span>
+          {/* The model id, not the provider: it is the part that changes what a run costs
+              and how long it takes, and it fits where a provider label would not. */}
+          {modelSelection ? (
+            <span
+              className="ml-auto min-w-0 truncate text-[10px] font-medium text-zinc-400"
+              title={`${modelSelection.provider} / ${modelSelection.model}`}
+            >
+              {modelSelection.model}
+            </span>
+          ) : null}
         </button>
       </div>
     </aside>
@@ -162,9 +178,12 @@ function InventoryStatus({ health }: { health: HealthOut | null }) {
         </div>
       ) : null}
 
-      {online && !health.gemini_api_key_configured ? (
+      {/* Warn only when *nothing* is wired up. Either provider is enough to run, so
+          flagging a missing GEMINI_API_KEY while Azure is configured would report a
+          failure the rep would not experience. */}
+      {online && !health.any_model_provider_configured ? (
         <div className="pt-0.5 leading-snug font-medium text-amber-700">
-          GEMINI_API_KEY not configured — agent endpoints return 503.
+          No model provider configured — agent endpoints return 503. See Settings.
         </div>
       ) : null}
 

@@ -174,11 +174,19 @@ def test_occupancy_rate_is_unchanged_by_levers(engine):
 def test_band_position_pins_the_quote_inside_the_band(engine):
     screens = _some_screens(engine, 60)
 
+    # demand_premium_weight=0.0 isolates the lever under test. The demand premium is
+    # auto-applied at its default and is the ONE adjustment allowed to sit outside the
+    # band, so leaving it on would make this a test of two things at once — and it passed
+    # for months only because no screen in the sample happened to be flagged.
     at_floor = _feasible(
-        engine.price_candidates(_campaign(), screens, PricingLevers(band_position=0.0))
+        engine.price_candidates(
+            _campaign(), screens, PricingLevers(band_position=0.0, demand_premium_weight=0.0)
+        )
     )
     at_cap = _feasible(
-        engine.price_candidates(_campaign(), screens, PricingLevers(band_position=1.0))
+        engine.price_candidates(
+            _campaign(), screens, PricingLevers(band_position=1.0, demand_premium_weight=0.0)
+        )
     )
     assert at_floor and at_cap
 
@@ -193,7 +201,9 @@ def test_band_position_beats_occupancy_gamma_when_both_are_set(engine):
     screens = _some_screens(engine, 40)
     rows = _feasible(
         engine.price_candidates(
-            _campaign(), screens, PricingLevers(band_position=0.25, occupancy_gamma=4.0)
+            _campaign(),
+            screens,
+            PricingLevers(band_position=0.25, occupancy_gamma=4.0, demand_premium_weight=0.0),
         )
     )
     assert rows
@@ -209,11 +219,22 @@ def test_occupancy_gamma_pins_both_ends_and_moves_the_middle(engine):
     """gamma < 1 quotes higher on partly-empty inventory, but an empty screen must still
     quote at floor and a full one at cap — otherwise the band stops meaning anything."""
     screens = _some_screens(engine, 80)
-    baseline = {r["screen_id"]: r for r in _feasible(engine.price_candidates(_campaign(), screens))}
+    # Both sides hold demand_premium_weight at 0.0 — see the note in
+    # test_band_position_pins_the_quote_inside_the_band. This test is about gamma.
+    baseline = {
+        r["screen_id"]: r
+        for r in _feasible(
+            engine.price_candidates(_campaign(), screens, PricingLevers(demand_premium_weight=0.0))
+        )
+    }
     aggressive = {
         r["screen_id"]: r
         for r in _feasible(
-            engine.price_candidates(_campaign(), screens, PricingLevers(occupancy_gamma=0.5))
+            engine.price_candidates(
+                _campaign(),
+                screens,
+                PricingLevers(occupancy_gamma=0.5, demand_premium_weight=0.0),
+            )
         )
     }
     assert baseline and aggressive

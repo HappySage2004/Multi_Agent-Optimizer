@@ -241,7 +241,8 @@ def test_a_session_with_only_a_transcript_still_gets_named() -> None:
     transcripts.append(session_id, "user", "I have $25,000 for a bus shelter test")
 
     session_titles.backfill_from_runs(local_db.list_records(local_db.SESSIONS))
-    assert session_titles.title_of(session_id) == "$25,000 for a bus shelter test"
+    # Six words after the lead-in strip, so the five-word cap trims the last one.
+    assert session_titles.title_of(session_id) == "$25,000 for a bus shelter…"
 
 
 def test_a_run_objective_still_wins_over_the_transcript() -> None:

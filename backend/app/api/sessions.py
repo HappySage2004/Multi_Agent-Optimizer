@@ -48,8 +48,16 @@ def get_session(session_id: str) -> SessionOut:
 
 @router.patch("/{session_id}", response_model=SessionOut)
 def update_session(session_id: str, payload: SessionUpdate) -> SessionOut:
-    """Rename a session — the only mutable field. Used to title it from the brief."""
-    record = local_db.update(local_db.SESSIONS, session_id, {"title": payload.title.strip()})
+    """Rename a session — the only mutable field.
+
+    Marks the title as user-typed, which is what stops a later run replacing it with the
+    campaign objective it resolved.
+    """
+    record = local_db.update(
+        local_db.SESSIONS,
+        session_id,
+        {"title": payload.title.strip(), "title_source": session_titles.SOURCE_USER},
+    )
     if record is None:
         raise HTTPException(status_code=404, detail=f"No session '{session_id}'")
     return _out(record)

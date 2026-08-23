@@ -28,10 +28,36 @@ class Settings(BaseSettings):
     duckdb_path: Path = BACKEND_DIR / "artifacts" / "transit_media.duckdb"
 
     # --- models ----------------------------------------------------------
-    # Provider: Google Gemini via langchain-google-genai.
+    # Two providers, and the choice belongs to the rep rather than to a deploy-time env
+    # var: Gemini's free tier allows ~20 requests/day/model and one orchestration costs
+    # 15-20 of them, so a demo runs out of Gemini before it runs out of questions. The UI
+    # picks per request; this is only the default when a request does not name one.
+    # See app/agents/providers.py for the registry these settings feed.
+    model_provider: str = "gemini"
+
+    # Google Gemini via langchain-google-genai.
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
-    # Optional per-tier overrides; both fall back to gemini_model.
+    #: Everything the UI may offer on this provider. `gemini_model` is always included.
+    gemini_models: list[str] = ["gemini-3.5-flash-lite"]
+
+    # Azure OpenAI via langchain-openai (AzureChatOpenAI). The key/endpoint/version come
+    # from the hackathon provider.
+    azure_openai_api_key: str | None = None
+    azure_openai_endpoint: str | None = None
+    azure_openai_api_version: str = "2024-10-21"
+    #: model name the human picks -> the DEPLOYMENT name the API wants. They are not the
+    #: same string on Azure, and sending the model name gets a 404 rather than a useful
+    #: error, so the mapping lives here and is applied in exactly one place.
+    azure_openai_deployments: dict[str, str] = {
+        "gpt-5.4-nano": "Team7-GPT-5.4-nano-39a7f0abb4d54f9c265d",
+        "gpt-5.4-mini": "Pod3-GPT-5.4-mini-1028149d34b55e617df4",
+    }
+    azure_openai_model: str = "gpt-5.4-mini"
+
+    # Optional per-tier overrides. Honoured only when the id names a model the selected
+    # provider actually offers, so a MASTER_MODEL left pointing at Gemini does not follow
+    # the rep across to Azure and 404 there. An explicit choice from the UI wins over both.
     master_model: str | None = None
     specialist_model: str | None = None
 
@@ -45,14 +71,10 @@ class Settings(BaseSettings):
     # One orchestration makes ~20 model calls in ~20s, which blows straight through it, so
     # a client-side limiter is required rather than optional. 12/min leaves headroom.
     model_requests_per_minute: float = 12.0
-
-    @property
-    def master_model_id(self) -> str:
-        return self.master_model or self.gemini_model
-
-    @property
-    def specialist_model_id(self) -> str:
-        return self.specialist_model or self.gemini_model
+    # Azure's deployments are provisioned per-minute in tokens rather than requests and
+    # are far less tight than the Gemini free tier, so the limiter is kept (a burst of
+    # ~20 tool-calling turns can still trip a small TPM quota) but set much higher.
+    azure_requests_per_minute: float = 60.0
 
     # --- pipeline tuning -------------------------------------------------
     candidate_pool_size: int = 250

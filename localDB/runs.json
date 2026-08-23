@@ -1,311 +1,5 @@
 [
   {
-    "id": "run-6fe4f55ba1f6",
-    "created_at": "2026-08-22T00:31:56",
-    "session_id": "ses-4cb0c6a17846",
-    "status": "validated",
-    "campaign_spec": {
-      "campaign_objective": "Consumer tech product launch targeting commuters aged 18-34 in Downtown Core",
-      "industry_vertical": "Consumer Tech",
-      "ad_type": "consumer tech product launch",
-      "city_ids": [
-        "LH"
-      ],
-      "zone_ids": [
-        "LH-ZONE-001"
-      ],
-      "corridor_ids": [],
-      "target_audience": {
-        "age_range": [
-          18,
-          34
-        ],
-        "income_range": null,
-        "occupations": [],
-        "commuter": true,
-        "other_attributes": {}
-      },
-      "start_date": "2026-10-01",
-      "duration_days": 30,
-      "budget": 50000.0,
-      "requested_num_screens": null,
-      "preferred_dayparts": [],
-      "preferred_time_blocks": [],
-      "optimization_goal": "reach",
-      "hard_constraints": {},
-      "soft_preferences": {},
-      "original_query": "I have $50,000 for a 30-day campaign starting 2026-10-01 targeting commuters aged 18-34 in the Downtown Core zone of Las Hackland. Consumer tech product launch. Optimize for reach.",
-      "missing_information": []
-    },
-    "artifacts": {
-      "screen_candidates": {
-        "artifact_id": "screen_candidates-5794c2a3761e",
-        "kind": "screen_candidates",
-        "path": "/Users/aaryanawadh/projects/Multi_Agent-Optimizer/backend/artifacts/screen_candidates-5794c2a3761e.parquet",
-        "rows": 250,
-        "columns": [
-          "screen_id",
-          "relevance_score",
-          "audience_match_score",
-          "geography_score",
-          "contextual_score",
-          "transit_score",
-          "reasons",
-          "hard_constraints_passed",
-          "city_id",
-          "zone_id",
-          "screen_type"
-        ],
-        "summary": {
-          "eligible_screens": 1601,
-          "candidates": 250,
-          "relevance_min": 0.7872,
-          "relevance_mean": 0.8263,
-          "relevance_max": 0.9512
-        },
-        "provenance": "stub",
-        "created_at": "2026-08-22T00:32:56.212252"
-      },
-      "screen_economics": {
-        "artifact_id": "screen_economics-f2169fb9f37c",
-        "kind": "screen_economics",
-        "path": "/Users/aaryanawadh/projects/Multi_Agent-Optimizer/backend/artifacts/screen_economics-f2169fb9f37c.parquet",
-        "rows": 750,
-        "columns": [
-          "screen_id",
-          "time_block_id",
-          "availability",
-          "max_slots_per_day",
-          "demand_forecast",
-          "pricing",
-          "expected_impressions",
-          "expected_revenue",
-          "confidence"
-        ],
-        "summary": {
-          "rows": 750,
-          "screens": 250,
-          "time_blocks": [
-            "2",
-            "3",
-            "5"
-          ],
-          "price_mean": 105.21,
-          "impressions_per_slot_day_mean": 6000.5,
-          "confidence_min": 0.551
-        },
-        "provenance": "stub",
-        "created_at": "2026-08-22T00:33:17.747598"
-      }
-    },
-    "optimization": {
-      "status": "feasible",
-      "package": {
-        "allocations": [
-          {
-            "screen_id": "LH-SCR-003995",
-            "time_block_id": "5",
-            "slots_per_day": 1,
-            "duration_days": 30,
-            "price_per_slot_per_day": 119.47,
-            "expected_impressions": 402468.0,
-            "expected_revenue": 1871.1
-          },
-          {
-            "screen_id": "LH-SCR-001984",
-            "time_block_id": "3",
-            "slots_per_day": 3,
-            "duration_days": 30,
-            "price_per_slot_per_day": 119.22,
-            "expected_impressions": 1188018.0000000002,
-            "expected_revenue": 6930.900000000001
-          },
-          {
-            "screen_id": "LH-SCR-005683",
-            "time_block_id": "3",
-            "slots_per_day": 3,
-            "duration_days": 30,
-            "price_per_slot_per_day": 116.63,
-            "expected_impressions": 1157561.9999999998,
-            "expected_revenue": 5538.6
-          },
-          {
-            "screen_id": "LH-SCR-004387",
-            "time_block_id": "5",
-            "slots_per_day": 3,
-            "duration_days": 30,
-            "price_per_slot_per_day": 117.12,
-            "expected_impressions": 1153151.9999999998,
-            "expected_revenue": 8619.3
-          },
-          {
-            "screen_id": "LH-SCR-001163",
-            "time_block_id": "2",
-            "slots_per_day": 2,
-            "duration_days": 30,
-            "price_per_slot_per_day": 122.59,
-            "expected_impressions": 795600.0,
-            "expected_revenue": 3886.8
-          },
-          {
-            "screen_id": "LH-SCR-001313",
-            "time_block_id": "5",
-            "slots_per_day": 2,
-            "duration_days": 30,
-            "price_per_slot_per_day": 119.63,
-            "expected_impressions": 769800.0,
-            "expected_revenue": 6441.0
-          }
-        ],
-        "total_cost": 49884.6,
-        "expected_impressions": 5466600.0,
-        "expected_reach": 3711201.629327902,
-        "expected_frequency": 1.473,
-        "budget_utilization": 0.9976920000000001,
-        "constraint_status": {
-          "budget": true,
-          "inventory": true,
-          "geography": true,
-          "campaign_dates": true,
-          "requested_num_screens": true
-        },
-        "objective_value": 5466600.0,
-        "optimization_method": "stub_greedy_value_density"
-      },
-      "infeasibility": null,
-      "solver_log": [
-        "objective=reach",
-        "candidate_lines=750",
-        "budget=50,000.00",
-        "duration_days=30",
-        "allocated_screens=6",
-        "spent=49,884.60"
-      ]
-    },
-    "validation": {
-      "passed": true,
-      "checks": [
-        {
-          "name": "package_non_empty",
-          "status": "pass",
-          "detail": "Package contains 6 allocations.",
-          "expected": null,
-          "observed": null
-        },
-        {
-          "name": "budget_respected",
-          "status": "pass",
-          "detail": "Recomputed package cost 49,884.60 against budget 50,000.00.",
-          "expected": "<= 50,000.00",
-          "observed": "49,884.60"
-        },
-        {
-          "name": "cost_reconciles",
-          "status": "pass",
-          "detail": "Reported total_cost matches the sum of price x slots x days over allocations.",
-          "expected": "49,884.60",
-          "observed": "49,884.60"
-        },
-        {
-          "name": "budget_utilization_reconciles",
-          "status": "pass",
-          "detail": "Reported budget_utilization matches recomputed cost / budget.",
-          "expected": "0.9977",
-          "observed": "0.9977"
-        },
-        {
-          "name": "impressions_reconcile",
-          "status": "pass",
-          "detail": "Reported expected_impressions matches the sum over allocations.",
-          "expected": "5,466,600",
-          "observed": "5,466,600"
-        },
-        {
-          "name": "reach_not_above_impressions",
-          "status": "pass",
-          "detail": "Deduplicated reach does not exceed gross impressions.",
-          "expected": "<= 5,466,600",
-          "observed": "3,711,202"
-        },
-        {
-          "name": "frequency_reconciles",
-          "status": "pass",
-          "detail": "Reported expected_frequency matches impressions / reach.",
-          "expected": "1.473",
-          "observed": "1.473"
-        },
-        {
-          "name": "screens_exist",
-          "status": "pass",
-          "detail": "Every allocated screen_id exists in the inventory.",
-          "expected": "0 unknown",
-          "observed": "0 unknown"
-        },
-        {
-          "name": "time_blocks_valid",
-          "status": "pass",
-          "detail": "Every time_block_id exists in dim_slot.",
-          "expected": "one of ['1', '2', '3', '4', '5', '6']",
-          "observed": "0 invalid"
-        },
-        {
-          "name": "no_duplicate_allocations",
-          "status": "pass",
-          "detail": "Each (screen, time block) pair appears at most once.",
-          "expected": "0 duplicates",
-          "observed": "0 duplicates"
-        },
-        {
-          "name": "geography_eligible",
-          "status": "pass",
-          "detail": "All allocated screens fall inside the requested geography (1,601 eligible).",
-          "expected": "0 outside",
-          "observed": "0 outside"
-        },
-        {
-          "name": "duration_within_campaign",
-          "status": "pass",
-          "detail": "No allocation runs longer than the campaign duration.",
-          "expected": "<= 30 days",
-          "observed": "0 over"
-        },
-        {
-          "name": "start_date_not_in_past",
-          "status": "pass",
-          "detail": "Campaign starts 2026-10-01 (reference date 2026-08-22).",
-          "expected": ">= 2026-08-22",
-          "observed": "2026-10-01"
-        },
-        {
-          "name": "hard_constraints",
-          "status": "skipped",
-          "detail": "Spec declared no additional hard constraints.",
-          "expected": null,
-          "observed": null
-        },
-        {
-          "name": "inventory_availability",
-          "status": "pass",
-          "detail": "Purchased slots never exceed available slots.",
-          "expected": "0 over-allocations",
-          "observed": "0 over-allocations"
-        },
-        {
-          "name": "model_confidence",
-          "status": "pass",
-          "detail": "Lowest per-screen model confidence is 0.55.",
-          "expected": ">= 0.30",
-          "observed": "0.55"
-        }
-      ]
-    },
-    "stub_stages": [
-      "screen_candidates",
-      "screen_economics"
-    ],
-    "updated_at": "2026-08-22T00:33:51"
-  },
-  {
     "id": "run-59e2ef970038",
     "created_at": "2026-08-22T20:59:03",
     "session_id": "ses-0e111284c55f",
@@ -2069,5 +1763,2315 @@
     "stub_stages": [],
     "pricing_levers": null,
     "updated_at": "2026-08-23T16:13:59"
+  },
+  {
+    "id": "run-9d3ab36cad03",
+    "created_at": "2026-08-23T17:01:49",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-89f87fadc57e",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-89f87fadc57e.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:01:56.160261"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-693e19b1ccb9",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-693e19b1ccb9.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 118,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 115.79,
+          "price_max": 157.32,
+          "occupancy_mean": 0.2193,
+          "booking_probability_mean": 0.9974,
+          "viewed_exposures_per_slot_per_day_mean": 10049.5,
+          "reachable_daily_audience_total_naive": 889385.0,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:02:27.083045"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:02:27"
+  },
+  {
+    "id": "run-9a889afef6af",
+    "created_at": "2026-08-23T17:08:45",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-f73c0e595057",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-f73c0e595057.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:08:53.233481"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-61dcc4f04e39",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-61dcc4f04e39.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 118,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 115.79,
+          "price_max": 157.32,
+          "occupancy_mean": 0.2193,
+          "booking_probability_mean": 0.9974,
+          "viewed_exposures_per_slot_per_day_mean": 10049.5,
+          "reachable_daily_audience_total_naive": 889385.0,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:09:20.453769"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:09:20"
+  },
+  {
+    "id": "run-51b030fccfc2",
+    "created_at": "2026-08-23T17:09:20",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 30,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-44d2a2a54218",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-44d2a2a54218.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:09:20.716451"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-3b478f7fb290",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-3b478f7fb290.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 122,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.09,
+          "price_mean": 114.27,
+          "price_max": 155.64,
+          "occupancy_mean": 0.2194,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 9892.4,
+          "reachable_daily_audience_total_naive": 905157.4,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:09:22.815644"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:09:22"
+  },
+  {
+    "id": "run-12f1aaf404ff",
+    "created_at": "2026-08-23T17:09:23",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-002"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 30,
+      "budget": 150000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-f1942c97297a",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-f1942c97297a.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2230,
+          "candidates": 250,
+          "relevance_min": 0.6223,
+          "relevance_mean": 0.6234,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 7,
+          "pooled_daily_audience": 749282.2,
+          "naive_daily_audience": 27931290.9,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:09:23.176992"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-79f0a479671e",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-79f0a479671e.parquet",
+        "rows": 500,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 500,
+          "feasible_rows": 372,
+          "screens_priced": 227,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.09,
+          "price_mean": 111.08,
+          "price_max": 155.64,
+          "occupancy_mean": 0.2046,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 16855.2,
+          "reachable_daily_audience_total_naive": 4702601.7,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:09:28.957345"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:09:28"
+  },
+  {
+    "id": "run-99507c1baee9",
+    "created_at": "2026-08-23T17:11:20",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-012f5e2051bc",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-012f5e2051bc.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:11:26.976551"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-3011e49a7657",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-3011e49a7657.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 118,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 115.79,
+          "price_max": 157.32,
+          "occupancy_mean": 0.2193,
+          "booking_probability_mean": 0.9974,
+          "viewed_exposures_per_slot_per_day_mean": 10049.5,
+          "reachable_daily_audience_total_naive": 889385.0,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:11:51.333390"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:11:51"
+  },
+  {
+    "id": "run-d7b816bf3d7c",
+    "created_at": "2026-08-23T17:11:51",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 30,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-5f60eff72deb",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-5f60eff72deb.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:11:51.589881"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-21ebd37e4bbc",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-21ebd37e4bbc.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 122,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.09,
+          "price_mean": 114.27,
+          "price_max": 155.64,
+          "occupancy_mean": 0.2194,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 9892.4,
+          "reachable_daily_audience_total_naive": 905157.4,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:11:53.928913"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:11:53"
+  },
+  {
+    "id": "run-21f260c5f3e0",
+    "created_at": "2026-08-23T17:11:54",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-002"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 30,
+      "budget": 150000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-9571e88f15cf",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-9571e88f15cf.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2230,
+          "candidates": 250,
+          "relevance_min": 0.6223,
+          "relevance_mean": 0.6234,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 7,
+          "pooled_daily_audience": 749282.2,
+          "naive_daily_audience": 27931290.9,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:11:54.240003"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-8bbba3d5af4d",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-8bbba3d5af4d.parquet",
+        "rows": 500,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 500,
+          "feasible_rows": 372,
+          "screens_priced": 227,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.09,
+          "price_mean": 111.08,
+          "price_max": 155.64,
+          "occupancy_mean": 0.2046,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 16855.2,
+          "reachable_daily_audience_total_naive": 4702601.7,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:12:02.284591"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:12:02"
+  },
+  {
+    "id": "run-cbcc3a3c63c5",
+    "created_at": "2026-08-23T17:12:02",
+    "session_id": null,
+    "status": "validated",
+    "campaign_spec": {
+      "campaign_objective": "launch awareness for an EV brand",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {
+        "max_slots_per_day": 1
+      },
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-37827ade672b",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-37827ade672b.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 1601,
+          "candidates": 80,
+          "relevance_min": 0.6243,
+          "relevance_mean": 0.6243,
+          "relevance_max": 0.6243,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 3,
+          "pooled_daily_audience": 192706.3,
+          "naive_daily_audience": 5138836.0,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:12:02.853137"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-d89b2baf72c6",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-d89b2baf72c6.parquet",
+        "rows": 160,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 160,
+          "feasible_rows": 118,
+          "screens_priced": 75,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 115.79,
+          "price_max": 157.32,
+          "occupancy_mean": 0.2193,
+          "booking_probability_mean": 0.9974,
+          "viewed_exposures_per_slot_per_day_mean": 10049.5,
+          "reachable_daily_audience_total_naive": 889385.0,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:12:05.915175"
+      }
+    },
+    "optimization": {
+      "status": "optimal",
+      "package": {
+        "allocations": [
+          {
+            "screen_id": "LH-SCR-005683",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 79.97,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 3598.65
+          },
+          {
+            "screen_id": "LH-SCR-005689",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 98.02,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 4410.9
+          },
+          {
+            "screen_id": "LH-SCR-005681",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 515069.7066666666,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-005543",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 98.02,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 4410.9
+          },
+          {
+            "screen_id": "LH-SCR-005524",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 98.89,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 4450.05
+          },
+          {
+            "screen_id": "LH-SCR-005541",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 102.38,
+            "viewed_exposures": 515069.7066666666,
+            "expected_revenue": 4607.099999999999
+          },
+          {
+            "screen_id": "LH-SCR-006214",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 74.89,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 3370.05
+          },
+          {
+            "screen_id": "LH-SCR-006216",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 98.02,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 4410.9
+          },
+          {
+            "screen_id": "LH-SCR-006219",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 98.02,
+            "viewed_exposures": 391484.33333333326,
+            "expected_revenue": 4410.9
+          },
+          {
+            "screen_id": "LH-SCR-006218",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 102.38,
+            "viewed_exposures": 515069.7066666666,
+            "expected_revenue": 4607.099999999999
+          },
+          {
+            "screen_id": "LH-SCR-006209",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 111.68,
+            "viewed_exposures": 515069.7066666666,
+            "expected_revenue": 5025.6
+          }
+        ],
+        "total_cost": 46832.85,
+        "gross_impressions_viewed": 4800669.159999999,
+        "expected_reach": 45327.702,
+        "expected_frequency": 105.91027005957636,
+        "budget_utilization": 0.936657,
+        "constraint_status": {
+          "budget": true,
+          "inventory": true,
+          "geography": true,
+          "campaign_dates": true,
+          "requested_num_screens": true,
+          "coverage": true,
+          "max_slots_per_day": true
+        },
+        "objective_value": 45327.702,
+        "optimization_method": "milp_highs_pooled_reach_min[reach,gap<=1%,optimal]",
+        "curve_reach_diagnostic": 45327.702000000005,
+        "unmet_coverage": {},
+        "wear_out_exposures_over_cap": 0.0
+      },
+      "infeasibility": null,
+      "solver_log": [
+        "dropped_unpurchasable_lines=42 (infeasible, unpriced, or sold out)",
+        "pruned_cells_beyond_4_per_pool=94 (reach saturates; extra cells in one pool add search symmetry, not audience)",
+        "slots_per_screen_per_day_cap=1 (source=brief, summed across time blocks)",
+        "objective=reach",
+        "profile=w_reach:1.0 w_freq:0.0 w_conv:0.0",
+        "cells=24 screens=19 pools=6",
+        "budget=50,000.00 days=45",
+        "solver=HiGHS via scipy.optimize.milp, mip_rel_gap=0.01",
+        "status=optimal (Optimization terminated successfully. (HiGHS Status 7: Optimal))",
+        "min_spend_fraction=0.00",
+        "wear_out_frequency_cap=180 exposures per person (3.0x the 45-day floor of 60)",
+        "allocated_screens=11",
+        "allocated_cells=11",
+        "slots_per_screen_per_day: cap=1 busiest_screen=1 busiest_cell=1 (cap binds per SCREEN across time blocks)",
+        "audience_pool_blocks_touched=6 (pool x time block; physical pools are counted separately below)",
+        "spend=46,832.85",
+        "gross_impressions_viewed=4,800,669",
+        "curve_reach_diagnostic=45,328 (lambda=0.9, ASSUMED \u2014 not the reported reach)",
+        "reported_reach_definition=min(gross viewed exposures, reachable audience) per (pool, block) \u2014 lambda-free",
+        "deduplicated_reach=45,328",
+        "distinct_audience_pools=3",
+        "frequency=105.91",
+        "objective_value=45,328 (deduplicated_reach)",
+        "slots_per_screen_per_day<=1 (brief); busiest screen carries 1"
+      ]
+    },
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "package_non_empty",
+          "status": "pass",
+          "detail": "Package contains 11 allocations.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "budget_respected",
+          "status": "pass",
+          "detail": "Recomputed package cost 46,832.85 against budget 50,000.00.",
+          "expected": "<= 50,000.00",
+          "observed": "46,832.85"
+        },
+        {
+          "name": "cost_reconciles",
+          "status": "pass",
+          "detail": "Reported total_cost matches the sum of price x slots x days over allocations.",
+          "expected": "46,832.85",
+          "observed": "46,832.85"
+        },
+        {
+          "name": "budget_utilization_reconciles",
+          "status": "pass",
+          "detail": "Reported budget_utilization matches recomputed cost / budget.",
+          "expected": "0.9367",
+          "observed": "0.9367"
+        },
+        {
+          "name": "impressions_reconcile",
+          "status": "pass",
+          "detail": "Reported gross_impressions_viewed matches the sum over allocations.",
+          "expected": "4,800,669",
+          "observed": "4,800,669"
+        },
+        {
+          "name": "reach_not_above_impressions",
+          "status": "pass",
+          "detail": "Deduplicated reach does not exceed gross viewed exposures.",
+          "expected": "<= 4,800,669",
+          "observed": "45,328"
+        },
+        {
+          "name": "frequency_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_frequency matches viewed exposures / reach.",
+          "expected": "105.910",
+          "observed": "105.910"
+        },
+        {
+          "name": "reach_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_reach matches reach recomputed from pool_key groups, each capped at its reachable daily audience.",
+          "expected": "45,328",
+          "observed": "45,328"
+        },
+        {
+          "name": "curve_reach_bounded",
+          "status": "pass",
+          "detail": "Solver curve reach stays within min(gross viewed exposures, reachable audience) \u2014 a bound that holds for any saturation constant.",
+          "expected": "<= 45,328",
+          "observed": "45,328"
+        },
+        {
+          "name": "screens_exist",
+          "status": "pass",
+          "detail": "Every allocated screen_id exists in the inventory.",
+          "expected": "0 unknown",
+          "observed": "0 unknown"
+        },
+        {
+          "name": "time_blocks_valid",
+          "status": "pass",
+          "detail": "Every time_block_id exists in dim_slot.",
+          "expected": "one of ['1', '2', '3', '4', '5', '6']",
+          "observed": "0 invalid"
+        },
+        {
+          "name": "no_duplicate_allocations",
+          "status": "pass",
+          "detail": "Each (screen, time block) pair appears at most once.",
+          "expected": "0 duplicates",
+          "observed": "0 duplicates"
+        },
+        {
+          "name": "geography_eligible",
+          "status": "pass",
+          "detail": "All allocated screens fall inside the requested geography (1,601 eligible).",
+          "expected": "0 outside",
+          "observed": "0 outside"
+        },
+        {
+          "name": "duration_within_campaign",
+          "status": "pass",
+          "detail": "No allocation runs longer than the campaign duration.",
+          "expected": "<= 45 days",
+          "observed": "0 over"
+        },
+        {
+          "name": "start_date_not_in_past",
+          "status": "pass",
+          "detail": "Campaign starts 2026-09-06 (reference date 2026-08-23).",
+          "expected": ">= 2026-08-23",
+          "observed": "2026-09-06"
+        },
+        {
+          "name": "max_slots_per_day",
+          "status": "pass",
+          "detail": "No screen carries more than 1 slot(s) per day, summed across time blocks (busiest carries 1).",
+          "expected": "<= 1 per screen per day",
+          "observed": "1 on the busiest screen"
+        },
+        {
+          "name": "hard_constraints_recognized",
+          "status": "pass",
+          "detail": "Every declared hard constraint maps to a stage that enforces it.",
+          "expected": "all keys enforced",
+          "observed": "0 unenforced"
+        },
+        {
+          "name": "inventory_availability",
+          "status": "pass",
+          "detail": "Purchased slots never exceed available slots.",
+          "expected": "0 over-allocations",
+          "observed": "0 over-allocations"
+        },
+        {
+          "name": "model_confidence",
+          "status": "skipped",
+          "detail": "No stage emits a per-screen confidence; not gating on the contract default. Pricing trust signals are per-row assumptions plus the booking-probability sign check.",
+          "expected": null,
+          "observed": null
+        }
+      ]
+    },
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:12:06"
+  },
+  {
+    "id": "run-265abfdf3fa3",
+    "created_at": "2026-08-23T17:27:16",
+    "session_id": null,
+    "status": "validated",
+    "campaign_spec": {
+      "campaign_objective": "Zephyr EV launch awareness for Voltaic Motors",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-002"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "high_income"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "awareness",
+      "hard_constraints": {
+        "max_slots_per_day": 1
+      },
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-6404a3c43704",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-6404a3c43704.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2230,
+          "candidates": 250,
+          "relevance_min": 0.6734,
+          "relevance_mean": 0.674,
+          "relevance_max": 0.6745,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "high_income"
+          ],
+          "distinct_audience_pools": 7,
+          "pooled_daily_audience": 749282.2,
+          "naive_daily_audience": 27931290.9,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:27:24.647341"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-6d3a3f6b5346",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-6d3a3f6b5346.parquet",
+        "rows": 500,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 500,
+          "feasible_rows": 358,
+          "screens_priced": 224,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 112.49,
+          "price_max": 157.32,
+          "occupancy_mean": 0.216,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 17020.0,
+          "reachable_daily_audience_total_naive": 4569879.9,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:27:57.413052"
+      }
+    },
+    "optimization": {
+      "status": "optimal",
+      "package": {
+        "allocations": [
+          {
+            "screen_id": "LH-SCR-003839",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 75.01,
+            "viewed_exposures": 1178080.3533333333,
+            "expected_revenue": 3375.4500000000003
+          },
+          {
+            "screen_id": "LH-SCR-003815",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 76.87,
+            "viewed_exposures": 1178080.3533333333,
+            "expected_revenue": 3459.15
+          },
+          {
+            "screen_id": "LH-SCR-003817",
+            "time_block_id": "2",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 76.87,
+            "viewed_exposures": 1178080.3533333333,
+            "expected_revenue": 3459.15
+          },
+          {
+            "screen_id": "LH-SCR-003824",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1525234.9933333332,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-003828",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1525234.9933333332,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-003845",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1525234.9933333332,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-004188",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 81.36,
+            "viewed_exposures": 995912.5399999997,
+            "expected_revenue": 3661.2
+          },
+          {
+            "screen_id": "LH-SCR-004182",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 83.35,
+            "viewed_exposures": 995912.5399999997,
+            "expected_revenue": 3750.7499999999995
+          },
+          {
+            "screen_id": "LH-SCR-004008",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 81.02,
+            "viewed_exposures": 997173.5666666667,
+            "expected_revenue": 3645.8999999999996
+          },
+          {
+            "screen_id": "LH-SCR-004001",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 81.36,
+            "viewed_exposures": 997173.5666666667,
+            "expected_revenue": 3661.2
+          },
+          {
+            "screen_id": "LH-SCR-004025",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 81.36,
+            "viewed_exposures": 997173.5666666667,
+            "expected_revenue": 3661.2
+          },
+          {
+            "screen_id": "LH-SCR-004413",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1024872.9866666665,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-004417",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1024872.9866666665,
+            "expected_revenue": 3530.7
+          },
+          {
+            "screen_id": "LH-SCR-004418",
+            "time_block_id": "5",
+            "slots_per_day": 1,
+            "duration_days": 45,
+            "price_per_slot_per_day": 78.46,
+            "viewed_exposures": 1024872.9866666665,
+            "expected_revenue": 3530.7
+          }
+        ],
+        "total_cost": 49858.2,
+        "gross_impressions_viewed": 16167910.779999997,
+        "expected_reach": 95354.574,
+        "expected_frequency": 169.55569200067947,
+        "budget_utilization": 0.9971639999999999,
+        "constraint_status": {
+          "budget": true,
+          "inventory": true,
+          "geography": true,
+          "campaign_dates": true,
+          "requested_num_screens": true,
+          "coverage": true,
+          "max_slots_per_day": true
+        },
+        "objective_value": 16167910.779999997,
+        "optimization_method": "milp_highs_pooled_reach_min[awareness,gap<=1%,optimal]",
+        "curve_reach_diagnostic": 95354.574,
+        "unmet_coverage": {},
+        "wear_out_exposures_over_cap": 0.0
+      },
+      "infeasibility": null,
+      "solver_log": [
+        "dropped_unpurchasable_lines=142 (infeasible, unpriced, or sold out)",
+        "pruned_cells_beyond_4_per_pool=302 (reach saturates; extra cells in one pool add search symmetry, not audience)",
+        "slots_per_screen_per_day_cap=1 (source=brief, summed across time blocks)",
+        "objective=awareness",
+        "profile=w_reach:0.7 w_freq:0.3 w_conv:0.0",
+        "cells=56 screens=43 pools=14",
+        "budget=50,000.00 days=45",
+        "solver=HiGHS via scipy.optimize.milp, mip_rel_gap=0.01",
+        "status=optimal (Optimization terminated successfully. (HiGHS Status 7: Optimal))",
+        "min_spend_fraction=0.00",
+        "wear_out_frequency_cap=180 exposures per person (3.0x the 45-day floor of 60)",
+        "allocated_screens=14",
+        "allocated_cells=14",
+        "slots_per_screen_per_day: cap=1 busiest_screen=1 busiest_cell=1 (cap binds per SCREEN across time blocks)",
+        "audience_pool_blocks_touched=5 (pool x time block; physical pools are counted separately below)",
+        "spend=49,858.20",
+        "gross_impressions_viewed=16,167,911",
+        "curve_reach_diagnostic=95,355 (lambda=0.9, ASSUMED \u2014 not the reported reach)",
+        "reported_reach_definition=min(gross viewed exposures, reachable audience) per (pool, block) \u2014 lambda-free",
+        "deduplicated_reach=95,355",
+        "distinct_audience_pools=4",
+        "frequency=169.56",
+        "objective_value=16,167,911 (gross_impressions_viewed)",
+        "slots_per_screen_per_day<=1 (brief); busiest screen carries 1"
+      ]
+    },
+    "validation": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "package_non_empty",
+          "status": "pass",
+          "detail": "Package contains 14 allocations.",
+          "expected": null,
+          "observed": null
+        },
+        {
+          "name": "budget_respected",
+          "status": "pass",
+          "detail": "Recomputed package cost 49,858.20 against budget 50,000.00.",
+          "expected": "<= 50,000.00",
+          "observed": "49,858.20"
+        },
+        {
+          "name": "cost_reconciles",
+          "status": "pass",
+          "detail": "Reported total_cost matches the sum of price x slots x days over allocations.",
+          "expected": "49,858.20",
+          "observed": "49,858.20"
+        },
+        {
+          "name": "budget_utilization_reconciles",
+          "status": "pass",
+          "detail": "Reported budget_utilization matches recomputed cost / budget.",
+          "expected": "0.9972",
+          "observed": "0.9972"
+        },
+        {
+          "name": "impressions_reconcile",
+          "status": "pass",
+          "detail": "Reported gross_impressions_viewed matches the sum over allocations.",
+          "expected": "16,167,911",
+          "observed": "16,167,911"
+        },
+        {
+          "name": "reach_not_above_impressions",
+          "status": "pass",
+          "detail": "Deduplicated reach does not exceed gross viewed exposures.",
+          "expected": "<= 16,167,911",
+          "observed": "95,355"
+        },
+        {
+          "name": "frequency_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_frequency matches viewed exposures / reach.",
+          "expected": "169.556",
+          "observed": "169.556"
+        },
+        {
+          "name": "reach_reconciles",
+          "status": "pass",
+          "detail": "Reported expected_reach matches reach recomputed from pool_key groups, each capped at its reachable daily audience.",
+          "expected": "95,355",
+          "observed": "95,355"
+        },
+        {
+          "name": "curve_reach_bounded",
+          "status": "pass",
+          "detail": "Solver curve reach stays within min(gross viewed exposures, reachable audience) \u2014 a bound that holds for any saturation constant.",
+          "expected": "<= 95,355",
+          "observed": "95,355"
+        },
+        {
+          "name": "screens_exist",
+          "status": "pass",
+          "detail": "Every allocated screen_id exists in the inventory.",
+          "expected": "0 unknown",
+          "observed": "0 unknown"
+        },
+        {
+          "name": "time_blocks_valid",
+          "status": "pass",
+          "detail": "Every time_block_id exists in dim_slot.",
+          "expected": "one of ['1', '2', '3', '4', '5', '6']",
+          "observed": "0 invalid"
+        },
+        {
+          "name": "no_duplicate_allocations",
+          "status": "pass",
+          "detail": "Each (screen, time block) pair appears at most once.",
+          "expected": "0 duplicates",
+          "observed": "0 duplicates"
+        },
+        {
+          "name": "geography_eligible",
+          "status": "pass",
+          "detail": "All allocated screens fall inside the requested geography (2,230 eligible).",
+          "expected": "0 outside",
+          "observed": "0 outside"
+        },
+        {
+          "name": "duration_within_campaign",
+          "status": "pass",
+          "detail": "No allocation runs longer than the campaign duration.",
+          "expected": "<= 45 days",
+          "observed": "0 over"
+        },
+        {
+          "name": "start_date_not_in_past",
+          "status": "pass",
+          "detail": "Campaign starts 2026-09-06 (reference date 2026-08-23).",
+          "expected": ">= 2026-08-23",
+          "observed": "2026-09-06"
+        },
+        {
+          "name": "max_slots_per_day",
+          "status": "pass",
+          "detail": "No screen carries more than 1 slot(s) per day, summed across time blocks (busiest carries 1).",
+          "expected": "<= 1 per screen per day",
+          "observed": "1 on the busiest screen"
+        },
+        {
+          "name": "hard_constraints_recognized",
+          "status": "pass",
+          "detail": "Every declared hard constraint maps to a stage that enforces it.",
+          "expected": "all keys enforced",
+          "observed": "0 unenforced"
+        },
+        {
+          "name": "inventory_availability",
+          "status": "pass",
+          "detail": "Purchased slots never exceed available slots.",
+          "expected": "0 over-allocations",
+          "observed": "0 over-allocations"
+        },
+        {
+          "name": "model_confidence",
+          "status": "skipped",
+          "detail": "No stage emits a per-screen confidence; not gating on the contract default. Pricing trust signals are per-row assumptions plus the booking-probability sign check.",
+          "expected": null,
+          "observed": null
+        }
+      ]
+    },
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:27:57"
+  },
+  {
+    "id": "run-c0e594902402",
+    "created_at": "2026-08-23T17:28:34",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "EV launch",
+      "industry_vertical": "automotive",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-002"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "high_income"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 45,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "hard_constraints": {},
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-892c78f83e94",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-892c78f83e94.parquet",
+        "rows": 250,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "city_id",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2230,
+          "candidates": 250,
+          "relevance_min": 0.6734,
+          "relevance_mean": 0.674,
+          "relevance_max": 0.6745,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "high_income"
+          ],
+          "distinct_audience_pools": 7,
+          "pooled_daily_audience": 749282.2,
+          "naive_daily_audience": 27931290.9,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [
+            "industry_vertical 'automotive' has no POI mapping \u2014 context_fit defaulted to 0.5"
+          ]
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:28:41.314678"
+      },
+      "screen_economics": {
+        "artifact_id": "screen_economics-6a0dc312144b",
+        "kind": "screen_economics",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_economics-6a0dc312144b.parquet",
+        "rows": 500,
+        "columns": [
+          "screen_id",
+          "time_block_id",
+          "feasible",
+          "availability",
+          "max_slots_per_day",
+          "occupancy_rate",
+          "price_by_slot_count",
+          "demand_forecast",
+          "viewed_exposures_per_slot_per_day",
+          "daily_unique_audience",
+          "reachable_daily_audience",
+          "viewability_factor",
+          "pool_key",
+          "pricing",
+          "expected_revenue",
+          "confidence",
+          "seasonality_multiplier",
+          "event_match_type",
+          "pricing_internal_reach_proxy",
+          "demand_value_index",
+          "historical_price_index",
+          "demand_premium",
+          "demand_value_reason",
+          "reach_owner",
+          "assumptions"
+        ],
+        "summary": {
+          "rows": 500,
+          "feasible_rows": 358,
+          "screens_priced": 224,
+          "time_blocks": [
+            "2",
+            "5"
+          ],
+          "price_min": 74.89,
+          "price_mean": 112.49,
+          "price_max": 157.32,
+          "occupancy_mean": 0.216,
+          "booking_probability_mean": 0.9975,
+          "viewed_exposures_per_slot_per_day_mean": 17020.0,
+          "reachable_daily_audience_total_naive": 4569879.9,
+          "demand_model": "transit_ridership (relevance engine)",
+          "demand_premium_screens": 0,
+          "demand_premium_mean": 1.0,
+          "pricing_levers": [],
+          "pricing_levers_note": null
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:29:22.379415"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:29:22"
+  },
+  {
+    "id": "run-452701ec6c14",
+    "created_at": "2026-08-23T17:45:49",
+    "session_id": null,
+    "status": "spec_ready",
+    "campaign_spec": {
+      "campaign_objective": "reach young commuters for a product launch",
+      "industry_vertical": "technology",
+      "ad_type": null,
+      "city_ids": [
+        "LH"
+      ],
+      "zone_ids": [
+        "LH-ZONE-001",
+        "LH-ZONE-002"
+      ],
+      "corridor_ids": [],
+      "target_audience": {
+        "age_range": null,
+        "income_range": null,
+        "occupations": [],
+        "commuter": null,
+        "other_attributes": {}
+      },
+      "audience_terms": [
+        "young_professionals",
+        "commuters"
+      ],
+      "start_date": "2026-09-06",
+      "duration_days": 30,
+      "budget": 50000.0,
+      "requested_num_screens": null,
+      "preferred_dayparts": [],
+      "preferred_time_blocks": [],
+      "day_type_focus": null,
+      "optimization_goal": "reach",
+      "screen_type_mix": [],
+      "hard_constraints": {
+        "min_zone_coverage": 2
+      },
+      "soft_preferences": {},
+      "original_query": null,
+      "missing_information": []
+    },
+    "artifacts": {
+      "screen_candidates": {
+        "artifact_id": "screen_candidates-d0213dee1a18",
+        "kind": "screen_candidates",
+        "path": "C:\\Users\\AaryanAwadh\\OneDrive - Accordion Partners\\Desktop\\Multi_Agent-Optimizer\\backend\\artifacts\\screen_candidates-d0213dee1a18.parquet",
+        "rows": 80,
+        "columns": [
+          "screen_id",
+          "relevance_score",
+          "audience_match_score",
+          "geography_score",
+          "contextual_score",
+          "transit_score",
+          "time_of_day_score",
+          "historical_performance_score",
+          "reasons",
+          "defaults_applied",
+          "hard_constraints_passed",
+          "pool_key",
+          "pool_partition_count",
+          "impressions_by_block",
+          "impressions_weekday",
+          "impressions_weekend",
+          "impressions_block_1_estimated",
+          "nearby_ambient_footfall",
+          "city_id",
+          "location_name",
+          "zone_id",
+          "zone_name",
+          "corridor_id",
+          "screen_type"
+        ],
+        "summary": {
+          "eligible_screens": 2230,
+          "candidates": 80,
+          "relevance_min": 0.721,
+          "relevance_mean": 0.7391,
+          "relevance_max": 0.7823,
+          "preferred_time_blocks": [
+            "2",
+            "5"
+          ],
+          "day_type_focus": null,
+          "audience_terms": [
+            "young_professionals",
+            "commuters"
+          ],
+          "distinct_audience_pools": 18,
+          "pooled_daily_audience": 68791.2,
+          "naive_daily_audience": 450977.6,
+          "demand_source": "ridership_actuals (observed)",
+          "defaults_applied": [],
+          "pool_composition_by_screen_type": {
+            "metro_station": 70,
+            "bus_stop": 10
+          },
+          "eligible_by_screen_type": {
+            "metro_station": 859,
+            "metro_rail_coach": 840,
+            "bus": 381,
+            "bus_stop": 150
+          },
+          "screen_type_mix_requested": [],
+          "screen_type_mix_unfilled": {},
+          "constant_subscores": []
+        },
+        "provenance": "computed",
+        "created_at": "2026-08-23T17:45:57.733251"
+      }
+    },
+    "optimization": null,
+    "validation": null,
+    "stub_stages": [],
+    "pricing_levers": null,
+    "updated_at": "2026-08-23T17:45:57"
   }
 ]

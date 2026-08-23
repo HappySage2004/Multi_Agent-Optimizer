@@ -20,12 +20,16 @@
 *   **Width**: Default `240px` (min `190px`, max `360px`).
 *   **Top Header**: Brand logo icon (`AQ` in `bg-violet-950`), title **AgentIQ**, subtitle "Urban Media Engine".
 *   **Primary CTA**: Single `+ New Campaign` full-width button (`bg-violet-950`, text white, rounded `xl`).
-*   **Session History**: Scrollable list under header "PREVIOUS SESSIONS".
+*   **Session History**: Scrollable list under header "PREVIOUS CAMPAIGNS".
+    *   Row labels are the session's **campaign objective**, capped at five words by
+        the backend — the same string the centre header shows. The rail never renders
+        the raw user query; the stream's `session` event supplies a real name before
+        the first model call.
     *   Active Session item: `bg-zinc-100/70`, `text-zinc-800`, border indicator.
     *   Inactive Session items: `text-zinc-500`, hover highlight `bg-zinc-50`.
 *   **Bottom Section (Fixed)**:
     *   Active Inventory status card (`11,240` screens online with animated pulse dot).
-    *   `Settings` button fixed at the very bottom with gear SVG icon.
+    *   `Settings` button fixed at the very bottom with gear SVG icon. Opens the Settings modal (below); the currently selected model id is shown right-aligned in the same row, so the running model is visible without opening it.
 
 ### Panel 2: Center Workspace (Main Chat & Impact Deck)
 *   **Width**: Dynamic flex fill (widest column, min `380px`).
@@ -59,6 +63,27 @@
     *   **D3 Tab**: Price range guardrail horizontal gauge (Floor: $28, Target: $42, Cap: $65) + 6-block time occupancy grid (`dim_slot`).
     *   **D4 Tab**: 6-slot rotation loop allocation matrix showing active partial rotation choices (Slot 1 & Slot 2 selected).
 
+### Settings Modal (Panel 1 → gear)
+
+*   **Trigger**: the sidebar's `Settings` button. Rendered as a sibling of
+    `ResizableLayout`, not inside a panel — the overlay is `position: fixed` and a
+    resizable column with `overflow-hidden` would clip it.
+*   **Chrome**: centred card, `max-w-lg`, `rounded-2xl`, `bg-white`, over a
+    `bg-zinc-900/25` backdrop. Closes on backdrop click, on `Escape`, and on `Close`.
+*   **Only setting: Orchestration Model.** One block per provider (Google Gemini, Azure
+    OpenAI), each listing its selectable models. The active one is `bg-violet-950` with a
+    check; the rest are white rows with a hover border.
+    *   Each model row shows the id as the title and, on Azure, the deployment it resolves
+        to as a `text-[10px]` subtitle — the deployment is never the selectable value.
+    *   Each provider header carries its request-per-minute cap, which is why a Gemini run
+        takes ~90s and an Azure one ~45s, plus a `server default` marker.
+    *   A provider with no credentials is **shown disabled with the reason** (the missing
+        env var), not hidden. The rep was told they had the key; a silently absent option
+        is not actionable.
+*   **Persistence**: `localStorage` under `agentiq.model-selection`, re-validated against
+    `GET /models` on load. Applies from the next turn — a package already built is not
+    re-priced by switching.
+
 ---
 
 ## 3. Component Architecture & Props Matrix
@@ -68,6 +93,7 @@ src/
 ├── components/
 │   ├── layout/
 │   │   ├── ResizableLayout.tsx       # Manages 3-column split & dragging handles
+│   │   ├── SettingsDialog.tsx        # Settings modal — the model picker
 │   │   ├── Sidebar.tsx               # Left panel (New Campaign, Sessions, Settings)
 │   │   └── TopHeader.tsx             # Main header with title & export action
 │   ├── chat/

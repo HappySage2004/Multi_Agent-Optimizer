@@ -19,9 +19,11 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
   app/
     main.py               FastAPI entrypoint (/health, sessions, uploads, campaign)
     config.py             Settings; all paths resolve from the repo root
-    api/                  schemas.py, sessions.py, messages.py, uploads.py, campaign.py
+    api/                  schemas.py, sessions.py, messages.py, uploads.py, campaign.py,
+                          providers.py (GET /models -- the model picker's catalogue)
     agents/
       master.py           build_master_agent() -- create_deep_agent + 2 subagents
+      providers.py        model provider registry: catalogue, clients, rate limiters
       subagents.py        aggregator: assembles the two specs in pipeline order
       ml_agent.py         ML/Pricing specialist: name + description + prompt + build()
       or_agent.py         OR specialist          (one file per agent)
@@ -58,11 +60,12 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
                           test_client_profile.py, test_optimizer.py,
                           test_transcripts.py, test_artifact_store.py,
                           test_session_titles.py, test_followup_turns.py,
-                          test_documents.py
+                          test_documents.py, test_providers.py
   pyproject.toml, .env.example
 frontend/         Next.js (App Router) + TypeScript + Tailwind
   src/app/            routes
   src/components/     layout/ chat/ inspector/  (see UI.md component tree)
+                      layout/SettingsDialog.tsx is the model picker
   src/lib/            API client, types mirroring backend Pydantic models
 datasets/         Read-only source CSVs. Never write here.
 localDB/          JSON files = the app database (sessions, chat transcripts, runs, uploads)
@@ -116,7 +119,7 @@ mechanism that would surface a regression.
 | Audience relevance engine (`tools/relevance_tools.py`) | real |
 | Audience volume — impressions, reach, frequency | real |
 | Pricing engine (`app/ml/`) — bands, booking probability, occupancy, seasonality | real |
-| Validation layer (`agents/validation.py`) — 17 checks | real |
+| Validation layer (`agents/validation.py`) — 19 checks | real |
 | DuckDB reference layer, artifact store, localDB, run state | real |
 | FastAPI + SSE endpoints | real |
 | Inventory optimization | real — MILP (HiGHS via scipy), `app/optimize/` |
@@ -332,14 +335,36 @@ becomes a number.
 
 `app/tools/relevance_tools.py` is the whole stage-2 capability in one file: the feature
 layer, the scoring model and the three tools the Master calls. It is **deterministic** — no
-LLM, no subagent. Ported from the audience relevance notebook and verified
-output-identical on all 12 impression columns, POI footfall, POI counts and all 1,004 pool
-keys across 11,163 screens.
+LLM, no subagent. It began as a port of the audience relevance notebook, verified
+output-identical at the time on all 12 impression columns, POI footfall and POI counts
+across 11,163 screens, and has since diverged deliberately — every departure is flagged at
+its site in the module docstring.
 
 Feature layer in DuckDB (`app/data/db.py`): `v_screen_profile` (demographics + POI +
 `pool_key`) and `v_screen_demand_history` (avg daily riders per screen x block x day type),
-built on `v_schedule_block`, `v_route_block_demand`, `v_corridor_block_demand`,
-`v_screen_poi`.
+built on `v_schedule_block`, `v_route_stop_weight`, `v_route_block_demand`,
+`v_corridor_block_demand`, `v_location_site`, `v_screen_poi`.
+
+**A route's riders are shared between its stops, not multiplied by them.** This is the
+single most consequential number in the system and it was wrong. `v_screen_demand_history`
+used to credit every stop on a route with that route's WHOLE ridership, so one rider was
+counted once per stop they passed. Measured: summing the modelled audience of the stops
+along a corridor came to **20.4x (median) that corridor's own ridership**. Bus routes
+average 12.58 stops and metro routes 13.86, which is the scale of it — but do not hard-code
+a divisor, because it varies per route.
+
+`v_route_stop_weight` gives each stop `weight / sum(weight over its route)`, weighting
+termini at `TERMINUS_WEIGHT = 1.5`. Shares sum to exactly 1.0 per route, so a corridor's
+stops now sum to **exactly 1.000x** its ridership against the same source (~0.97x across
+sources, which is the scheduled-vs-observed gap, not an accounting error). The terminus
+weight is an ASSUMPTION and safely so — it only redistributes a route's riders between its
+own stops, and the corridor total is identical at any value. Multiple routes at one stop
+still SUM: that is genuinely more people. **The mobile path is untouched** — measured
+identical to 0.1 riders — so the fixed:mobile comparison stays meaningful.
+
+Correcting this cut fixed-screen volume ~13-16x (metro_station median 227,981 -> 14,873;
+bus_stop 3,112 -> 250) and with it every reach figure the system reports. That is the
+intended outcome, not a regression.
 
 Relevance is a transparent weighted sum of five 0-1 components:
 `0.40 audience + 0.20 geography + 0.15 context + 0.15 time_of_day + 0.10 booking history`.
@@ -363,8 +388,27 @@ and is **not** the ceiling. The conversion lives in exactly one module,
 `app/optimize/exposure.py`, called from exactly one place — the constants are ASSUMED, so
 the single call site matters more than the values.
 
-**Reach is not the sum of exposures.** Screens sharing a `pool_key` (one stop, or one
-corridor) see the same people; on a 250-screen pool the naive sum over-counts by ~23x.
+**A `pool_key` is a SITE, not a `location_id`.** One physical station is modelled as
+several location rows — opposite platforms, separate entrances — and screens on them see the
+same crowd, so a raw `location_id` let reach count that crowd twice. `v_location_site`
+groups on `(city_id, name, the set of corridors serving it)`, and all three keys are
+load-bearing:
+
+```
+910  raw location_id               under-merges: splits one station across platform rows
+626  (city_id, name)               OVER-merges by ~31%. Station names are a low-cardinality
+                                   template that unrelated real stations coincidentally share
+878  + the corridor set            correct on both counts
+```
+
+Total pools: **972** = 878 sites + 94 corridors (was 1,004). 22 sites absorbed 54 locations.
+Merging makes reported reach slightly *smaller* and more honest. `pool_key` is now a
+synthetic `SITE-<city>-<n>` id, so `location_name` travels alongside it — a reason string
+should name the site, never the key.
+
+**Reach is not the sum of exposures.** Screens sharing a `pool_key` (one site, or one
+corridor) see the same people; on the canonical 250-screen pool the naive sum over-counts by
+**~25x** (1,656,829 against 65,801).
 
 ```
 reach = SUM over (pool_key, block) of
@@ -387,21 +431,129 @@ is the brief's, the minimum purchase is one slot, and there is no flighting. The
 therefore constrains **stacking** (a multiple of that floor), not total exposure, and the OR
 tool discloses the figure rather than implying it was tuned.
 
+**Audience scores are graded, not binary.** `dominant_occupation` has five values across
+30 zones and `mixed` is the most common (14 of 30), so the old white-collar flag scored
+`mixed` identically to `student`. Three affinity maps grade all five. Two audience terms
+also pointed at the wrong column: `young_professionals` averaged `professional_score` with
+**`student_score`** (a different audience), and `high_income` used `professional_score`,
+which is 40% occupation. Both now have their own column. Every weight set sums to 1.0 over
+bounded inputs, so `family_score` no longer needs a renormalization constant.
+
+**`industry_vertical` is a closed vocabulary, and it was not.** It was a bare `str | None`
+with no validator, and every value the Master actually wrote to a run missed:
+`'AUTOMOTIVE / ELECTRIC VEHICLES'`, `'Consumer Tech'`, `'Fintech'`,
+`'Beauty / Skincare'`. Two sub-scores key on that one string — `context_fit` (0.15) and
+`historical_performance` (0.10) — so an unmatched value pinned **25% of every relevance
+score to a constant 0.5** while the tool reported a normal-looking ranking. Worse, the MILP
+weights `conv_fit` (= `contextual_score`) at 0.40 on a `conversion` objective. Now
+`INDUSTRY_VERTICALS` holds the 13 real `bookings.industry_vertical` values, a validator
+rejects anything else (normalizing case and separators first, so `'Real Estate'` is
+accepted as `real_estate`), and a test pins
+`set(INDUSTRY_VERTICALS) == set(INDUSTRY_TO_POI_CONTEXT)` so they cannot drift.
+`constant_subscores` on the artifact summary now reports **any** sub-score that is identical
+pool-wide, because that state is indistinguishable from success from the outside.
+
+**Mobile screens are excluded from the POI judgement, not scored 0.2 on it.**
+`v_screen_poi` joins POIs on `anchor_location_id = location_id`, and a vehicle has no
+`location_id` — so all 2,615 mobile screens had an empty POI set for an ARCHITECTURAL
+reason and took the 0.2 mismatch penalty for it. `poi_applicable` is checked first and they
+score a neutral 0.5, recorded in `defaults_applied` rather than silently.
+
+**Ties are broken at sort time, never in the score.** Screens at one site genuinely tie —
+same zone, same POIs, same traffic — and the order among them used to be decided by
+`screen_id` alone. The chain is `relevance desc, screen_size desc, ambient footfall desc,
+screen_id asc`. `screen_id` MUST stay last: it is what makes the artifact reproducible.
+Neither tiebreak is in `WEIGHTS`, because neither measures audience fit, and `position` is
+deliberately absent — nothing in this data says any mounting position outperforms another.
+
+**`nearby_ambient_footfall` is quarantined**, the same discipline as
+`pricing_internal_reach_proxy`. It correlates only weakly with transit ridership (~0.12-0.26)
+and can disagree ~20x at one location, so it is carried on `ScreenCandidate`, used ONLY as a
+tiebreak, and added into no impressions, reach or price figure. Blending it in would undo
+the stop-share correction.
+
 Known limitations, all surfaced by `describe_relevance_model` and pinned by tests:
-- Volume is **schedule-derived only**, with no ambient/pedestrian term. Block 1
-  (00:00-04:00) is zero for every screen despite 8,544 real block-1 bookings. Zero means
-  "not modelled", never "nobody there".
-- `metro_station` median daily volume is ~380x `bus`, so impressions-per-dollar favours
-  fixed inventory almost exclusively. The mobile figure is one vehicle's share of its
-  corridor — a stated judgement, since `route_schedules` has no `vehicle_id`.
+- Volume is **schedule-derived only**, with no ambient/pedestrian term. No scheduled service
+  starts between 00:00 and 04:00, so block 1's **measured** volume is zero for every
+  screen — while 8,544 of 191,110 bookings (4.5%) sit in block 1, so the inventory
+  demonstrably sells. That is a **modelling gap, not a finding about block 1**; zero means
+  "not modelled", never "nobody there". `impressions_block_1_estimated` publishes an
+  8%-of-block-6 **assumption** per day type, kept out of `total_impressions`,
+  `peak_impressions`, `offpeak_impressions` and `commuter_score` — nothing the validator
+  checks may move with an assumed constant, and `commuter_score`'s denominator is the total.
+- Fixed inventory carries ~**2.7x** the median daily volume of mobile (12,775 vs 4,789) and
+  `metro_station` ~**59x** `bus_stop` (14,873 vs 250). Before stop shares the fixed:mobile
+  gap was 40.9x. Volume-per-dollar still leans fixed. The mobile figure is one vehicle's
+  share of its corridor — a stated judgement, since `route_schedules` has no `vehicle_id`.
+- **The corridor and stop paths use different sources.** A corridor's pool population comes
+  from `route_schedules.estimated_ridership` (scheduled); a stop's audience from
+  `ridership_actuals` (observed). `corridor_pool_sanity()` asserts the invariant that a
+  corridor's pool population is never smaller than the largest single-station audience drawn
+  from its own routes — 0 violations. Restricting to *its own routes* is the whole subtlety:
+  compare a stop's TOTAL against one corridor and 40 busy interchanges look like violations.
+- **A mobile screen's audience makes a round trip across two modules.**
+  `v_corridor_block_demand` in `app/data/db.py` DIVIDES a corridor's riders by `n_vehicles`
+  to get one vehicle's share, and `app/optimize/contract.py` MULTIPLIES back by
+  `pool_partition_count` (the same count, published on `v_screen_profile`) to recover the
+  corridor's whole crowd for the reach ceiling. The two halves must keep using the same
+  count or pool populations silently disagree with the per-screen figures — which is why
+  `v_corridor_vehicle_count` is defined once and consumed by both, with a warning at the
+  definition site. Publishing the corridor total directly on `ScreenCandidate` would remove
+  the round trip, but it changes the OR contract, so it is a decision rather than a cleanup.
 - **Mobile screens have no demographics.** Zone is undefined for a vehicle, so all 2,615 of
-  them score 0 on the demographic components. Averaging the zones a corridor touches is the
-  obvious next improvement.
+  them score 0 on every demographic component and only `commuter_score` carries signal.
+  Averaging the zones a corridor touches is the obvious next improvement, and is
+  deliberately kept out of the occupation map rather than smuggled in as a side effect.
 - `historical_performance` is a booking **completion rate**, not campaign performance.
-- `commuter_score` spans only 0.34-0.51, so a commuter brief's ordering is effectively
+- `commuter_score` spans a narrow range, so a commuter-only brief's ordering is effectively
   decided by the other four components.
+- **The pool is a truncation, and truncation can be categorical.** See the next section.
 - No held-out accuracy metric exists for the audience model, which is why no stage emits a
   per-screen confidence and the validator still skips that check.
+
+#### A mixed-inventory brief needs `screen_type_mix`, not `allowed_screen_types`
+
+`hard_constraints["allowed_screen_types"]` is a **filter, not a mix**, and that made a
+mixed brief unservable. Measured: permitting `["metro_station", "bus"]` let 806 eligible
+screens through and the single global relevance cut returned **250 metro_station and 0
+bus**. Zero bus screens reached pricing, let alone the optimizer.
+
+Bus screens are not bad — exclusion is **categorical rather than marginal**. `bus_stop`
+averages **0.5891** against `metro_station`'s **0.6066**, a 2.9% gap, and still landed 0 of
+250. A 3% scoring difference produced a 100%/0% outcome.
+
+`CampaignSpec.screen_type_mix` is a real typed field, deliberately not a `hard_constraints`
+key: that vocabulary is closed and an unrecognized key is persisted, echoed back and
+silently ignored, which is exactly how a slot-depth constraint was lost end to end.
+`_stratified_head` allocates `top_n` per named type, capped at availability, redistributing
+any shortfall — so a scarce type gets its whole supply (75 of 75 `bus_stop`) and the pool
+never shrinks. `pool_composition_by_screen_type`, `eligible_by_screen_type` and
+`screen_type_mix_unfilled` are reported on **every** run, mix or not: a pool that is 100%
+one screen type is the most consequential fact about it, and the Master cannot state a
+composition it was never told.
+
+This is not a new decision column — `head(top_n)` was *already* a decision about which
+screens are handed on, and only how that truncation is made has changed. No screen is
+picked for the optimizer.
+
+Two things deliberately NOT done, both needing a decision rather than a default:
+- **No per-type floor when no mix is requested.** That would change what a candidate pool
+  means on every brief ever run.
+- **`create_campaign_spec` does not expose `screen_type_mix` yet**, so no agent can set it.
+  The engine behaviour is tested directly. Wiring the intake parameter and the prompt is a
+  Master-session change.
+
+Also **not** wired: `app/optimize/solver.py` already implements elastic group coverage
+(`coverage={label: {"mask", "min"}}`), and `or_agent_tools._solve` passes only
+`unit_coverage`, only for zones. Pointing it at `screen_type` masks would let the solver
+enforce a mix in the *package* rather than only in the pool. `screen_type` is already on
+`ScreenCandidate`, so no new data is needed. That is an OR-session change.
+
+Why it is worth building rather than just disclosing: reach saturates per `pool_key`. Once a
+geography's metro sites are bought out, the marginal metro screen is worth ~0 and a bus
+screen is a *fresh* pool — the only remaining way to buy incremental reach. The system
+otherwise reports "audience saturation is binding" and leaves budget unspent while a real
+diversification option was filtered out at stage 2.
 
 Also a **process singleton** — `get_relevance_engine()`, ~15s to build (the
 `ridership_actuals` scan dominates). Degrades to `route_schedules.estimated_ridership` when
@@ -417,17 +569,75 @@ Rules that survive any further change to the formulation:
 
 1. **`_package_metrics` is the reach definition, not part of the model.** The validator
    re-derives it independently. Change the formulation freely; leave the accounting alone.
-2. Keep `optimize_package`'s name and argument signature — the Master's prompt and the
-   validation layer both depend on them.
+2. Keep `optimize_package`'s name — the Master's prompt and the validation layer both
+   depend on it. Adding a keyword argument is fine; `slots_per_day_cap` went from a
+   fabricating default of 3 to `None` deliberately (rule 5), and that is the only kind of
+   signature change worth making: one that removes an invented constraint.
 3. Anything that turns an audience figure into an exposure figure goes through
    `app/optimize/exposure.py`. One implementation, one call site.
 4. A quantity the validator enforces may not depend on a fitted or assumed constant. That is
    why `REACH_LAMBDA` reaches only `curve_reach_diagnostic`, and why `curve_reach_bounded`
    asserts a lambda-free bound instead of re-deriving the curve.
-5. `backend/tests/` must still pass. `test_optimizer.py` pins the constraint semantics, the
+5. **A brief-declared constraint is read off the run, never off a tool argument**, and it
+   gets a validator check. `optimize_package(run_id, slots_per_day_cap=None)` resolves the
+   slot ceiling from `spec.hard_constraints`; the argument is an exploration override that
+   may tighten a declared cap and never widen it. See the slot-structure note below.
+6. `backend/tests/` must still pass. `test_optimizer.py` pins the constraint semantics, the
    wear-out arithmetic and a MILP-beats-greedy comparison; `test_pipeline_smoke.py` runs
    every stage with no LLM and asserts the validator accepts the result;
    `test_relevance_engine.py` pins the audience units and the pooling behaviour.
+
+#### The brief's slot structure — and why it binds per screen, not per cell
+
+`hard_constraints["max_slots_per_day"]` is how a brief states the leasing structure ("1
+rotating slot on digital screens only"). It had **no channel at all**: `CampaignSpec` has no
+slot field, every consumer reads `hard_constraints` against its own hardcoded key list, and
+the only real control was `optimize_package`'s `slots_per_day_cap=3` default — mentioned in
+neither agent prompt, so no model ever set it. A brief asking for one slot shipped three,
+and `verify_package` passed it clean while the constraint sat visible in
+`normalized_spec.hard_constraints` and `campaign_inputs` the whole time.
+
+**Semantics: per SCREEN per day, summed across time blocks.** The per-cell reading — which
+is all an `available` clip can express — lets a screen bought in Block 3 and Block 5 take
+1 + 1 = 2 slots that day and pass. Measured on a 45-day brief, a per-cell cap of 1 returned a
+plan whose busiest screen carried 2. The constraint is a hard per-screen row in the MILP
+(`solver.py`), and the applied cap, its `source` and the semantics string are reported in
+the payload so the figure says which reading produced it.
+
+**Honouring it costs no reach** — measured across four briefs, four cap levels and all
+four objectives, not assumed. Reach is identical at every cap (45,328 / 44,717 / 173,603 /
+169,439 / 95,355), because reach is capped at each pool's *daily* audience while exposures
+accumulate over a 30-day-plus flight, so one slot already over-saturates the pool and extra
+depth buys frequency rather than people. Lead with this: it holds on every brief measured.
+
+**Whether it also cuts repetition is brief-dependent.** On a 2-zone 30-day reach brief at a
+150k budget, exposures per person fall 111.8 → **40.0, the flight's unavoidable floor**, at
+34,334 spend against 92,417 for the same 173,603 people. On a 2-zone 45-day brief at 50k,
+caps of 1, 3 and 6 return identical plans on every objective — the solver was already buying
+one slot per screen, so the cap never bound. And on `awareness` / `frequency` / `conversion`
+the cap does not bound frequency at all: those profiles reward exposures, so the solver
+stacks extra *screens* into the same pool once it cannot stack slots (169.6 exposures per
+person at every cap). **A slot cap is not a frequency cap** — the wear-out cap is the
+frequency instrument, and it is elastic.
+
+**`MAX_CELLS_PER_POOL = 4` must not be scaled by the cap.** The obvious fix — hold pool slot
+depth constant, so 4 cells become 12 at a 1-slot cap — was implemented and measured: reach
+identical, spend 34,334 → 115,628, exposures per person 40.0 → 112.2. The extra cells let the
+solver stack *screens* into an already-saturated pool, the same mechanism that makes the cap
+inert on exposure-weighted objectives, so the cap would have relocated repetition rather than
+reducing it.
+
+**An unrecognized `hard_constraints` key now FAILS verification.** That is the
+generalization: `ENFORCED_HARD_CONSTRAINTS` in `app/models/campaign.py` is the closed
+vocabulary of keys some stage enforces, and a spec carrying anything else cannot be blessed.
+A false fail costs one turn; a silent pass ships a package that breaches a written brief.
+Adding a key there without its enforcing code re-creates the original bug.
+
+**"On digital screens only" is a no-op here.** `datasets/screens.csv` has no digital/static
+attribute at all — verified; its descriptive columns are `screen_type`, `position`,
+`screen_size`. The 6-slot rotating loop implies digital anyway, so the constraint cannot be
+filtered and every screen already satisfies it. `describe_inventory` says so in
+`no_digital_flag`. Do not invent a filter.
 
 ## Agent wiring
 
@@ -442,34 +652,81 @@ a deliberate departure from SOLUTION.md 31.1's "exactly three specialists" in fa
 31.2's "LLMs reason; tools calculate" — delegation is reserved for the stages where a
 specialist genuinely reasons about its own output.
 
-**Model: Google Gemini `gemini-3.5-flash-lite`** via `langchain-google-genai`
-(`ChatGoogleGenerativeAI`), same model for both tiers. The key lives in the **repo-root
-`.env`** as `GEMINI_API_KEY` (gitignored); `backend/.env` is read second and overrides it.
-`GEMINI_MODEL` sets the model, with optional `MASTER_MODEL` / `SPECIALIST_MODEL` overrides.
+### Model providers — two, and the rep picks
+
+`app/agents/providers.py` is the registry: the catalogue, the client construction, and the
+rate limiters. `master.py` only consumes a resolved `ModelSelection`. Nothing else builds a
+chat client.
+
+| provider id | client | models | cap |
+|---|---|---|---|
+| `gemini` | `ChatGoogleGenerativeAI` | `gemini-3.5-flash-lite` | `MODEL_REQUESTS_PER_MINUTE`, 12/min |
+| `azure_openai` | `AzureChatOpenAI` | `gpt-5.4-nano`, `gpt-5.4-mini` | `AZURE_REQUESTS_PER_MINUTE`, 60/min |
+
+Keys live in the **repo-root `.env`** (gitignored): `GEMINI_API_KEY`, and
+`AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` + `AZURE_OPENAI_API_VERSION`.
+`backend/.env` is read second and overrides it.
+
+**The choice rides on the request, not on server config.** `CampaignQuery.provider` /
+`.model`, set from the sidebar's Settings dialog and remembered in `localStorage`. It is a
+per-turn choice because the two providers fail differently: Gemini's free tier allows ~20
+requests/day/model and one orchestration costs 15-20 of them, so a demo runs out of Gemini
+before it runs out of questions, and editing `.env` + restarting uvicorn mid-demo is the
+thing this avoids. `MODEL_PROVIDER` is only the default for a request naming neither, and
+`default_provider()` falls forward to a configured provider rather than 503-ing every
+endpoint because a stale env var points at a key nobody set.
+
+`GET /models` serves the catalogue the dialog renders. The frontend must not hold its own
+copy: whether a provider has credentials is a backend fact, and a stale list offers the rep
+an option that 503s. Unconfigured providers are still listed, with `unconfigured_reason`
+naming the missing env var — more actionable than an option that quietly vanishes.
+
+`api/campaign.py` caches one compiled graph **per selection** (`_agents`), because
+compiling is not free and the provider changes between turns. All selections share one
+`InMemorySaver`, so switching model mid-session keeps the conversation — LangChain
+normalizes message history, so a Gemini turn replays fine into an OpenAI one.
 
 Provider notes:
-- `deepagents` also accepts the string form `"google_genai:gemini-3.5-flash-lite"`. We build the
-  client explicitly so the key comes from settings rather than a `GOOGLE_API_KEY` env var.
-- Do **not** set `thinking_level` on this client version — it stalls the request.
+- `deepagents` also accepts the string form `"google_genai:gemini-3.5-flash-lite"`, which it
+  resolves through `init_chat_model`. We build clients explicitly so credentials come from
+  settings rather than from provider-specific env vars, and so the provider is selectable.
+- **Azure: the deployment name is not the model name.**
+  `Team7-GPT-5.4-nano-39a7f0abb4d54f9c265d` is what the API wants; `gpt-5.4-nano` is what it
+  404s on. The mapping is `AZURE_OPENAI_DEPLOYMENTS` in `config.py`, applied in exactly one
+  place, because the failure is an opaque 404 rather than an error naming the cause. The
+  **model name** is the selectable id everywhere else — the deployment is a per-tenant
+  opaque string that would be meaningless in the UI.
+- **Azure: `max_completion_tokens`, not `max_tokens`,** on the GPT-5 family.
+  `AzureChatOpenAI` renames the field on the wire, so passing `max_tokens=` is correct —
+  but do not go back to a raw `openai` client thinking they are interchangeable. Reasoning
+  tokens bill against that cap, hence `MAX_OUTPUT_TOKENS` is per provider (8,192 Gemini /
+  16,384 Azure): a cap sized for Gemini's visible output starves the answer, and the failure
+  is a truncated tool call rather than an error.
+- **Azure: leave `temperature` unset.** These deployments accept only the default, and
+  langchain's historical 0.7 is a 400.
+- Do **not** set `thinking_level` on the Gemini client version — it stalls the request.
   `gemini-3.5-flash-lite` already reasons by default (`output_token_details.reasoning` is
   non-zero).
-- Responses come back as **content blocks**, not a bare string. Anything reading assistant
-  text must handle `list[dict]` and keep only `type == "text"` blocks (see `_final_text` in
+- Gemini responses come back as **content blocks**, not a bare string; OpenAI's come back as
+  a string. Anything reading assistant text must handle both (see `_message_text` in
   `api/campaign.py`).
 - **Rate limiting is mandatory, not optional.** Free-tier Gemini enforces a
   **per-minute** request cap (`gemini-3.5-flash-lite`: 15/min) on top of the daily one. A
-  single orchestration blows straight through it, so `agents/master.py` installs one
-  **shared** `InMemoryRateLimiter` across the Master and both specialists
-  (`MODEL_REQUESTS_PER_MINUTE`, default 12). It must stay shared — the cap is per
-  project+model, so separate limiters would each assume the full budget. Dropping the Data
-  subagent removed a few calls per run: stage 2 now costs zero model calls.
-- Provider failures map to honest HTTP statuses: 429 quota, 503 upstream overload, 502 bad
-  credentials or unknown model id, via the provider-agnostic `langchain_core.exceptions`
-  bases. `POST /campaign/run` maps provider
-  failures honestly: 429 on quota, 503 on upstream 5xx/overload, 502 on bad
-  credentials or an unavailable model id. Error mapping uses the provider-agnostic
-  `langchain_core.exceptions` bases, so it survives a provider swap.
+  single orchestration blows straight through it, so `providers._rate_limiter` installs one
+  **shared** `InMemoryRateLimiter` across the Master and both specialists. It must stay
+  shared *within* a provider — the cap is per project+model, so separate limiters would
+  each assume the full budget — and must **not** be shared *across* providers, because the
+  two caps differ 5x. Dropping the Data subagent removed a few calls per run: stage 2 now
+  costs zero model calls.
+- Provider failures map to honest HTTP statuses via the provider-agnostic
+  `langchain_core.exceptions` bases, so the mapping survives a provider swap: 429 quota, 503
+  upstream 5xx/overload, 502 bad credentials or unknown model id. The selection is threaded
+  into `_provider_error` so the credential message names the right env var. A model id this
+  build does not offer is a **400** rather than a 503 — a stale `localStorage` value is the
+  caller's problem, and collapsing it into 503 made it look like a broken backend.
 - Iterate against `tests/` (no model calls) rather than burning quota on live runs.
+  `tests/test_providers.py` pins the catalogue, the resolution rules and the deployment
+  mapping without touching the network.
 
 **The Master owns `set_pricing_levers` and `get_client_negotiation_profile`.** Both serve
 the conversation with the sales rep rather than a pipeline stage, so both are deliberately
@@ -592,6 +849,32 @@ Sessions predating this have no messages, so the UI falls back to rebuilding the
 `campaign_spec.original_query` and labels that turn `restored`. That is the **only** path
 that shows a package with no answer, and it says so on screen.
 
+**Session names are the campaign objective, capped at five words.**
+`services/session_titles.py`. Naming happens in two steps because the two useful names
+arrive at different times, and the sidebar used to show the wrong one of them:
+
+1. `_ensure_session` names a session provisionally from the rep's raw sentence, so the rail
+   is not a placeholder for the 45-90s a run takes.
+2. `_final_title` then **replaces** it with the run's resolved `campaign_objective` — which
+   is what the centre-panel header shows. Showing the brief in the rail and the objective in
+   the header is the same campaign under two names, and the rail read like a chat log.
+
+`title_source` on the session record is what makes step 2 safe: only `PATCH /sessions/{id}`
+sets it to `"user"`, and a user-typed title is never replaced. Records predating the field
+are treated as auto-named, which is the conservative reading — the only ways they could
+have got a title were automatic.
+
+The five-word cap (`MAX_WORDS`, with `MAX_CHARS` as the guard for five long words or one
+unbroken string) is applied in `title_from_text`, and `backfill_from_runs` **re-shortens
+titles written before the cap existed** — capping the function alone would leave every row
+already on disk breaking the rule. It runs on every `GET /sessions` and is idempotent.
+
+The stream emits a **`session` event before the first model call**, carrying the
+provisional name. Without it the client learned the title only on `done`, so the rail spent
+the whole run showing a placeholder; the frontend used to paper over that by displaying the
+raw user message, which is the behaviour that made this look broken. There is deliberately
+no client-side copy of the naming heuristic.
+
 **Deleting a session cascades** to its messages, runs and uploads (`local_db.delete_where`,
 one atomic write per collection). Orphaning them left `latest_run_for_session` resolving
 runs for a session the user believed was gone. Files on disk — staged uploads and artifact
@@ -646,10 +929,16 @@ un-marks itself on failure, so a session that failed to load retries on the next
 - Master Agent validates every specialist output before answering.
 - Build the deterministic pipeline first; wrap it in agents after it works.
 - **Reach is never the sum of exposures.** Dedupe on `pool_key` first. Any new consumer of
-  audience numbers has to respect this or it will overstate the audience ~23x.
+  audience numbers has to respect this or it will overstate the audience ~25x. Dedupe on
+  the SITE, not on `location_id` — one station is several location rows.
 - **A validated number may not depend on an assumed constant.** If a figure the validator
   checks moves with a constant nobody can measure, the check validates nothing about the one
   thing that is actually uncertain.
+- **A constraint the brief declares gets a validator check, or it is not enforced.** A
+  stated input qualifies (unlike `REACH_LAMBDA`), and without an independent re-derivation
+  nothing surfaces a silent miss — which is exactly how a slot-depth constraint was dropped
+  end to end while every layer reported success. `hard_constraints` keys live in the closed
+  `ENFORCED_HARD_CONSTRAINTS` vocabulary and an unrecognized one fails verification.
 
 ## Build order
 
@@ -674,7 +963,7 @@ Everything on that line is built, MILP included.
 ```bash
 cd backend
 uv venv --python 3.13 .venv && uv pip install -e ".[dev]"   # first time
-# GEMINI_API_KEY comes from the repo-root .env; no backend/.env needed unless overriding
+# GEMINI_API_KEY / AZURE_OPENAI_* come from the repo-root .env; backend/.env only overrides
 
 .venv/bin/uvicorn app.main:app --reload --port 8000
 .venv/bin/python -m pytest tests/ -q     # no API key needed
@@ -693,14 +982,16 @@ not the signal (all of `node_modules` has it), `attrib +P` does not help, and re
 `distDir` breaks typechecking. Only moving the repo out of OneDrive actually fixes it.
 
 `GET /health` reports table count, whether `ridership_actuals.csv` was provisioned, and
-whether `GEMINI_API_KEY` is configured. Hit it on `127.0.0.1`, not `localhost` — see
-"Persistence and the read path" for the ~200ms-per-connection reason. The agent endpoints return 503 without a key; the
-test suite does not need one.
+which model providers have credentials (`model_providers_configured`, per provider —
+either one alone is enough to run). `GET /models` is the picker's catalogue. Hit it on `127.0.0.1`, not `localhost` — see
+"Persistence and the read path" for the ~200ms-per-connection reason. The agent endpoints return 503 when the selected
+provider has no key; the test suite does not need one.
 
 Smoke-test the agent end to end:
 
 ```bash
 curl -s -X POST 127.0.0.1:8000/campaign/run -H 'content-type: application/json' -d '{
+  "provider": "azure_openai", "model": "gpt-5.4-mini",
   "query": "I have $50,000 for a 30-day campaign starting 2026-10-01 targeting commuters
             aged 18-34 in the Downtown Core zone of Las Hackland. Optimize for reach."
 }' | jq '{run_id, provenance, stub_stages, answer}'

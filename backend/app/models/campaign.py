@@ -27,6 +27,82 @@ and preferred time blocks (`app/tools/relevance_tools.py`), so an unrecognized t
 no meaning there — it would silently collapse the audience sub-score to a 0.5 default.
 """
 
+INDUSTRY_VERTICALS: tuple[str, ...] = (
+    "retail",
+    "finance",
+    "technology",
+    "cpg",
+    "entertainment",
+    "auto",
+    "telecom",
+    "real_estate",
+    "education",
+    "healthcare",
+    "hospitality",
+    "nonprofit",
+    "government",
+)
+"""The 13 real values of `bookings.industry_vertical`, lowercase snake_case.
+
+Closed for the same reason as AUDIENCE_TERMS, and it was NOT closed for months. The field
+was a bare `str | None`, and every value the Master actually wrote to a run failed to match
+anything: `'AUTOMOTIVE / ELECTRIC VEHICLES'`, `'Consumer Tech'`, `'Fintech'`,
+`'Beauty / Skincare'`.
+
+Two sub-scores are keyed on this one string — `context_fit` (weight 0.15, via
+`INDUSTRY_TO_POI_CONTEXT`) and `historical_performance` (weight 0.10, via the booking
+history lookup). An unmatched value collapsed BOTH to a neutral 0.5 for every screen in
+the pool, pinning 25% of `relevance_score` to a constant while the tool reported success.
+The `conversion` objective made it worse: the MILP weights `conv_fit` (= `contextual_score`)
+at 0.40, so 40% of what the solver maximized was a flat 0.5.
+
+A rejected value costs one turn. An unmatched one silently deletes a quarter of the model.
+"""
+
+SCREEN_TYPES: tuple[str, ...] = ("bus_stop", "metro_station", "bus", "metro_rail_coach")
+"""The four real values of `screens.screen_type`. Two fixed, two vehicle-mounted."""
+
+ENFORCED_HARD_CONSTRAINTS: frozenset[str] = frozenset(
+    {
+        "min_screens",
+        "max_screens",
+        "allowed_screen_types",
+        "excluded_screen_types",
+        "excluded_zone_ids",
+        "excluded_positions",
+        "required_time_blocks",
+        # A legacy alias for the line above, accepted by both consumers but deliberately
+        # NOT advertised in `create_campaign_spec`'s docstring — one canonical name at
+        # intake, two accepted on read, so an older spec still verifies.
+        "time_blocks",
+        "min_zone_coverage",
+        "min_budget_utilization",
+        "max_slots_per_day",
+    }
+)
+"""Every `hard_constraints` key some stage actually enforces.
+
+`hard_constraints` is a free-form dict, and that freedom cost a real package: a brief
+declaring "1 rotating slot per screen" was recorded as `max_slots_per_day: 1`, persisted,
+echoed back to the Master in `normalized_spec` and in `get_active_run`'s
+`campaign_inputs` — and then read by nobody, because every consumer matches against its
+own hardcoded key list. The package shipped 3 slots/day and verification passed clean.
+
+So the vocabulary is closed and `validation._hard_constraint_checks` FAILS a package whose
+spec carries a key outside it. A constraint the brief declared and no stage enforces is
+worse than a rejected one: the rep believes it was honoured. Adding a key here without
+adding the code that enforces it re-creates exactly the bug this set exists to prevent.
+
+Where each is enforced:
+    min_screens, max_screens, min_zone_coverage,
+    min_budget_utilization, max_slots_per_day     tools/or_agent_tools.py -> optimize/
+    required_time_blocks / time_blocks            optimize/contract.py
+    allowed_screen_types, excluded_*              tools/relevance_tools.py (stage 2 cuts)
+
+Same pattern as AUDIENCE_TERMS above, one stage later: intake picks from a closed list,
+and code — not an LLM — decides what an off-vocabulary entry means.
+"""
+
 
 class AudienceTarget(BaseModel):
     age_range: tuple[int, int] | None = None
@@ -47,7 +123,14 @@ class CampaignSpec(BaseModel):
     """Normalized campaign brief. Produced by brief intake, consumed by every stage."""
 
     campaign_objective: str
-    industry_vertical: str | None = None
+    industry_vertical: str | None = Field(
+        default=None,
+        description=(
+            "One of INDUSTRY_VERTICALS, or None. Drives context_fit and "
+            "historical_performance, which together carry 25% of relevance_score — so a "
+            "value outside the list is rejected rather than scored as a near-miss."
+        ),
+    )
     ad_type: str | None = None
 
     city_ids: list[str] = []
@@ -83,6 +166,19 @@ class CampaignSpec(BaseModel):
     )
 
     optimization_goal: OptimizationGoal
+
+    screen_type_mix: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Screen types the brief wants REPRESENTED in the package, from SCREEN_TYPES. "
+            "Different from hard_constraints['allowed_screen_types'], which only permits "
+            "types: permitting bus and metro_station returned a pool that was 100% "
+            "metro_station, because a single global relevance cut kept 250 of 4,629 and "
+            "bus's best score sat below metro's worst. This field makes the candidate pool "
+            "stratified per named type, so a mixed brief is servable at all. Empty means "
+            "no mix was requested."
+        ),
+    )
 
     hard_constraints: dict[str, Any] = {}
     soft_preferences: dict[str, Any] = {}
@@ -131,6 +227,38 @@ class CampaignSpec(BaseModel):
                 f"unknown audience_terms {unknown}; allowed values are {list(AUDIENCE_TERMS)}"
             )
         return list(dict.fromkeys(v))
+
+    @field_validator("screen_type_mix")
+    @classmethod
+    def _screen_type_mix_known(cls, v: list[str]) -> list[str]:
+        unknown = [t for t in v if t not in SCREEN_TYPES]
+        if unknown:
+            raise ValueError(
+                f"unknown screen_type_mix {unknown}; allowed values are {list(SCREEN_TYPES)}"
+            )
+        return list(dict.fromkeys(v))
+
+    @field_validator("industry_vertical")
+    @classmethod
+    def _industry_vertical_known(cls, v: str | None) -> str | None:
+        """Reject off-vocabulary verticals in code, exactly like `_audience_terms_known`.
+
+        Case and separator variants are normalized first — 'Real Estate' and 'REAL_ESTATE'
+        are unambiguously the vocabulary's `real_estate`, and failing those would reject a
+        correct answer on formatting. Anything still unmatched is genuinely a different
+        concept ('Fintech' is not `finance` by rule, and guessing is how the model went
+        quiet in the first place), so it raises and the Master picks again.
+        """
+        if v is None:
+            return None
+        normalized = v.strip().lower().replace(" ", "_").replace("-", "_")
+        if normalized in INDUSTRY_VERTICALS:
+            return normalized
+        raise ValueError(
+            f"unknown industry_vertical {v!r}; allowed values are "
+            f"{list(INDUSTRY_VERTICALS)}. Pick the closest one or leave it None — an "
+            f"unmatched value neutralizes 25% of every relevance score."
+        )
 
     @model_validator(mode="after")
     def _geography_present(self) -> CampaignSpec:

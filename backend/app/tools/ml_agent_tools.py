@@ -88,6 +88,10 @@ def estimate_screen_economics(
             available. A screen with fewer free slots on any day of the flight is
             returned as infeasible rather than dropped.
     """
+    if not run_state.exists(run_id):
+        error(f"STAGE 4 estimate_screen_economics called with unknown run_id={run_id!r}")
+        return run_state.unknown_run(run_id, tool="estimate_screen_economics")
+
     if (blocked := run_state.missing_prerequisite(run_id, CANDIDATES_KIND)) is not None:
         error(f"STAGE 4 blocked: {blocked['detail']}")
         return blocked

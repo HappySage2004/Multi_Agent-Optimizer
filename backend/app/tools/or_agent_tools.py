@@ -81,23 +81,46 @@ SOLVER_NOTICE = (
 
 
 @tool
-def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
+def optimize_package(run_id: str, slots_per_day_cap: int | None = None) -> dict:
     """Select the inventory package that best serves the campaign objective.
 
     Consumes `screen_economics` and stores an OptimizationResult on the run. Returns
     either a package summary or an infeasibility report with reason codes and
     relaxation options — never a fabricated package.
 
+    The slot ceiling comes off the RUN, from the brief's own
+    `hard_constraints["max_slots_per_day"]`, and is reported back in `slot_structure`.
+    Do not pass `slots_per_day_cap` to satisfy a brief — a constraint routed through a
+    tool argument is a constraint that eventually arrives wrong, and one that arrives
+    wrong here ships as an over-delivery the client is contractually owed.
+
     Args:
         run_id: Handle for the campaign run.
-        slots_per_day_cap: Upper bound on slots bought per screen per day.
+        slots_per_day_cap: Exploration override only. May TIGHTEN the run's cap, never
+            widen it. Leave unset in normal operation.
     """
+    if not run_state.exists(run_id):
+        error(f"STAGE 5 optimize_package called with unknown run_id={run_id!r}")
+        return run_state.unknown_run(run_id, tool="optimize_package")
+
     if (blocked := run_state.missing_prerequisite(run_id, ECONOMICS_KIND)) is not None:
         error(f"STAGE 5 blocked: {blocked['detail']}")
         return blocked
 
     spec = run_state.get_spec(run_id)
     economics, candidates = _load_inputs(run_id)
+
+    try:
+        slot_cap = contract.resolve_slot_cap(spec, slots_per_day_cap)
+    except contract.ContractError as exc:
+        error(f"STAGE 5 slot cap unusable run_id={run_id}: {exc}")
+        return _fail(
+            run_id,
+            ["CONFLICTING_HARD_CONSTRAINTS"],
+            str(exc),
+            [f"Record max_slots_per_day as a whole number of slots, 1-{C.SLOTS_PER_CELL}"],
+            log=[],
+        )
 
     if not economics:
         error(f"STAGE 5 screen_economics artifact is empty on run_id={run_id}")
@@ -111,11 +134,18 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
 
     debug(
         f"STAGE 5 optimizing {len(economics)} priced lines, goal={spec.optimization_goal}, "
-        f"budget={spec.budget:,.0f}, slots_cap={slots_per_day_cap}"
+        f"budget={spec.budget:,.0f}, slots_per_screen_per_day<={slot_cap.limit} "
+        f"({slot_cap.source})"
     )
+    if slot_cap.declared:
+        info(
+            f"STAGE 5 brief declares max_slots_per_day={slot_cap.limit} — enforced as a hard "
+            f"per-SCREEN-per-day constraint across time blocks, and re-derived by the "
+            f"validation layer"
+        )
 
     try:
-        frame, notes = contract.build_candidate_frame(economics, candidates, spec)
+        frame, notes = contract.build_candidate_frame(economics, candidates, spec, slot_cap)
     except contract.ContractError as exc:
         error(f"STAGE 5 contract violation run_id={run_id}: {exc}")
         return _fail(
@@ -145,10 +175,6 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             log=notes,
         )
 
-    # `slots_per_day_cap` is the caller's lever, applied as an availability ceiling so the
-    # solver never proposes a depth the caller excluded.
-    frame = frame.assign(available=frame["available"].clip(upper=max(1, slots_per_day_cap)))
-
     # A minimum budget utilisation is honoured only when the BRIEF declares one. There is
     # no default floor: inventing one makes the solver spend leftover budget on repetition,
     # which on a reach brief buys no additional people at all.
@@ -158,6 +184,7 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
         frame,
         objective=spec.optimization_goal,
         notes=notes,
+        slot_cap=slot_cap,
         min_spend_fraction=float(declared_utilization) if declared_utilization else None,
     )
 
@@ -169,7 +196,9 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             f"{float(declared_utilization):.0%}; re-solving without the floor to find out "
             f"whether it is the binding constraint"
         )
-        unfloored = _solve(spec, frame, objective=spec.optimization_goal, notes=notes)
+        unfloored = _solve(
+            spec, frame, objective=spec.optimization_goal, notes=notes, slot_cap=slot_cap
+        )
         if unfloored.plan is not None:
             return _fail(
                 run_id,
@@ -194,7 +223,14 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             f"STAGE 5 no plan at exactly {spec.requested_num_screens} screens; re-solving "
             f"without the count to find out whether it is the binding constraint"
         )
-        relaxed = _solve(spec, frame, objective=spec.optimization_goal, notes=notes, exact=None)
+        relaxed = _solve(
+            spec,
+            frame,
+            objective=spec.optimization_goal,
+            notes=notes,
+            slot_cap=slot_cap,
+            exact=None,
+        )
         if relaxed.plan is not None:
             return _fail(
                 run_id,
@@ -212,9 +248,9 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             )
 
     if outcome.plan is None:
-        return _fail(run_id, *_diagnose(spec, frame, outcome), log=outcome.log)
+        return _fail(run_id, *_diagnose(spec, frame, outcome, slot_cap, notes), log=outcome.log)
 
-    result = _to_result(spec, outcome, economics)
+    result = _to_result(spec, outcome, economics, slot_cap)
     run_state.set_optimization(run_id, result)
     pkg = result.package
 
@@ -250,6 +286,11 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             "deduplicated by pool_key x time block, capped at each pool's reachable daily "
             "audience — never the sum of exposures"
         ),
+        "slot_structure": {
+            **slot_cap.describe(),
+            "slots_on_busiest_screen": outcome.slots_on_busiest_screen,
+            "slots_in_busiest_cell": outcome.slots_in_busiest_cell,
+        },
         "constraint_status": pkg.constraint_status,
         "unmet_coverage": pkg.unmet_coverage,
         "solver_log": result.solver_log,
@@ -263,12 +304,18 @@ def optimize_package(run_id: str, slots_per_day_cap: int = 3) -> dict:
             f"{solver.exposure_floor_per_person(spec.duration_days):.0f} and a cap of "
             f"{solver.wear_out_frequency_cap(spec.duration_days):.0f}"
         )
-    if (finding := _unspent_budget_finding(pkg, spec, outcome)) is not None:
+    if (
+        finding := _unspent_budget_finding(pkg, spec, outcome, slot_cap, economics, frame, notes)
+    ) is not None:
         payload["budget_finding"] = finding
         info(
             f"STAGE 5 budget unspent: {spec.budget - pkg.total_cost:,.0f} of "
-            f"{spec.budget:,.0f} ({1 - pkg.budget_utilization:.0%}) — audience saturation "
-            f"is binding, not money"
+            f"{spec.budget:,.0f} ({1 - pkg.budget_utilization:.0%}) — "
+            + (
+                f"the brief's {slot_cap.limit}-slot cap binds on depth"
+                if slot_cap.declared and outcome.slots_on_busiest_screen >= slot_cap.limit
+                else "audience saturation is binding, not money"
+            )
         )
     if pkg.unmet_coverage:
         info(f"STAGE 5 unmet coverage: {pkg.unmet_coverage}")
@@ -287,6 +334,10 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
         run_id: Handle for the campaign run.
         objectives: Which objectives to compare. Defaults to reach and awareness.
     """
+    if not run_state.exists(run_id):
+        error(f"STAGE 5 compare_objectives called with unknown run_id={run_id!r}")
+        return run_state.unknown_run(run_id, tool="compare_objectives")
+
     if (blocked := run_state.missing_prerequisite(run_id, ECONOMICS_KIND)) is not None:
         error(f"STAGE 5 objective comparison blocked: {blocked['detail']}")
         return blocked
@@ -298,7 +349,8 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
         return {"status": "no_candidates", "detail": "Nothing priced to compare."}
 
     try:
-        frame, notes = contract.build_candidate_frame(economics, candidates, spec)
+        slot_cap = contract.resolve_slot_cap(spec)
+        frame, notes = contract.build_candidate_frame(economics, candidates, spec, slot_cap)
     except contract.ContractError as exc:
         error(f"STAGE 5 objective comparison contract violation run_id={run_id}: {exc}")
         return {"status": "error", "detail": str(exc)}
@@ -320,7 +372,7 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
     withheld: list[dict] = []
 
     for objective in requested:
-        outcome = _solve(spec, frame, objective=objective, notes=notes)
+        outcome = _solve(spec, frame, objective=objective, notes=notes, slot_cap=slot_cap)
         if outcome.plan is None:
             info(f"STAGE 5 objective '{objective}' infeasible: {outcome.detail}")
             withheld.append({"objective": objective, "reason": f"infeasible: {outcome.detail}"})
@@ -384,6 +436,7 @@ def compare_objectives(run_id: str, objectives: list[str] | None = None) -> dict
     )
     return {
         "status": "ok",
+        "slot_structure": slot_cap.describe(),
         "comparison": comparison,
         "withheld": withheld,
         "note": (
@@ -420,10 +473,17 @@ def _solve(
     *,
     objective: str,
     notes: list[str],
+    slot_cap: contract.SlotCap,
     exact: int | None | object = ...,
     min_spend_fraction: float | None = None,
+    slot_cap_limit: int | None | object = ...,
 ) -> solver.SolveOutcome:
-    """Translate spec constraints into solver arguments and solve."""
+    """Translate spec constraints into solver arguments and solve.
+
+    `slot_cap_limit` overrides the cap for a diagnostic re-solve only — passing None asks
+    "would a package exist without this cap?", which is how the report can name the cap as
+    the binding constraint instead of blaming the budget.
+    """
     settings = get_settings()
     hc = spec.hard_constraints
 
@@ -451,6 +511,9 @@ def _solve(
         unit_coverage=unit_coverage,
         time_limit=float(settings.solver_time_limit_seconds),
         min_spend_fraction=min_spend_fraction,
+        max_slots_per_screen_per_day=(
+            slot_cap.limit if slot_cap_limit is ... else slot_cap_limit  # type: ignore[arg-type]
+        ),
     )
     outcome.log = notes + outcome.log
     return outcome
@@ -479,7 +542,10 @@ def _allocations(spec: CampaignSpec, outcome: solver.SolveOutcome) -> list[Alloc
 
 
 def _to_result(
-    spec: CampaignSpec, outcome: solver.SolveOutcome, economics: list[ScreenEconomics]
+    spec: CampaignSpec,
+    outcome: solver.SolveOutcome,
+    economics: list[ScreenEconomics],
+    slot_cap: contract.SlotCap,
 ) -> OptimizationResult:
     allocations = _allocations(spec, outcome)
     exposures, reach, frequency, pools = _package_metrics(allocations, economics)
@@ -508,6 +574,13 @@ def _to_result(
                 or len({a.screen_id for a in allocations}) == spec.requested_num_screens
             ),
             "coverage": not outcome.coverage_shortfall,
+            # Only reported when the BRIEF declared it — a default cap is our choice, not a
+            # commitment, and listing it here would imply the client asked for it.
+            **(
+                {"max_slots_per_day": outcome.slots_on_busiest_screen <= slot_cap.limit}
+                if slot_cap.declared
+                else {}
+            ),
         },
         objective_value=objective_value,
         optimization_method=(
@@ -532,6 +605,10 @@ def _to_result(
             f"distinct_audience_pools={pools}",
             f"frequency={frequency:.2f}",
             f"objective_value={objective_value:,.0f} ({quantity})",
+            (
+                f"slots_per_screen_per_day<={slot_cap.limit} ({slot_cap.source}); "
+                f"busiest screen carries {outcome.slots_on_busiest_screen}"
+            ),
         ],
     )
 
@@ -582,9 +659,49 @@ def _package_metrics(
 
 
 def _diagnose(
-    spec: CampaignSpec, frame, outcome: solver.SolveOutcome
+    spec: CampaignSpec,
+    frame,
+    outcome: solver.SolveOutcome,
+    slot_cap: contract.SlotCap,
+    notes: list[str],
 ) -> tuple[list[str], str, list[str]]:
     """Reason codes, explanation and relaxations for a solve that found nothing."""
+    # A declared slot cap is checked FIRST, by re-solving without it. A 1-slot cap removes
+    # up to five sixths of a screen's purchasable depth, so it can make a brief infeasible
+    # that the budget alone would have covered — and blaming the budget for it sends the rep
+    # to ask for money that would not help. The cap is never widened to manufacture a
+    # package; the relaxation is offered to the human with the figure attached.
+    if slot_cap.declared:
+        debug(
+            f"STAGE 5 no plan at max_slots_per_day={slot_cap.limit}; re-solving uncapped to "
+            f"find out whether the declared cap is the binding constraint"
+        )
+        uncapped = _solve(
+            spec,
+            frame,
+            objective=spec.optimization_goal,
+            notes=notes,
+            slot_cap=slot_cap,
+            slot_cap_limit=None,
+        )
+        if uncapped.plan is not None:
+            return (
+                ["CONFLICTING_HARD_CONSTRAINTS", "INSUFFICIENT_INVENTORY"],
+                (
+                    f"The brief's max_slots_per_day={slot_cap.limit} (per screen per day, "
+                    f"across time blocks) cannot be met alongside the other constraints. "
+                    f"Without it a package exists using {uncapped.screens_used} screens at "
+                    f"{uncapped.spend:,.2f}, with up to "
+                    f"{uncapped.slots_on_busiest_screen} slots/day on its busiest screen. "
+                    f"Budget is not the binding constraint here."
+                ),
+                [
+                    f"Raise max_slots_per_day to {uncapped.slots_on_busiest_screen}",
+                    "Broaden the geography so the reach can come from more screens",
+                    "Relax the screen-count or coverage constraint instead",
+                ],
+            )
+
     cheapest = float((frame["price"] * spec.duration_days).min())
     if cheapest > spec.budget:
         return (
@@ -703,24 +820,85 @@ def _wear_out_warning(package: OptimizedPackage, spec: CampaignSpec) -> str | No
 
 
 def _unspent_budget_finding(
-    package: OptimizedPackage, spec: CampaignSpec, outcome: solver.SolveOutcome
+    package: OptimizedPackage,
+    spec: CampaignSpec,
+    outcome: solver.SolveOutcome,
+    slot_cap: contract.SlotCap,
+    economics: list[ScreenEconomics],
+    frame=None,
+    notes: list[str] | None = None,
 ) -> str | None:
-    """Say so when reach saturated before the budget did.
+    """Say so when the plan could not absorb the budget, and name what stopped it.
 
-    This is a real answer to a brief, not a failure: the inventory in the requested
-    geography cannot absorb the money without buying repetition. Silently spending it
-    anyway is what the old spend floor did, and none of those rupees added a person.
+    Two different causes, and they lead the rep to opposite actions. Audience saturation
+    means the money genuinely cannot buy more people and should be returned or spent
+    elsewhere. A declared slot cap that costs reach means relaxing it WOULD buy people,
+    which is the client's decision and has to be put to them with the figure attached.
+
+    Distinguished by re-solving without the cap, the same way the utilisation floor and the
+    screen count are diagnosed — and the comparison is on REACH, not on spend. "Without the
+    cap we would spend more" is not a finding: at equal reach the extra spend buys exactly
+    the repetition the cap was asked for. Measured across three briefs and four cap levels,
+    an uncapped solve never reached more people than a 1-slot one, so this is expected to
+    report saturation AND say the cap is not the cause — which is why the two branches read
+    so differently.
+
+    Only runs when a cap is declared, is actually binding, and material budget is left, so
+    the extra solve is off the normal path.
     """
     unspent = spec.budget - package.total_cost
     if unspent <= max(1.0, spec.budget * 0.02):
         return None
-    return (
+
+    preamble = (
         f"{unspent:,.0f} of the {spec.budget:,.0f} budget is unspent "
-        f"({unspent / spec.budget:.0%}). The binding constraint is audience saturation, not "
-        f"money: the plan already reaches {package.expected_reach:,.0f} of the people "
-        f"available in this geography, and further spend would buy repetition rather than "
-        f"reach. Options are to widen the geography, extend the flight, or return the "
-        f"balance — not to pad the package."
+        f"({unspent / spec.budget:.0%}). "
+    )
+    saturation = (
+        f"The binding constraint is audience saturation, not money: the plan already "
+        f"reaches {package.expected_reach:,.0f} of the people available in this geography, "
+        f"and further spend would buy repetition rather than reach. Options are to widen "
+        f"the geography, extend the flight, or return the balance — not to pad the package."
+    )
+
+    cap_binds = slot_cap.declared and outcome.slots_on_busiest_screen >= slot_cap.limit
+    if not cap_binds or frame is None:
+        return preamble + saturation
+
+    uncapped = _solve(
+        spec,
+        frame,
+        objective=spec.optimization_goal,
+        notes=notes or [],
+        slot_cap=slot_cap,
+        slot_cap_limit=None,
+    )
+    if uncapped.plan is None:
+        return preamble + saturation
+
+    uncapped_reach = _package_metrics(_allocations(spec, uncapped), economics)[1]
+    gain = uncapped_reach - package.expected_reach
+    if gain <= max(1.0, package.expected_reach * 0.01):
+        # The cap binds on depth but costs no audience: the same people are reached either
+        # way, so the balance is saturation and the cap is not the story. Saying otherwise
+        # sends the rep to renegotiate a written constraint for nothing.
+        return (
+            preamble
+            + saturation
+            + f" The brief's {slot_cap.limit}-slot-per-screen cap is NOT what leaves the "
+            f"balance: solved without it the same brief spends {uncapped.spend:,.2f} and "
+            f"reaches {uncapped_reach:,.0f} against this plan's "
+            f"{package.expected_reach:,.0f} — the extra spend buys repetition, which is "
+            f"the thing the cap was asked for. Do not offer to relax it to absorb budget."
+        )
+    return (
+        preamble + f"The brief's max_slots_per_day={slot_cap.limit} (per screen per day) is "
+        f"what leaves it, and here it does cost audience: solved without the cap the same "
+        f"brief spends {uncapped.spend:,.2f} across {uncapped.screens_used} screens and "
+        f"reaches {uncapped_reach:,.0f}, against {package.expected_reach:,.0f} — "
+        f"{gain:,.0f} more people ({gain / max(package.expected_reach, 1):.0%}). The cap was "
+        f"honoured. Put that trade-off to the client with both figures; relaxing a "
+        f"constraint they wrote is their decision, not ours."
     )
 
 

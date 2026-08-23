@@ -10,6 +10,7 @@
  *      no re-forecasting.
  */
 
+import { titleCase } from "./format";
 import type {
   Allocation,
   CampaignSpec,
@@ -37,8 +38,97 @@ export function timeBlockLabel(id: string): string {
   return TIME_BLOCKS.find((b) => b.id === id)?.label ?? `Block ${id}`;
 }
 
+/**
+ * "16:00-20:00 (Evening)" — the clock hours and the daypart together.
+ *
+ * What the package table shows. A rep reads a time and a part of the day; "Block 5" is an
+ * internal id and means nothing on a client call.
+ */
+export function timeBlockDaypartLabel(id: string): string {
+  const block = TIME_BLOCKS.find((b) => b.id === id);
+  if (!block) return `Block ${id}`;
+  return `${block.label} (${titleCase(block.daypart)})`;
+}
+
 /** Slots in one rotation loop. Matches the D4 six-slot matrix in UI.md. */
 export const ROTATION_LOOP_SLOTS = 6;
+
+// --------------------------------------------------------------- package lines
+
+/**
+ * One purchasable line, labelled for a person rather than for the pipeline.
+ *
+ * Shared by the in-chat `PackageTable` and the printed proposal so the two can never
+ * disagree about what is being sold. Everything here is client-safe: what the screen is,
+ * where it is, when it runs, what it costs. Nothing about how the price was derived.
+ */
+export interface PackageLineRow {
+  key: string;
+  screenId: string;
+  /** Zone name where there is one, else the corridor. Never a raw zone id. */
+  place: string;
+  screenType: string;
+  timeBlock: string;
+  slotsPerDay: number;
+  pricePerSlotPerDay: number;
+  lineCost: number;
+  viewedExposures: number;
+}
+
+export function packageLineRows(
+  pkg: OptimizedPackage,
+  candidates: ScreenCandidate[] = [],
+): PackageLineRow[] {
+  const byScreen = new Map(candidates.map((c) => [c.screen_id, c]));
+  return pkg.allocations
+    .map((a, index) => {
+      const candidate = byScreen.get(a.screen_id);
+      return {
+        key: `${a.screen_id}-${a.time_block_id}-${index}`,
+        screenId: a.screen_id,
+        place: placeLabel(candidate),
+        screenType: candidate?.screen_type ? titleCase(candidate.screen_type) : "—",
+        timeBlock: timeBlockDaypartLabel(a.time_block_id),
+        slotsPerDay: a.slots_per_day,
+        pricePerSlotPerDay: a.price_per_slot_per_day,
+        lineCost: lineCost(a),
+        viewedExposures: a.viewed_exposures,
+      };
+    })
+    .sort((a, b) => b.viewedExposures - a.viewedExposures);
+}
+
+/**
+ * Where a screen is, in the words a client would use.
+ *
+ * The stop or station name FIRST — an advertiser can picture "East Commons Station"; a zone
+ * is a planning unit and a zone id is meaningless to them. Vehicle-mounted screens have no
+ * fixed location, so their corridor names them. The ids are last and only exist so a cell
+ * is never blank.
+ */
+export function placeLabel(candidate: ScreenCandidate | undefined): string {
+  if (!candidate) return "—";
+  return (
+    candidate.location_name ??
+    candidate.corridor_id ??
+    candidate.zone_name ??
+    candidate.zone_id ??
+    "—"
+  );
+}
+
+/** Distinct named places in a package, for a summary line. */
+export function packagePlaces(rows: PackageLineRow[]): string[] {
+  return [...new Set(rows.map((r) => r.place))].filter((p) => p !== "—");
+}
+
+/** Inclusive flight end: a 30-day flight starting on the 1st runs through the 30th. */
+export function flightEndDate(startIso: string, durationDays: number): string {
+  const start = new Date(`${startIso}T00:00:00Z`);
+  if (Number.isNaN(start.getTime())) return startIso;
+  start.setUTCDate(start.getUTCDate() + Math.max(1, durationDays) - 1);
+  return start.toISOString().slice(0, 10);
+}
 
 // ------------------------------------------------------------- package metrics
 
@@ -216,6 +306,127 @@ export function priceGuardrail(
     screensPriced: new Set(priced.map((e) => e.screen_id)).size,
     meanBookingProbability: mean(priced.map((e) => e.pricing!.booking_probability)),
   };
+}
+
+// --------------------------------------------------- per-screen pricing (D3)
+
+export interface PricingLine {
+  screenId: string;
+  place: string;
+  screenType: string | null;
+  timeBlockLabel: string;
+  floor: number;
+  target: number;
+  cap: number;
+  /** What the optimizer actually agreed per slot per day. */
+  paid: number;
+  /** Where `paid` sits between floor and cap, 0-1, clamped. */
+  paidPosition: number;
+  /** True when the demand premium carried the quote past the cap — the one legal case. */
+  aboveCap: boolean;
+  slotsPerDay: number;
+  maxSlotsPerDay: number | null;
+  lineCost: number;
+  /** Plain-language reasons this screen is priced where it is. Never empty. */
+  drivers: string[];
+}
+
+/**
+ * Why each screen in the package costs what it costs, one line per bought screen x block.
+ *
+ * This is the sales rep’s answer to "why is this one $103 and that one $75", so the
+ * drivers are sentences rather than model fields. Nothing is computed here that the ML
+ * agent did not already decide — the thresholds only choose which sentence to show.
+ */
+export function pricingLines(
+  allocations: Allocation[],
+  economics: ScreenEconomics[] = [],
+  candidates: ScreenCandidate[] = [],
+): PricingLine[] {
+  const byKey = new Map(economics.map((e) => [`${e.screen_id}|${e.time_block_id}`, e]));
+  const byScreen = new Map(candidates.map((c) => [c.screen_id, c]));
+
+  return allocations
+    .map((a) => {
+      const row = byKey.get(`${a.screen_id}|${a.time_block_id}`);
+      const band = row?.pricing ?? null;
+      if (!band) return null;
+
+      const paid = a.price_per_slot_per_day;
+      const span = band.cap - band.floor;
+
+      return {
+        screenId: a.screen_id,
+        place: placeLabel(byScreen.get(a.screen_id)),
+        screenType: byScreen.get(a.screen_id)?.screen_type ?? null,
+        timeBlockLabel: timeBlockLabel(a.time_block_id),
+        floor: band.floor,
+        target: band.target,
+        cap: band.cap,
+        paid,
+        paidPosition: span > 0 ? clamp01((paid - band.floor) / span) : 0.5,
+        aboveCap: paid > band.cap,
+        slotsPerDay: a.slots_per_day,
+        maxSlotsPerDay: row?.max_slots_per_day ?? null,
+        lineCost: lineCost(a),
+        drivers: priceDrivers(row, band.floor, band.cap, paid),
+      } satisfies PricingLine;
+    })
+    .filter((line): line is PricingLine => line !== null)
+    .sort((a, b) => b.lineCost - a.lineCost);
+}
+
+/**
+ * The two or three sentences that actually explain a quote.
+ *
+ * Deliberately not every model field: occupancy is what moves the price inside the band,
+ * seasonality and the demand premium are the only two things that move the band itself,
+ * and everything else is diagnostics the rep cannot act on.
+ */
+function priceDrivers(
+  row: ScreenEconomics | undefined,
+  floor: number,
+  cap: number,
+  paid: number,
+): string[] {
+  const drivers: string[] = [];
+
+  const occupancy = row?.occupancy_rate ?? null;
+  if (occupancy !== null) {
+    const pct = Math.round(occupancy * 100);
+    drivers.push(
+      occupancy >= 0.66
+        ? `In demand — ${pct}% of this screen’s slots are already sold for these dates, so it prices near the top of its range.`
+        : occupancy <= 0.33
+          ? `Wide open — only ${pct}% of this screen’s slots are sold for these dates, so it prices near the bottom of its range.`
+          : `Moderately booked — ${pct}% of this screen’s slots are sold for these dates, which puts it mid-range.`,
+    );
+  }
+
+  const seasonality = row?.seasonality_multiplier ?? null;
+  if (seasonality !== null && Math.abs(seasonality - 1) >= 0.01) {
+    const delta = Math.round((seasonality - 1) * 100);
+    drivers.push(
+      delta > 0
+        ? `Timing premium of ${delta}% — these dates run hotter than this screen’s average.`
+        : `Timing discount of ${Math.abs(delta)}% — these dates run quieter than this screen’s average.`,
+    );
+  }
+
+  const premium = row?.demand_premium ?? null;
+  if (premium !== null && premium > 1.001) {
+    drivers.push(
+      `Under-priced for its audience — it delivers more than comparable screens have been charging, so a ${Math.round((premium - 1) * 100)}% uplift applies.`,
+    );
+  }
+
+  drivers.push(
+    paid > cap
+      ? `Agreed at ${paid.toFixed(2)} per slot per day, above the ${cap.toFixed(0)} ceiling for comparable screens — the under-pricing correction above is the reason.`
+      : `Agreed at ${paid.toFixed(2)} per slot per day, inside the ${floor.toFixed(0)}–${cap.toFixed(0)} range comparable screens have sold for.`,
+  );
+
+  return drivers;
 }
 
 // ----------------------------------------------------------- rotation loop (D4)

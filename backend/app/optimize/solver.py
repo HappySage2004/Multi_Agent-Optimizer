@@ -14,7 +14,8 @@ For each candidate cell i = (screen, time block):
          - coverage_penalty * sum(c) - wear_out_penalty * sum(w)
          - tie_breaker * cost
 
-Hard:     budget, per-day availability, slot ordering, screen count, required blocks.
+Hard:     budget, per-day availability, slot ordering, screen count, required blocks,
+          slots per screen per day.
 Elastic:  coverage groups, wear-out cap.
 
 Slots are LINEAR in value: all 6 slots loop continuously through the block, so the k-th
@@ -49,6 +50,27 @@ Five, each at its site below:
 4.  MARGINAL VALUE ARRIVES PRE-COMPUTED. The bundle applied `LOOP_PASSES_PER_TRIP / 6`
     and viewability inside `_coeffs`. Both now live in `exposure.py` and are applied once,
     upstream, so `ScreenEconomics` and the package are in the same unit.
+
+=========================== SLOTS PER SCREEN PER DAY ===========================
+`max_slots_per_screen_per_day` binds on the PHYSICAL SCREEN, summed over time blocks:
+
+    for each screen s:   sum over its cells i, over k:  y[i,k]  <=  cap
+
+The alternative reading — cap each (screen, block) cell — was what the pipeline effectively
+did, and it is wrong for the constraint briefs actually write. A brief saying "1 rotating
+slot on each screen" describes how much of that screen's airtime the client holds; under a
+per-cell reading a screen bought in Block 3 and Block 5 takes 1 + 1 = 2 slots that day and
+passes. Measured on a 45-day EV brief: a per-cell cap of 1 returned a plan whose busiest
+screen carried 2 slots/day, which is an over-delivery against the contract however the
+blocks are labelled.
+
+The per-screen reading is also the stricter one, and for a compliance constraint the
+stricter reading is the right default. The applied cap and this semantics string are
+reported in the package payload, so the figure always says which reading produced it.
+
+A per-cell clip cannot express this. `contract` still clips `available` to the cap, because
+a per-screen limit of k implies no cell exceeds k and the tighter bound shrinks the search —
+but the clip is an implication of the constraint, never the constraint.
 
 ================================ WEAR-OUT ================================
 The cap is `E[p] <= F_max * R[p] + w[p]`, with `w` penalized above any exposure reward, so
@@ -129,6 +151,16 @@ class ReachAccountingError(AssertionError):
     """The solver's pool bookkeeping disagrees with its own inputs."""
 
 
+class ConstraintBreachError(AssertionError):
+    """The returned plan violates a constraint the formulation was given.
+
+    Distinct from `ReachAccountingError`, which is about arithmetic. This one means a hard
+    row did not bind — a class of bug that yields a plausible-looking package breaching a
+    client's written brief, so it fails loudly rather than being reported and validated
+    later.
+    """
+
+
 @dataclass
 class SolveOutcome:
     """What the solver found. `plan` is None exactly when nothing feasible exists."""
@@ -146,6 +178,9 @@ class SolveOutcome:
     coverage_shortfall: dict[str, float] = field(default_factory=dict)
     wear_out_exposures_over_cap: float = 0.0
     wear_out_pools: int = 0
+    max_slots_per_screen_per_day: int | None = None
+    slots_on_busiest_screen: int = 0
+    slots_in_busiest_cell: int = 0
     pool_table: pd.DataFrame | None = None
     log: list[str] = field(default_factory=list)
 
@@ -164,6 +199,7 @@ def solve(
     time_limit: float = 30.0,
     wear_out_cap: float | None = None,
     min_spend_fraction: float | None = None,
+    max_slots_per_screen_per_day: int | None = None,
 ) -> SolveOutcome:
     """Solve one media plan, relaxing the spend floor rather than reporting a false
     infeasibility.
@@ -178,6 +214,9 @@ def solve(
     `min_zone_coverage` needs, and it is not expressible as a cell count: "cover 3 zones"
     is a cardinality over distinct groups, not 3 cells that might all sit in one zone.
     Hard because the validation layer fails a package that misses it.
+
+    `max_slots_per_screen_per_day` caps slots on the PHYSICAL SCREEN across all its time
+    blocks — see the module docstring for why that, and not the per-cell reading.
     """
     profile = PROFILES.get(objective, PROFILES[DEFAULT_PROFILE])
     log: list[str] = [
@@ -237,6 +276,7 @@ def solve(
         time_limit=time_limit,
         wear_out_cap=wear_out_cap,
         min_spend_fraction=floor,
+        max_slots_per_screen_per_day=max_slots_per_screen_per_day,
         log=list(log),
     )
 
@@ -256,6 +296,7 @@ def _solve_once(
     time_limit: float,
     wear_out_cap: float | None,
     min_spend_fraction: float,
+    max_slots_per_screen_per_day: int | None,
     log: list[str],
 ) -> SolveOutcome:
     S = C.SLOTS_PER_CELL
@@ -382,6 +423,17 @@ def _solve_once(
         m[0, off_z : off_z + n_screens] = 1
         push(m, min_screens or 0, max_screens or np.inf)
 
+    # --- hard slots per SCREEN per day ----------------------------------------
+    # Summed over the screen's cells and all slot levels, so a screen bought in two time
+    # blocks spends its allowance across both. A per-cell bound cannot say this; see the
+    # module docstring for the brief that this got wrong.
+    if max_slots_per_screen_per_day is not None:
+        m = lil_matrix((n_screens, n_vars))
+        for k in range(S):
+            for i in range(n):
+                m[screen_of_cell[i], k * n + i] = 1
+        push(m, -np.inf, max_slots_per_screen_per_day, n_screens)
+
     # --- hard distinct-unit coverage: u <= sum(y1 in unit), sum(u) >= min_units ------
     if n_units:
         m = lil_matrix((n_units, n_vars))
@@ -447,7 +499,9 @@ def _solve_once(
         f"MILP problem: {n_vars:,} vars ({n_y:,} slot binaries + {n_screens:,} screen "
         f"binaries + {n_units} coverage units + {3 * n_pools:,} pool continuous + "
         f"{n_groups} elastic groups), {len(lower):,} constraint rows, "
-        f"spend_floor={min_spend_fraction:.0%} wear_out_cap={cap:.0f}"
+        f"spend_floor={min_spend_fraction:.0%} wear_out_cap={cap:.0f} "
+        f"slots_per_screen_per_day<="
+        f"{'unbounded' if max_slots_per_screen_per_day is None else max_slots_per_screen_per_day}"
     )
 
     t0 = time.perf_counter()
@@ -492,6 +546,7 @@ def _solve_once(
         counts=(n, S, n_pools, n_groups),
         min_spend_fraction=min_spend_fraction,
         cap=cap,
+        slot_cap=max_slots_per_screen_per_day,
         log=log,
     )
 
@@ -530,6 +585,7 @@ def _read_solution(
     counts: tuple[int, ...],
     min_spend_fraction: float,
     cap: float,
+    slot_cap: int | None,
     log: list[str],
 ) -> SolveOutcome:
     n_y, off_e, off_c, off_w = offsets
@@ -556,6 +612,20 @@ def _read_solution(
     plan["line_cost"] = [total_cost[s - 1, i] for i, s in zip(positions, plan.slots, strict=True)]
     plan["viewed_exposures"] = [value[0, i] * s for i, s in zip(positions, plan.slots, strict=True)]
     plan = plan.reset_index(drop=True)
+
+    # Observed depth, re-derived from the plan rather than assumed from the bound. The
+    # per-screen figure is the one the constraint is about and the one the package reports.
+    busiest_screen = int(plan.groupby("screen_id")["slots"].sum().max())
+    busiest_cell = int(plan.slots.max())
+    if slot_cap is not None and busiest_screen > slot_cap:
+        error(
+            f"MILP slot cap breached: busiest screen carries {busiest_screen} slots/day "
+            f"against a cap of {slot_cap} — the per-screen constraint did not bind"
+        )
+        raise ConstraintBreachError(
+            f"busiest screen carries {busiest_screen} slots/day against a hard cap of "
+            f"{slot_cap}. Refusing to report a package that breaches a declared constraint."
+        )
 
     exposures = result.x[off_e : off_e + n_pools]
     curve = pooled.curve_reach(exposures, population)
@@ -608,6 +678,11 @@ def _read_solution(
         f"allocated_screens={int(plan.screen_id.nunique())}",
         f"allocated_cells={len(plan)}",
         (
+            f"slots_per_screen_per_day: cap="
+            f"{'none' if slot_cap is None else slot_cap} busiest_screen={busiest_screen} "
+            f"busiest_cell={busiest_cell} (cap binds per SCREEN across time blocks)"
+        ),
+        (
             f"audience_pool_blocks_touched={int((exposures > 1).sum())} "
             f"(pool x time block; physical pools are counted separately below)"
         ),
@@ -655,6 +730,9 @@ def _read_solution(
         coverage_shortfall=shortfall,
         wear_out_exposures_over_cap=float(wear_out.sum()),
         wear_out_pools=int((wear_out > 1).sum()),
+        max_slots_per_screen_per_day=slot_cap,
+        slots_on_busiest_screen=busiest_screen,
+        slots_in_busiest_cell=busiest_cell,
         pool_table=pool_table,
         log=log,
     )
