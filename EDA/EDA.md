@@ -1,12 +1,5 @@
 # EDA — Transit Media Campaign Datasets
 
-What we found in the 14 raw CSVs (~2.28 M rows, ~166 MB) before building anything.
-Every number here is computed by [eda.py](eda.py) — run it to reproduce the whole report.
-
-> One file, `ridership_actuals.csv` (124 MB, 2.05 M rows), is gitignored and was not
-> provisioned in this checkout. The ridership section falls back to
-> `route_schedules.estimated_ridership` and says so rather than going quiet. The script
-> reads the observed file in chunks when it is present.
 
 ---
 
