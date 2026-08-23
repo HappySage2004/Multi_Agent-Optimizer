@@ -92,10 +92,14 @@ docs, `datasets/`, `localDB/`, `stage/`, and config.
   preserves it and `update`/`delete` rewrite in place. That is what makes a transcript
   replayable without a sort key: `created_at` has second granularity, so two messages in
   one turn tie and sorting on it would be unstable.
-  **Gitignored** (`localDB/*.json`). It is local application state, and committing it
-  caused a real bug — see the artifact-portability note below. `sessions.json`,
-  `runs.json` and `uploads.json` were already tracked before the rule landed; `git rm
-  --cached` them to finish the job.
+  **Ignored by default, with the chat data as a deliberate exception.**
+  `messages.json` and `sessions.json` are committed — the transcripts are the
+  demonstration of what this system does, and a clone with no sessions opens on an empty
+  rail; `sessions.json` follows because a transcript is keyed to a session and cannot be
+  rendered without one. `runs.json` and `uploads.json` are **not**, and committing them
+  caused a real bug — see the artifact-portability note below. The cost of the split is
+  known and accepted: a fresh clone replays every conversation, but the inspector's D1-D4
+  tabs are empty, because the run records those tabs read are absent.
   Large intermediate artifacts (screen candidates, economics) go to
   `backend/artifacts/` as parquet, referenced by ID — not into localDB or agent context.
 - `stage/{session_id}/` — documents the user uploads alongside a query (briefs, RFPs,

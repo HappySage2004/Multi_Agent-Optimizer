@@ -26,14 +26,21 @@ backend/artifacts/
 *.duckdb
 *.parquet
 
-# The app database: sessions, chat transcripts, runs, uploads. Local application state,
-# not source. Committing it is what produced a real bug — a run record cloned from another
-# machine carries that machine's absolute artifact paths while backend/artifacts/ is
-# ignored, so the run arrives referencing parquet that was never here. Transcripts are
-# worse: they are the user's own conversations.
-# sessions.json, runs.json and uploads.json are already tracked; `git rm --cached` them to
-# finish the job.
+# The app database. Everything here is local application state rather than source, so it
+# is ignored by default — with a deliberate exception for the chat data.
+#
+# messages.json + sessions.json ARE committed: the transcripts are the demonstration of
+# what this system does, and a clone with no sessions opens on an empty rail. sessions.json
+# comes along because a transcript is keyed to a session and cannot be rendered without it.
+#
+# runs.json and uploads.json are NOT, and this is the rule that produced a real bug: a run
+# record carries absolute artifact paths from the machine that wrote it, while
+# backend/artifacts/ is ignored — so a cloned run references parquet that was never there.
+# Consequence to expect: a clone replays the conversation, but the inspector's D1-D4 tabs
+# are empty because the run records are absent. That is the intended trade.
 localDB/*.json
+!localDB/messages.json
+!localDB/sessions.json
 
 # User-uploaded documents (keep the folder, not the contents)
 stage/*
