@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import campaign, sessions, uploads
+from app.api import campaign, messages, sessions, uploads
 from app.config import get_settings
 from app.data.db import available_tables, has_ridership_actuals
 
@@ -36,6 +36,7 @@ app.add_middleware(
 )
 
 app.include_router(sessions.router)
+app.include_router(messages.router)
 app.include_router(uploads.router)
 app.include_router(campaign.router)
 

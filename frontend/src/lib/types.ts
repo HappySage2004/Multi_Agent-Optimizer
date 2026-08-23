@@ -344,6 +344,46 @@ export interface Session {
   updated_at: string | null;
 }
 
+/**
+ * One persisted chat message — `GET /sessions/{id}/messages`.
+ *
+ * Mirrors `MessageOut` in backend/app/api/schemas.py. An assistant message carries the
+ * turn's metadata as well as its prose: `run_id` is the package it reported on, and
+ * `pipeline_ran` distinguishes a rebuild from a follow-up answered off the existing
+ * package. The UI needs both to decide whether the metrics deck belongs under it.
+ */
+export interface ChatMessageRecord {
+  id: string;
+  session_id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  role: "user" | "assistant";
+  text: string;
+  run_id: string | null;
+  attachments: string[];
+  pipeline_ran: boolean | null;
+  tool_trail: string[];
+  token_usage: TokenUsage | null;
+}
+
+/** Body for POST/PATCH on a message. Mirrors `MessageCreate`. */
+export interface NewChatMessage {
+  role: "user" | "assistant";
+  text: string;
+  run_id?: string | null;
+  attachments?: string[];
+  pipeline_ran?: boolean | null;
+  tool_trail?: string[];
+  token_usage?: TokenUsage | null;
+}
+
+/**
+ * A staged document plus what the parser got out of it. Mirrors `UploadOut`.
+ *
+ * `extraction_status` is on the upload response so a scanned PDF is visible as unreadable
+ * the moment it is attached, rather than being discovered when the package comes back
+ * without the constraints the rep thought they had supplied.
+ */
 export interface Upload {
   id: string;
   session_id: string;
@@ -351,6 +391,14 @@ export interface Upload {
   content_type: string | null;
   size_bytes: number;
   stored_path: string;
+  /** "ok" | "no_text" | "unsupported" | "failed" */
+  extraction_status: string;
+  char_count: number;
+  /** PDFs only; null for formats with no page concept. */
+  page_count: number | null;
+  truncated: boolean;
+  extraction_detail: string;
+  preview: string;
 }
 
 /** Full record from GET /runs/{run_id} — localDB/runs.json. */
@@ -382,12 +430,19 @@ export interface TokenUsage {
 
 export interface CampaignRunOut {
   session_id: string | null;
+  /** Id of the persisted assistant message for this turn. */
+  message_id: string | null;
   run_id: string | null;
   answer: string;
   stub_stages: string[];
   provenance: Provenance;
   run_state: RunSnapshot | null;
   token_usage: TokenUsage | null;
+  /**
+   * Set when the agent stopped at the pre-flight gate to ask instead of building. `run_id`
+   * is null and `pipeline_ran` is false in that case — there is no package yet.
+   */
+  pending_questions: ClarificationRequest | null;
 }
 
 export interface HealthOut {
@@ -397,6 +452,54 @@ export interface HealthOut {
   gemini_api_key_configured: boolean;
   master_model: string;
   specialist_model: string;
+}
+
+// ------------------------------------------------- pre-flight clarification
+
+/**
+ * The one round of questions the Master Agent may ask, before the pipeline starts.
+ *
+ * Mirrors `ClarificationRequest` in backend/app/models/clarification.py. The agent
+ * supplies only the two probable answers per question; the backend assembles the four
+ * options below, so the UI can rely on the shape: two `answer`, one `defer`, one `custom`.
+ * `custom` is the only kind that gets a text field.
+ */
+export type ClarifyingOptionKind = "answer" | "defer" | "custom";
+
+export interface ClarifyingOption {
+  /** A, B, C or D — shown to the rep and echoed back in the reply text. */
+  key: string;
+  label: string;
+  /** What choosing this changes. For the defer option, what the agent would pick and why. */
+  detail: string | null;
+  kind: ClarifyingOptionKind;
+  /** Machine-readable answer for an `answer` option; null for defer and custom. */
+  value: string | null;
+}
+
+export interface ClarifyingQuestion {
+  id: string;
+  /** Which campaign input this fills, e.g. `audience_terms`. */
+  field: string;
+  question: string;
+  options: ClarifyingOption[];
+  /** A or B — what `Decide for yourself` resolves to. */
+  recommended_key: string;
+}
+
+export interface ClarificationRequest {
+  session_id: string;
+  /** What the agent already took from the brief, so the gaps read as narrow. */
+  understood: string;
+  questions: ClarifyingQuestion[];
+  asked_at: string;
+  answered: boolean;
+}
+
+/** `GET /sessions/{id}/clarification` — used on hydration so a reload keeps the options. */
+export interface ClarificationOut {
+  session_id: string;
+  pending_questions: ClarificationRequest | null;
 }
 
 // ------------------------------------------------------------------ SSE events
@@ -416,12 +519,19 @@ export interface StreamDoneEvent {
   session_id: string;
   /** The session's title after this run named it from the brief. */
   session_title: string | null;
+  /** Id of the assistant message the backend persisted for this turn. */
+  message_id: string | null;
   run_id: string | null;
   /** False when the turn answered from the existing package instead of rebuilding it. */
   pipeline_ran: boolean;
   answer: string;
   run_state: RunSnapshot | null;
   token_usage: TokenUsage | null;
+  /**
+   * Set when the agent stopped at the pre-flight gate to ask instead of building. `run_id`
+   * is null and `pipeline_ran` is false in that case — there is no package yet.
+   */
+  pending_questions: ClarificationRequest | null;
 }
 
 /** `event: error` — the run aborted; `detail` is safe to show the user. */

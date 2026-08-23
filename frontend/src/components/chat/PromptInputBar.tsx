@@ -11,7 +11,41 @@ import { ArrowRightIcon, PaperclipIcon, SpinnerIcon } from "@/components/ui/Icon
 import type { Upload } from "@/lib/types";
 
 /** Mirrors ALLOWED_SUFFIXES in backend/app/api/uploads.py. */
-const ACCEPTED_FILE_TYPES = ".pdf,.txt,.md,.csv,.docx,.xlsx,.pptx";
+/**
+ * Exactly the three formats the backend can parse (`documents.SUPPORTED_SUFFIXES`).
+ *
+ * It used to also offer .md/.csv/.xlsx/.pptx, which the upload endpoint accepted and no
+ * parser could read — the file attached cleanly and the agent never saw a word of it.
+ * Offering fewer types is the honest version.
+ */
+const ACCEPTED_FILE_TYPES = ".pdf,.docx,.txt";
+
+/**
+ * What the parser actually got. A silent attachment is the failure mode worth spending
+ * pixels on: a scanned PDF looks identical to a readable one in the chip, and the rep only
+ * finds out when the recommendation ignores their brief.
+ */
+function ExtractionNote({ upload }: { upload: Upload }) {
+  if (upload.extraction_status === "ok") {
+    const parts = [];
+    if (upload.page_count) parts.push(`${upload.page_count}p`);
+    parts.push(`${Math.max(1, Math.round(upload.char_count / 1000))}k chars`);
+    return (
+      <span className="text-[10px] font-normal text-zinc-400">
+        {parts.join(" · ")}
+        {upload.truncated ? " (trimmed)" : ""}
+      </span>
+    );
+  }
+  return (
+    <span
+      title={upload.extraction_detail}
+      className="rounded bg-amber-100 px-1 text-[10px] font-semibold text-amber-800"
+    >
+      no text
+    </span>
+  );
+}
 
 export function PromptInputBar({
   busy,
@@ -49,6 +83,7 @@ export function PromptInputBar({
             >
               <PaperclipIcon className="h-3 w-3 text-zinc-400" />
               <span className="max-w-[180px] truncate">{upload.filename}</span>
+              <ExtractionNote upload={upload} />
               <button
                 type="button"
                 onClick={() => onRemoveUpload(upload.id)}

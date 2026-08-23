@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import re
 
-from app.services import local_db
+from app.services import local_db, transcripts
 
 DEFAULT_TITLE = "New Campaign"
 MAX_CHARS = 60
@@ -91,8 +91,12 @@ def backfill_from_runs(sessions: list[dict]) -> list[dict]:
     Sessions predating automatic naming, and any whose run started before the title was
     recorded, would otherwise read "New Campaign" forever. The resolved
     `campaign_objective` is preferred over the raw brief — it is what intake actually
-    extracted, and it is what the centre-panel header shows. A session with no run stays
-    at the default, because nothing has named it yet.
+    extracted, and it is what the centre-panel header shows.
+
+    A session with a transcript but no run falls back to its opening message: a
+    conversation that failed before intake, or that never asked for a package, is still a
+    conversation the user recognises. Only a session with neither stays at the default,
+    because then genuinely nothing has named it.
     """
     unnamed = [s for s in sessions if s.get("title") == DEFAULT_TITLE]
     if not unnamed:
@@ -109,7 +113,12 @@ def backfill_from_runs(sessions: list[dict]) -> list[dict]:
 
     for session in unnamed:
         spec = (latest.get(session["id"], {}).get("campaign_spec")) or {}
-        source = spec.get("campaign_objective") or spec.get("original_query") or ""
+        source = (
+            spec.get("campaign_objective")
+            or spec.get("original_query")
+            or transcripts.first_user_text(session["id"])
+            or ""
+        )
         title = title_from_text(source)
         if title == DEFAULT_TITLE:
             continue

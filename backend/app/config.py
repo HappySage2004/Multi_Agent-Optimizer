@@ -60,7 +60,10 @@ class Settings(BaseSettings):
     solver_time_limit_seconds: int = 30
 
     # --- api -------------------------------------------------------------
-    cors_origins: list[str] = ["http://localhost:3000"]
+    # Both loopback spellings. The frontend now calls the API on 127.0.0.1 (see
+    # frontend/src/lib/api.ts for why), and a developer who opens the page on
+    # 127.0.0.1:3000 rather than localhost:3000 sends the matching Origin header.
+    cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     def ensure_dirs(self) -> None:
         for d in (self.local_db_dir, self.stage_dir, self.artifacts_dir):

@@ -1,4 +1,10 @@
-"""Chat sessions. Persisted in localDB/sessions.json."""
+"""Chat sessions. Persisted in localDB/sessions.json.
+
+A session owns three other collections -- its transcript, its runs and its uploads -- so
+deleting one cascades. Leaving them behind would keep a session's whole history on disk
+with nothing able to reach it, and `latest_run_for_session` would still resolve runs for a
+session the user believes is gone.
+"""
 
 from __future__ import annotations
 
@@ -51,6 +57,19 @@ def update_session(session_id: str, payload: SessionUpdate) -> SessionOut:
 
 @router.delete("/{session_id}")
 def delete_session(session_id: str) -> dict:
-    if not local_db.delete(local_db.SESSIONS, session_id):
+    """Delete a session and everything that belongs to it.
+
+    The counts come back so a caller can see what went. Files on disk -- staged uploads
+    under `stage/{session_id}/` and artifact parquet under `backend/artifacts/` -- are
+    left alone: they are unreachable once these records are gone, and deleting bytes is a
+    heavier, irreversible step than removing an index entry.
+    """
+    if local_db.get_record(local_db.SESSIONS, session_id) is None:
         raise HTTPException(status_code=404, detail=f"No session '{session_id}'")
-    return {"deleted": session_id}
+
+    cascaded = {
+        collection: local_db.delete_where(collection, session_id=session_id)
+        for collection in (local_db.MESSAGES, local_db.RUNS, local_db.UPLOADS)
+    }
+    local_db.delete(local_db.SESSIONS, session_id)
+    return {"deleted": session_id, "cascaded": cascaded}

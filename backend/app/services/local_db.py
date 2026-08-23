@@ -1,8 +1,14 @@
 """localDB/*.json — application persistence only.
 
-Sessions, campaign runs, and upload metadata. No analytical data, no file bytes, no
-row-level artifact content. One JSON file per collection, each holding a list of records
-keyed by `id`. Writes are atomic (temp file + replace) and serialized by a per-file lock.
+Sessions, chat transcripts, campaign runs, and upload metadata. No analytical data, no
+file bytes, no row-level artifact content. One JSON file per collection, each holding a
+list of records keyed by `id`. Writes are atomic (temp file + replace) and serialized by
+a per-file lock.
+
+**Record order is insertion order and callers may rely on it.** `_load` preserves the
+stored sequence, and `update`/`delete` rewrite in place, so a collection never reorders.
+This is what makes a chat transcript replayable without a sort key: `created_at` has only
+second granularity, so two messages in one turn tie and sorting on it would be unstable.
 """
 
 from __future__ import annotations
@@ -19,6 +25,7 @@ from typing import Any
 from app.config import get_settings
 
 SESSIONS = "sessions"
+MESSAGES = "messages"
 RUNS = "runs"
 UPLOADS = "uploads"
 
@@ -97,6 +104,22 @@ def update(collection: str, record_id: str, patch: dict[str, Any]) -> dict[str, 
                 _atomic_write(collection, records)
                 return records[i]
     return None
+
+
+def delete_where(collection: str, **match: Any) -> int:
+    """Drop every record whose fields equal `match`, in one atomic write.
+
+    Cascade cleanup (a deleted session's messages, runs and uploads) would otherwise be
+    one read+write per record, and a partial failure would leave the collection half
+    orphaned.
+    """
+    with _lock_for(collection):
+        records = _load(collection)
+        remaining = [r for r in records if any(r.get(k) != v for k, v in match.items())]
+        removed = len(records) - len(remaining)
+        if removed:
+            _atomic_write(collection, remaining)
+        return removed
 
 
 def delete(collection: str, record_id: str) -> bool:

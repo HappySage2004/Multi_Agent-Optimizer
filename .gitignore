@@ -26,6 +26,15 @@ backend/artifacts/
 *.duckdb
 *.parquet
 
+# The app database: sessions, chat transcripts, runs, uploads. Local application state,
+# not source. Committing it is what produced a real bug — a run record cloned from another
+# machine carries that machine's absolute artifact paths while backend/artifacts/ is
+# ignored, so the run arrives referencing parquet that was never here. Transcripts are
+# worse: they are the user's own conversations.
+# sessions.json, runs.json and uploads.json are already tracked; `git rm --cached` them to
+# finish the job.
+localDB/*.json
+
 # User-uploaded documents (keep the folder, not the contents)
 stage/*
 !stage/.gitkeep

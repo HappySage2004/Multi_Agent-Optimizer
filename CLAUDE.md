@@ -19,7 +19,7 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
   app/
     main.py               FastAPI entrypoint (/health, sessions, uploads, campaign)
     config.py             Settings; all paths resolve from the repo root
-    api/                  schemas.py, sessions.py, uploads.py, campaign.py
+    api/                  schemas.py, sessions.py, messages.py, uploads.py, campaign.py
     agents/
       master.py           build_master_agent() -- create_deep_agent + 2 subagents
       subagents.py        aggregator: assembles the two specs in pipeline order
@@ -28,7 +28,7 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
       prompts.py          MASTER_SYSTEM_PROMPT only
       validation.py       deterministic package verification (master-owned)
     tools/
-      master_tools.py     intake, geography, verify, inspect
+      master_tools.py     intake, geography, read_campaign_document, verify, inspect
       relevance_tools.py  AUDIENCE RELEVANCE ENGINE + its tools, one file.
                           Master-owned, no subagent. Stage 2.
       ml_agent_tools.py   ML Agent surface -- thin wrapper over app/ml/
@@ -36,7 +36,10 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
                           plus the reach accounting the validator re-derives
     models/               Pydantic contracts -- the stable inter-agent interfaces
     data/                 db.py (DuckDB + views), reference.py (validation lookups)
-    services/             artifact_store.py, local_db.py, run_state.py, session_titles.py
+    services/             artifact_store.py, local_db.py, run_state.py, session_titles.py,
+                          transcripts.py (the persisted chat log),
+                          documents.py (brief parsing -- the only place upload bytes
+                          are interpreted)
     ml/                 pricing engine (see below). occupancy, price_band,
                         booking_probability, seasonality, impressions, price_optimizer,
                         demand_value (merit vs realized price -> mispricing premium),
@@ -52,14 +55,17 @@ backend/          Python 3.11+ / FastAPI / LangGraph Deep Agents
   tests/                  conftest.py isolates storage; test_pipeline_smoke.py,
                           test_relevance_engine.py, test_pricing_engine.py,
                           test_pricing_levers.py, test_demand_value.py,
-                          test_client_profile.py, test_optimizer.py
+                          test_client_profile.py, test_optimizer.py,
+                          test_transcripts.py, test_artifact_store.py,
+                          test_session_titles.py, test_followup_turns.py,
+                          test_documents.py
   pyproject.toml, .env.example
 frontend/         Next.js (App Router) + TypeScript + Tailwind
   src/app/            routes
   src/components/     layout/ chat/ inspector/  (see UI.md component tree)
   src/lib/            API client, types mirroring backend Pydantic models
 datasets/         Read-only source CSVs. Never write here.
-localDB/          JSON files = the app database (sessions, saved campaigns, runs)
+localDB/          JSON files = the app database (sessions, chat transcripts, runs, uploads)
 stage/            User-uploaded campaign documents, one subfolder per session
 .gitignore        Root only — do not add nested .gitignore files
 ```
@@ -74,18 +80,27 @@ docs, `datasets/`, `localDB/`, `stage/`, and config.
   `v_screen_availability`, `v_screen_demand_history`, `v_historical_pricing`).
   `datasets/ridership_actuals.csv` is 124 MB / 2.05 M rows, gitignored, and must be
   provisioned separately. Never `cat` it or `read_csv` it without `usecols`/`dtype`.
-- `localDB/*.json` — application persistence: chat sessions, campaign specs, run
-  history, cached recommendations. Plain JSON files, read/written via
-  `backend/app/services/`. One file per collection (e.g. `sessions.json`).
+- `localDB/*.json` — application persistence: chat sessions, **chat transcripts**,
+  campaign specs, run history, cached recommendations. Plain JSON files, read/written via
+  `backend/app/services/`. One file per collection (`sessions.json`, `messages.json`,
+  `runs.json`, `uploads.json`).
   Application data only — no analytical data, no uploaded file bytes.
+  **Record order is insertion order and callers may rely on it** — `local_db._load`
+  preserves it and `update`/`delete` rewrite in place. That is what makes a transcript
+  replayable without a sort key: `created_at` has second granularity, so two messages in
+  one turn tie and sorting on it would be unstable.
+  **Gitignored** (`localDB/*.json`). It is local application state, and committing it
+  caused a real bug — see the artifact-portability note below. `sessions.json`,
+  `runs.json` and `uploads.json` were already tracked before the rule landed; `git rm
+  --cached` them to finish the job.
   Large intermediate artifacts (screen candidates, economics) go to
   `backend/artifacts/` as parquet, referenced by ID — not into localDB or agent context.
 - `stage/{session_id}/` — documents the user uploads alongside a query (briefs, RFPs,
-  client decks). The upload endpoint writes the file here and records only its
-  metadata (path, filename, mime type, size, session) in localDB. Brief intake reads
-  the staged file to enrich `CampaignSpec` (SOLUTION.md §3). Treat contents as
-  untrusted input: validate type and size, never execute, never pass a whole document
-  into agent context — extract and summarize first.
+  client decks), plus a `<file>.extracted.txt` sidecar per readable one. The upload
+  endpoint writes the file, parses it once, and records only metadata plus an extraction
+  summary in localDB — never document text. Treat contents as untrusted input: validate
+  type and size, never execute, never pass a whole document into agent context. See
+  "Reading uploaded briefs" below.
 
 ## Current implementation status
 
@@ -499,6 +514,121 @@ figures come back in the API response as `token_usage`.
 optimization result and validation live in `run_state` (localDB) and the artifact store,
 so candidate lists and price tables never enter an LLM's context.
 
+## Reading uploaded briefs
+
+`app/services/documents.py` is the only place uploaded bytes are interpreted. Three
+formats, because those are the three a rep forwards: **`.pdf`, `.docx`, `.txt`**. Both
+parsers are pure Python (`pypdf`, `python-docx`) so the upload path needs no build
+toolchain.
+
+Uploads were accepted for months and never read. The prompt told the agent to use "the
+filesystem tools", but deepagents' `read_file` addresses a **virtual state filesystem, not
+the disk** — so a staged file was never reachable, and raw PDF bytes would not have helped
+if it had been. A rep could attach an RFP carrying the budget, the dates and the market
+list, and the package came back built from the one-line chat message.
+
+How it works now:
+
+1. **Parsed once, at upload.** `documents.extract_and_store` writes the text to a
+   `<file>.extracted.txt` sidecar beside the staged file and records only a summary
+   (status, char/page count, truncation, a 200-char preview) in localDB. Not per agent
+   turn: re-parsing a 50-page PDF on every tool call is wasted work against a per-minute
+   rate limit, and a rep needs to know *at upload* that their scan contributed nothing.
+2. **`UploadOut` carries the extraction result**, and the attachment chip shows it. A
+   scanned PDF is otherwise indistinguishable from a readable one until the recommendation
+   comes back missing the constraints the rep thought they had supplied.
+3. **The agent reads through one tool**, `master_tools.read_campaign_document(upload_id)`,
+   which returns a **bounded excerpt** — `AGENT_EXCERPT_CHARS`, ~8 pages — never the file.
+   `_build_prompt` lists each document with its `upload_id` and marks the unreadable ones
+   so the agent neither ignores an attachment silently nor spends a rate-limited call
+   discovering it is empty.
+
+Decisions worth not re-litigating:
+
+- **Only the three parseable formats are accepted.** `.md`, `.csv`, `.xlsx` and `.pptx`
+  used to upload cleanly and reach no parser — the file attached, the agent saw nothing,
+  and nobody was told. Rejecting them with a 415 is the honest version. Widening the list
+  means writing the parser first.
+- **Two different caps.** `MAX_EXTRACT_CHARS` (200k) is what gets stored; the cap is
+  applied *while* accumulating, because a 20 MB `.docx` is a zip that decompresses to far
+  more and building the whole string first turns an upload limit into a memory problem.
+  `AGENT_EXCERPT_CHARS` (20k) is what reaches a model, per SOLUTION.md 31's rule that a
+  whole document never enters agent context.
+- **`.docx` tables are read, not just paragraphs.** Briefs put the budget, the flight dates
+  and the market list in a table about as often as in a sentence; a paragraph-only reader
+  drops exactly the fields intake needs.
+- **A scanned PDF and a locked PDF get different messages.** Both yield no text, but the
+  rep's next action is opposite — retype the numbers, versus resend it unlocked. An
+  "encrypted" PDF is retried with an empty user password first, since most in circulation
+  carry only an owner password and open fine in any viewer.
+- **Nothing raises into the request.** Every failure mode returns a status, and an
+  unparseable upload still succeeds as an upload — the rep can still describe the brief in
+  the chat, and losing their file because we could not read it is the worse outcome.
+- **Documents are data, never instructions.** Both the tool docstring and the prompt say
+  so, because the content is untrusted third-party input. A directive found inside a
+  client deck is text to summarise, not a request to follow.
+- Extraction status is recorded, so a known-unreadable document short-circuits in the tool
+  rather than being re-parsed. `documents.load_text` falls back to re-parsing the original
+  when the sidecar is missing, which is every document staged before this existed.
+
+## Persistence and the read path
+
+Everything a session accumulates is durable. Three fixes landed together here, and each
+had a symptom that looked like the other two.
+
+**Transcripts are stored server-side.** `services/transcripts.py` + `api/messages.py`
+(`GET/POST/DELETE /sessions/{id}/messages`, `GET/PATCH/DELETE /messages/{id}`). The
+campaign endpoints write both halves of every turn themselves — the **user message before
+the agent is invoked**, so a turn that dies on quota still records what was asked, and the
+assistant message on completion. The browser therefore never has to POST its own messages
+for them to survive a reload; the CRUD routes are a read/amend surface.
+
+An assistant message carries the turn's metadata as well as its prose: `run_id`,
+`pipeline_ran`, `tool_trail`, `token_usage`. `pipeline_ran` is what keeps a restored
+transcript honest — a follow-up answered off an existing package must not re-render the
+metrics deck, exactly as in the live stream.
+
+Sessions predating this have no messages, so the UI falls back to rebuilding the brief from
+`campaign_spec.original_query` and labels that turn `restored`. That is the **only** path
+that shows a package with no answer, and it says so on screen.
+
+**Deleting a session cascades** to its messages, runs and uploads (`local_db.delete_where`,
+one atomic write per collection). Orphaning them left `latest_run_for_session` resolving
+runs for a session the user believed was gone. Files on disk — staged uploads and artifact
+parquet — are deliberately left alone; they are unreachable once the records go, and
+deleting bytes is heavier and irreversible. Clearing a transcript
+(`DELETE /sessions/{id}/messages`) is a *different* action and leaves the runs intact.
+
+**`artifact_id` is the portable handle; `ArtifactReference.path` is not.**
+`artifact_store.resolve_path` looks in the configured `artifacts_dir` first and treats the
+recorded path as a fallback. The reverse order was a live bug: `runs.json` was committed
+while `backend/artifacts/` is gitignored, so a run cloned from another checkout arrived
+carrying `/Users/someone/projects/.../screen_candidates-abc123.parquet` and was unreadable
+even after the file was regenerated locally under the same id. An artifact that is
+genuinely absent still raises, and the endpoint returns **410** naming the id — a missing
+*reference* means the stage never ran, which is a different thing.
+
+The UI must not swallow that 410. `RunData.artifactErrors` carries it and the inspector
+renders it, because the old `.catch(() => null)` turned it into an empty row array while
+the reference still reported 250 rows — a tab claiming data it was not showing.
+
+**Call the API on `127.0.0.1`, never `localhost`.** uvicorn binds IPv4 only, and on Windows
+a SYN to `[::1]:8000` is *dropped* rather than refused, so a client resolving `localhost`
+waits out the full connect timeout before falling back. Measured on the same four-request
+session-open path, host as the only variable: **8.18s via `localhost` against 0.053s via
+`127.0.0.1`.** This was the whole of the "the UI takes 5-6 seconds" complaint. `cors_origins`
+allows both loopback spellings for the *page* origin.
+
+Two request-pattern fixes went with it: `GET /runs` uses `run_state.snapshot_of` on records
+already in hand (it was N+1 on file reads — 21 reads for 20 runs, now 1), and the
+session-open path no longer fetches the same run record twice.
+
+**Run data is cached per session in the UI.** `runDataBySession`, not a single slot. It used
+to be one slot that `selectSession` cleared while `hydratedRef` suppressed the refetch, so
+the first visit to a session filled the inspector and **every visit after it showed empty
+D1-D4 tabs**. The cache is what makes the "already hydrated" guard correct. Hydration
+un-marks itself on failure, so a session that failed to load retries on the next visit.
+
 ## Agent architecture rules (from SOLUTION.md §31 — non-negotiable)
 
 - One Master Deep Agent + **two** specialists: ML and OR. Do not add agents. §31.1 asked
@@ -563,13 +693,14 @@ not the signal (all of `node_modules` has it), `attrib +P` does not help, and re
 `distDir` breaks typechecking. Only moving the repo out of OneDrive actually fixes it.
 
 `GET /health` reports table count, whether `ridership_actuals.csv` was provisioned, and
-whether `GEMINI_API_KEY` is configured. The agent endpoints return 503 without a key; the
+whether `GEMINI_API_KEY` is configured. Hit it on `127.0.0.1`, not `localhost` — see
+"Persistence and the read path" for the ~200ms-per-connection reason. The agent endpoints return 503 without a key; the
 test suite does not need one.
 
 Smoke-test the agent end to end:
 
 ```bash
-curl -s -X POST localhost:8000/campaign/run -H 'content-type: application/json' -d '{
+curl -s -X POST 127.0.0.1:8000/campaign/run -H 'content-type: application/json' -d '{
   "query": "I have $50,000 for a 30-day campaign starting 2026-10-01 targeting commuters
             aged 18-34 in the Downtown Core zone of Las Hackland. Optimize for reach."
 }' | jq '{run_id, provenance, stub_stages, answer}'

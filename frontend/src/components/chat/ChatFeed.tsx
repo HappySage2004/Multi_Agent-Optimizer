@@ -8,6 +8,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { ClarificationCard } from "@/components/chat/ClarificationCard";
 import { ImpactMetricsDeck } from "@/components/chat/ImpactMetricsDeck";
 import { Markdown } from "@/components/chat/Markdown";
 import { StageProgress, ThinkingIndicator } from "@/components/chat/StageProgress";
@@ -15,6 +16,7 @@ import { StrategySummaryCard } from "@/components/chat/StrategySummaryCard";
 import { PaperclipIcon, WarningIcon } from "@/components/ui/Icon";
 import type { ChatMessage, RunData, RunStatus, StageState } from "@/hooks/useCampaignRun";
 import { packageMetrics, provenanceInfo, timeBlockRollups } from "@/lib/derive";
+import type { ClarificationRequest } from "@/lib/types";
 
 export function ChatFeed({
   messages,
@@ -23,9 +25,11 @@ export function ChatFeed({
   stages,
   toolTrail,
   error,
+  pendingQuestions,
   onCancel,
   onOpenInspector,
   onDismissError,
+  onAnswerClarification,
 }: {
   messages: ChatMessage[];
   runData: RunData;
@@ -33,16 +37,18 @@ export function ChatFeed({
   stages: StageState[];
   toolTrail: string[];
   error: string | null;
+  pendingQuestions: ClarificationRequest | null;
   onCancel: () => void;
   onOpenInspector: () => void;
   onDismissError: () => void;
+  onAnswerClarification: (reply: string) => void;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Follow the stream as stages land and the answer arrives.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages.length, status, stages]);
+  }, [messages.length, status, stages, pendingQuestions]);
 
   return (
     <div className="flex-1 space-y-6 overflow-y-auto p-6 pb-28">
@@ -60,6 +66,21 @@ export function ChatFeed({
           />
         ),
       )}
+
+      {/* Anchored after the transcript rather than inside the message that asked: the
+          round belongs to the session, and a rep who scrolls up should not lose it. */}
+      {pendingQuestions ? (
+        <div className="flex max-w-3xl gap-3">
+          <div className="mt-0.5 h-7 w-7 shrink-0" aria-hidden />
+          <div className="w-full">
+            <ClarificationCard
+              request={pendingQuestions}
+              disabled={status === "streaming"}
+              onSubmit={onAnswerClarification}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* The stage rail only appears once the pipeline is genuinely underway; a follow-up
           question never enters it and gets the compact indicator instead. */}
@@ -127,10 +148,14 @@ function AssistantBlock({
       </div>
 
       <div className="w-full space-y-4 text-xs leading-relaxed text-zinc-700">
+        {/* Only a session that predates transcript storage lands here. Everything since
+            restores its actual prose, so this note has to stay narrow rather than becoming
+            the generic "this is old" label. */}
         {message.restored ? (
           <p className="rounded-lg border border-zinc-200/60 bg-zinc-50/70 px-3 py-2 text-[11px] text-zinc-500">
-            Restored from run history. The package below is the stored result; the agent&rsquo;s
-            written answer is not persisted, so it is not shown.
+            Rebuilt from run history. This campaign ran before conversations were saved, so
+            the package below is the stored result but the agent&rsquo;s written answer was
+            never recorded.
           </p>
         ) : null}
 

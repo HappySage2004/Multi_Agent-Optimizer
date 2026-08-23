@@ -24,6 +24,11 @@ dependencies = [
     "scikit-learn>=1.6",
     "lightgbm>=4.5",
     "python-dotenv>=1.0",
+    # Campaign brief parsing (app/services/documents.py). Both are pure Python with no
+    # system libraries, which is why they were picked over pdfminer/PyMuPDF: the uploads
+    # path has to work on a laptop with no build toolchain.
+    "pypdf>=5.1",
+    "python-docx>=1.1",
 ]
 
 [project.optional-dependencies]

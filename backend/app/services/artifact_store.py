@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 import uuid
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any, TypeVar
 
 import numpy as np
@@ -74,14 +75,38 @@ def _auto_summary(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return out
 
 
+def resolve_path(ref: ArtifactReference | str) -> Path:
+    """Where this artifact actually lives, or raise FileNotFoundError.
+
+    `artifact_id` is the portable handle; `ArtifactReference.path` is not. It records the
+    absolute path of whichever machine wrote the artifact, and localDB/runs.json is
+    committed to git while `backend/artifacts/` is ignored — so a run record cloned from
+    another checkout arrives pointing at a path like
+    `/Users/someone/projects/.../screen_candidates-abc123.parquet`, which will never exist
+    here even when the file has been regenerated locally under the same id.
+
+    So resolve against the configured `artifacts_dir` first and treat the recorded path as
+    a fallback, not as the truth. The reverse order was a real bug: a whole session's
+    inspector rendered empty because the reference was trusted over the filesystem.
+    """
+    settings = get_settings()
+    artifact_id = ref.artifact_id if isinstance(ref, ArtifactReference) else ref
+
+    candidates = [settings.artifacts_dir / f"{artifact_id}.parquet"]
+    if isinstance(ref, ArtifactReference) and ref.path:
+        candidates.append(Path(ref.path))
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        f"No artifact '{artifact_id}' — looked in {[str(c) for c in candidates]}"
+    )
+
+
 def read_artifact(ref: ArtifactReference | str) -> pd.DataFrame:
     """Load an artifact back as a DataFrame. Tools use this; agents never see the rows."""
-    if isinstance(ref, ArtifactReference):
-        return pd.read_parquet(ref.path)
-    path = get_settings().artifacts_dir / f"{ref}.parquet"
-    if not path.exists():
-        raise FileNotFoundError(f"No artifact {ref} at {path}")
-    return pd.read_parquet(path)
+    return pd.read_parquet(resolve_path(ref))
 
 
 def read_rows(

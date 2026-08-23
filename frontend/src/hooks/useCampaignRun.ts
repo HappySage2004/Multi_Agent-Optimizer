@@ -4,23 +4,31 @@
  * The workspace state machine: sessions, the streaming orchestration, and the run data
  * every panel reads from.
  *
- * Chat transcripts are not persisted server-side — localDB stores sessions, runs and
- * uploads, but no message log. So a transcript lives in memory for the browser session,
- * and switching to an older session rehydrates what *is* durable: the brief from
- * `campaign_spec.original_query` plus the full package from the run record. The agent's
- * prose answer is not recoverable, and the restored message says so rather than
- * inventing one.
+ * Transcripts are persisted server-side (localDB/messages.json, written by the campaign
+ * endpoints), so switching session or reloading the page restores the actual conversation
+ * — prose and all — rather than a placeholder. Sessions that predate that storage have no
+ * messages, so they still fall back to reconstructing the brief from
+ * `campaign_spec.original_query`; that path is the only one that shows a package with no
+ * answer, and it says so.
+ *
+ * Run data is cached **per session**. It used to live in a single slot that
+ * `selectSession` cleared, while `hydratedRef` suppressed the refetch — so the first visit
+ * to a session filled the inspector and every visit after it showed empty D1-D4 tabs. The
+ * cache is what makes the "already hydrated" guard correct.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ApiError,
+  clearMessages,
   createSession,
   deleteSession,
   getArtifactRows,
+  getClarification,
   getHealth,
   getRun,
+  listMessages,
   listRuns,
   listSessions,
   stageUpload,
@@ -34,6 +42,9 @@ import {
   stageIndex,
 } from "@/lib/stages";
 import type {
+  ArtifactKind,
+  ChatMessageRecord,
+  ClarificationRequest,
   HealthOut,
   RunRecord,
   ScreenCandidate,
@@ -64,11 +75,14 @@ export type RunStatus = "idle" | "streaming" | "done" | "error";
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
-  /** Prose. Empty for a restored assistant message, which has no recoverable answer. */
+  /** Prose. Empty only on a legacy turn reconstructed from a run record. */
   text: string;
   /** Set on assistant messages that carry a package, so the deck renders inline. */
   runId?: string;
-  /** True when rehydrated from a run record rather than streamed live. */
+  /**
+   * True when reconstructed from a run record because no transcript was stored — the one
+   * case where the answer genuinely cannot be recovered.
+   */
   restored?: boolean;
   /** Filenames attached to a user message. */
   attachments?: string[];
@@ -89,6 +103,15 @@ export interface RunData {
   economics: ScreenEconomics[];
   /** True while the artifact rows behind the inspector are still loading. */
   loadingArtifacts: boolean;
+  /**
+   * Why an artifact the run *claims* to have could not be read, keyed by kind.
+   *
+   * A missing reference means the stage never ran, which the tabs already handle. This is
+   * the other case: the run record says 250 rows and the fetch failed anyway — usually a
+   * 410, because runs.json was committed while backend/artifacts/ is gitignored. That used
+   * to be swallowed into an empty array, so the tab claimed rows it was not showing.
+   */
+  artifactErrors: Partial<Record<ArtifactKind, string>>;
 }
 
 const EMPTY_RUN_DATA: RunData = {
@@ -97,12 +120,26 @@ const EMPTY_RUN_DATA: RunData = {
   packagedCandidates: [],
   economics: [],
   loadingArtifacts: false,
+  artifactErrors: {},
 };
 
 let messageSeq = 0;
 function nextMessageId(): string {
   messageSeq += 1;
-  return `msg-${messageSeq}`;
+  return `msg-local-${messageSeq}`;
+}
+
+/** A stored message as the chat feed wants it. */
+function toChatMessage(record: ChatMessageRecord): ChatMessage {
+  return {
+    id: record.id,
+    role: record.role,
+    text: record.text,
+    // The same rule the live stream applies: a follow-up resolves to the run it talked
+    // about, but only a rebuild owns the metrics deck.
+    runId: record.pipeline_ran === false ? undefined : record.run_id ?? undefined,
+    attachments: record.attachments.length > 0 ? record.attachments : undefined,
+  };
 }
 
 export function useCampaignRun() {
@@ -110,9 +147,10 @@ export function useCampaignRun() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
-  /** Transcript per session id, in memory only. */
+  /** Transcript per session id. Loaded from the server, then kept live in place. */
   const [transcripts, setTranscripts] = useState<Record<string, ChatMessage[]>>({});
-  const [runData, setRunData] = useState<RunData>(EMPTY_RUN_DATA);
+  /** Run data per session id — see the header for why this is not a single slot. */
+  const [runDataBySession, setRunDataBySession] = useState<Record<string, RunData>>({});
 
   const [status, setStatus] = useState<RunStatus>("idle");
   const [activeStage, setActiveStage] = useState<StageId | null>(null);
@@ -122,9 +160,19 @@ export function useCampaignRun() {
   const [error, setError] = useState<string | null>(null);
 
   const [pendingUploads, setPendingUploads] = useState<Upload[]>([]);
+  /**
+   * The open clarification round, per session.
+   *
+   * Per-session rather than a single slot for the same reason `runDataBySession` is: the
+   * rep can switch away from an unanswered question and back, and a shared slot would show
+   * one session's questions under another session's transcript.
+   */
+  const [clarificationBySession, setClarificationBySession] = useState<
+    Record<string, ClarificationRequest | null>
+  >({});
 
   const abortRef = useRef<AbortController | null>(null);
-  /** Sessions already rehydrated, so switching back does not refetch. */
+  /** Sessions already loaded, so switching back reads the cache instead of refetching. */
   const hydratedRef = useRef<Set<string>>(new Set());
 
   const messages = useMemo(
@@ -132,8 +180,25 @@ export function useCampaignRun() {
     [transcripts, activeSessionId],
   );
 
+  const runData = useMemo(
+    () => (activeSessionId ? runDataBySession[activeSessionId] ?? EMPTY_RUN_DATA : EMPTY_RUN_DATA),
+    [runDataBySession, activeSessionId],
+  );
+
+  const pendingQuestions = useMemo(
+    () => (activeSessionId ? clarificationBySession[activeSessionId] ?? null : null),
+    [clarificationBySession, activeSessionId],
+  );
+
   const appendMessage = useCallback((sessionId: string, message: ChatMessage) => {
     setTranscripts((prev) => ({ ...prev, [sessionId]: [...(prev[sessionId] ?? []), message] }));
+  }, []);
+
+  const patchRunData = useCallback((sessionId: string, patch: Partial<RunData>) => {
+    setRunDataBySession((prev) => ({
+      ...prev,
+      [sessionId]: { ...(prev[sessionId] ?? EMPTY_RUN_DATA), ...patch },
+    }));
   }, []);
 
   // ------------------------------------------------------------------ bootstrap
@@ -162,85 +227,131 @@ export function useCampaignRun() {
   // --------------------------------------------------------- artifacts & runs
 
   /**
-   * Load the run record plus the artifact rows the inspector needs.
+   * Load the run record plus the artifact rows the inspector needs, into `sessionId`'s
+   * slot.
    *
    * Two different slices are needed. D2 wants the top of the ranked pool; the deck, D3
    * and D4 want the rows for the screens the optimizer actually bought, which are
    * scattered through the artifact and so have to be requested by id.
+   *
+   * `prefetched` is passed when the caller already fetched the record — the session-open
+   * path used to fetch the same run twice, once to find it and once in here.
    */
-  const loadRun = useCallback(async (runId: string) => {
-    setRunData((prev) => ({ ...prev, loadingArtifacts: true }));
-    try {
-      const run = await getRun(runId);
-      setRunData({ ...EMPTY_RUN_DATA, run, loadingArtifacts: true });
+  const loadRun = useCallback(
+    async (sessionId: string, runId: string, prefetched?: RunRecord) => {
+      patchRunData(sessionId, { loadingArtifacts: true });
+      try {
+        const run = prefetched ?? (await getRun(runId));
+        patchRunData(sessionId, { ...EMPTY_RUN_DATA, run, loadingArtifacts: true });
 
-      const allocations = run.optimization?.package?.allocations ?? [];
-      const packagedIds = [...new Set(allocations.map((a) => a.screen_id))];
-      const hasCandidates = Boolean(run.artifacts.screen_candidates);
-      const hasEconomics = Boolean(run.artifacts.screen_economics);
+        const allocations = run.optimization?.package?.allocations ?? [];
+        const packagedIds = [...new Set(allocations.map((a) => a.screen_id))];
+        const artifactErrors: Partial<Record<ArtifactKind, string>> = {};
 
-      // Artifacts are absent until their stage runs; a 404 here is expected, not an error.
-      const [ranked, packaged, economics] = await Promise.all([
-        hasCandidates
-          ? getArtifactRows(runId, "screen_candidates", RANKED_ROW_LIMIT).catch(() => null)
-          : null,
-        hasCandidates && packagedIds.length > 0
-          ? getArtifactRows(
-              runId,
-              "screen_candidates",
-              PACKAGED_ROW_LIMIT,
-              packagedIds,
-            ).catch(() => null)
-          : null,
-        hasEconomics
-          ? getArtifactRows(
+        /**
+         * A *missing reference* means the stage never ran, which the tabs render as an
+         * empty state. A *failed fetch* against a reference that exists is different, and
+         * has to be said out loud rather than collapsed into the same empty array.
+         */
+        const pull = async <T,>(
+          kind: ArtifactKind,
+          present: boolean,
+          fetcher: () => Promise<{ rows: T[] }>,
+        ): Promise<T[]> => {
+          if (!present) return [];
+          try {
+            return (await fetcher()).rows;
+          } catch (cause) {
+            artifactErrors[kind] = describeError(cause);
+            return [];
+          }
+        };
+
+        const hasCandidates = Boolean(run.artifacts.screen_candidates);
+        const hasEconomics = Boolean(run.artifacts.screen_economics);
+
+        const [candidates, packagedCandidates, economics] = await Promise.all([
+          pull<ScreenCandidate>("screen_candidates", hasCandidates, () =>
+            getArtifactRows(runId, "screen_candidates", RANKED_ROW_LIMIT),
+          ),
+          pull<ScreenCandidate>("screen_candidates", hasCandidates && packagedIds.length > 0, () =>
+            getArtifactRows(runId, "screen_candidates", PACKAGED_ROW_LIMIT, packagedIds),
+          ),
+          pull<ScreenEconomics>("screen_economics", hasEconomics, () =>
+            getArtifactRows(
               runId,
               "screen_economics",
               packagedIds.length > 0 ? PACKAGED_ROW_LIMIT : RANKED_ROW_LIMIT,
               packagedIds.length > 0 ? packagedIds : undefined,
-            ).catch(() => null)
-          : null,
-      ]);
+            ),
+          ),
+        ]);
 
-      setRunData({
-        run,
-        candidates: ranked?.rows ?? [],
-        packagedCandidates: packaged?.rows ?? [],
-        economics: economics?.rows ?? [],
-        loadingArtifacts: false,
-      });
-    } catch (cause) {
-      setRunData({ ...EMPTY_RUN_DATA });
-      setError(describeError(cause));
-    }
-  }, []);
+        patchRunData(sessionId, {
+          run,
+          candidates,
+          packagedCandidates,
+          economics,
+          loadingArtifacts: false,
+          artifactErrors,
+        });
+      } catch (cause) {
+        patchRunData(sessionId, { ...EMPTY_RUN_DATA });
+        setError(describeError(cause));
+      }
+    },
+    [patchRunData],
+  );
 
   /**
-   * Rebuild what a past session left behind: its latest run's brief and package. The
-   * prose answer was never persisted, so the restored assistant message carries none.
+   * Load a session's stored transcript and the package its last turn reported on.
+   *
+   * Marked hydrated up front so a fast double-click cannot fetch twice, and un-marked on
+   * failure so a session whose load failed (backend down, say) retries on the next visit
+   * rather than staying empty for the life of the tab.
    */
   const hydrateSession = useCallback(
     async (sessionId: string) => {
       if (hydratedRef.current.has(sessionId)) return;
       hydratedRef.current.add(sessionId);
       try {
+        const stored = await listMessages(sessionId);
+
+        // Questions arrive on the SSE `done` event, so without this a reload would leave
+        // the rep reading an answer whose options are no longer on screen.
+        const pending = await getClarification(sessionId);
+        setClarificationBySession((prev) => ({ ...prev, [sessionId]: pending }));
+
+        if (stored.length > 0) {
+          setTranscripts((prev) => ({ ...prev, [sessionId]: stored.map(toChatMessage) }));
+          // The most recent turn that carried a package is the one the panels show.
+          const withRun = [...stored].reverse().find((m) => m.run_id);
+          if (withRun?.run_id) await loadRun(sessionId, withRun.run_id);
+          return;
+        }
+
+        // No stored transcript: a session from before messages were persisted. Rebuild
+        // what is still durable — the brief and the package — and mark the assistant turn
+        // `restored`, because its prose is genuinely unrecoverable.
         const runs = await listRuns(sessionId);
         if (runs.length === 0) return;
 
-        const latest = runs[runs.length - 1];
-        const run = await getRun(latest.run_id);
-        const restored: ChatMessage[] = [
-          {
-            id: nextMessageId(),
-            role: "user",
-            text: run.campaign_spec.original_query ?? run.campaign_spec.campaign_objective,
-          },
-          { id: nextMessageId(), role: "assistant", text: "", runId: run.id, restored: true },
-        ];
-        setTranscripts((prev) => ({ ...prev, [sessionId]: prev[sessionId] ?? restored }));
-        await loadRun(run.id);
-      } catch {
-        // A session with no readable run just opens empty.
+        const run = await getRun(runs[runs.length - 1].run_id);
+        setTranscripts((prev) => ({
+          ...prev,
+          [sessionId]: [
+            {
+              id: nextMessageId(),
+              role: "user",
+              text: run.campaign_spec.original_query ?? run.campaign_spec.campaign_objective,
+            },
+            { id: nextMessageId(), role: "assistant", text: "", runId: run.id, restored: true },
+          ],
+        }));
+        await loadRun(sessionId, run.id, run);
+      } catch (cause) {
+        hydratedRef.current.delete(sessionId);
+        setError(describeError(cause));
       }
     },
     [loadRun],
@@ -248,57 +359,60 @@ export function useCampaignRun() {
 
   // ------------------------------------------------------------------ sessions
 
+  /** Per-turn UI state that belongs to the stream, not to a session. */
+  const resetTurnState = useCallback(() => {
+    setStatus("idle");
+    setActiveStage(null);
+    setCompletedStages([]);
+    setToolTrail([]);
+    setPendingUploads([]);
+    setError(null);
+  }, []);
+
   const selectSession = useCallback(
     (sessionId: string) => {
       if (sessionId === activeSessionId) return;
       setActiveSessionId(sessionId);
-      setRunData({ ...EMPTY_RUN_DATA });
-      setPendingUploads([]);
-      setError(null);
-      setStatus("idle");
-      setActiveStage(null);
-      setCompletedStages([]);
-      setToolTrail([]);
+      resetTurnState();
       void hydrateSession(sessionId);
     },
-    [activeSessionId, hydrateSession],
+    [activeSessionId, hydrateSession, resetTurnState],
   );
 
   const newCampaign = useCallback(async () => {
     try {
       const session = await createSession();
       setSessions((prev) => [session, ...prev]);
-      hydratedRef.current.add(session.id); // Brand new: nothing to rehydrate.
+      hydratedRef.current.add(session.id); // Brand new: nothing to load.
       setActiveSessionId(session.id);
       setTranscripts((prev) => ({ ...prev, [session.id]: [] }));
-      setRunData({ ...EMPTY_RUN_DATA });
-      setPendingUploads([]);
-      setError(null);
-      setStatus("idle");
-      setActiveStage(null);
-      setCompletedStages([]);
-      setToolTrail([]);
+      setRunDataBySession((prev) => ({ ...prev, [session.id]: { ...EMPTY_RUN_DATA } }));
+      resetTurnState();
       return session;
     } catch (cause) {
       setError(describeError(cause));
       return null;
     }
-  }, []);
+  }, [resetTurnState]);
 
   const removeSession = useCallback(
     async (sessionId: string) => {
       try {
+        // The backend cascades the transcript, runs and uploads.
         await deleteSession(sessionId);
         setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        hydratedRef.current.delete(sessionId);
         setTranscripts((prev) => {
           const next = { ...prev };
           delete next[sessionId];
           return next;
         });
-        if (sessionId === activeSessionId) {
-          setActiveSessionId(null);
-          setRunData({ ...EMPTY_RUN_DATA });
-        }
+        setRunDataBySession((prev) => {
+          const next = { ...prev };
+          delete next[sessionId];
+          return next;
+        });
+        if (sessionId === activeSessionId) setActiveSessionId(null);
       } catch (cause) {
         setError(describeError(cause));
       }
@@ -306,18 +420,23 @@ export function useCampaignRun() {
     [activeSessionId],
   );
 
-  /** Clear the current session's transcript without deleting its server-side history. */
-  const resetTranscript = useCallback(() => {
+  /**
+   * Clear the current session's transcript. Durable now, so it survives a reload — but the
+   * session's runs and packages are deliberately left intact, which is what makes this
+   * different from deleting the session.
+   */
+  const resetTranscript = useCallback(async () => {
     if (!activeSessionId) return;
-    setTranscripts((prev) => ({ ...prev, [activeSessionId]: [] }));
-    setRunData({ ...EMPTY_RUN_DATA });
-    setPendingUploads([]);
-    setStatus("idle");
-    setActiveStage(null);
-    setCompletedStages([]);
-    setToolTrail([]);
-    setError(null);
-  }, [activeSessionId]);
+    const sessionId = activeSessionId;
+    setTranscripts((prev) => ({ ...prev, [sessionId]: [] }));
+    setRunDataBySession((prev) => ({ ...prev, [sessionId]: { ...EMPTY_RUN_DATA } }));
+    resetTurnState();
+    try {
+      await clearMessages(sessionId);
+    } catch (cause) {
+      setError(describeError(cause));
+    }
+  }, [activeSessionId, resetTurnState]);
 
   // ------------------------------------------------------------------- uploads
 
@@ -358,6 +477,8 @@ export function useCampaignRun() {
       }
 
       const attachments = pendingUploads;
+      // Optimistic: shown immediately. The backend persists its own copy of this same
+      // message before it invokes the agent, so a reload reads it from there.
       appendMessage(sessionId, {
         id: nextMessageId(),
         role: "user",
@@ -422,6 +543,13 @@ export function useCampaignRun() {
               // resolves to the same run, so attaching it to the message would repeat the
               // metrics deck under every answer — and completing the stage rail would
               // claim a pipeline that never ran.
+              // Null clears a round the agent has moved past; a value opens a new one.
+              // Always assigned, never merged — a stale question card is worse than none.
+              setClarificationBySession((prev) => ({
+                ...prev,
+                [sessionId]: event.pending_questions ?? null,
+              }));
+
               const rebuilt = event.pipeline_ran !== false;
               if (rebuilt && pipelineStarted) {
                 seen.add("verification");
@@ -432,13 +560,15 @@ export function useCampaignRun() {
               setStatus("done");
 
               appendMessage(sessionId, {
-                id: nextMessageId(),
+                // The id the backend stored, so this message and its persisted copy are
+                // the same message rather than two that happen to match.
+                id: event.message_id ?? nextMessageId(),
                 role: "assistant",
                 text: event.answer,
                 runId: rebuilt ? event.run_id ?? undefined : undefined,
               });
               // Only refetch when there is something new to fetch.
-              if (rebuilt && event.run_id) void loadRun(event.run_id);
+              if (rebuilt && event.run_id) void loadRun(sessionId, event.run_id);
             },
             onError: (event) => {
               setStatus("error");
@@ -459,6 +589,23 @@ export function useCampaignRun() {
       }
     },
     [activeSessionId, appendMessage, loadRun, newCampaign, pendingUploads, status],
+  );
+
+  /**
+   * Send the rep's answers to an open clarification round.
+   *
+   * Just `submit` with composed text: the reply is an ordinary turn, and the agent already
+   * has the original brief in its message history. The card is cleared optimistically so it
+   * cannot be answered twice while the run streams; `onDone` is what re-opens a round if
+   * the agent somehow asks again.
+   */
+  const answerClarification = useCallback(
+    async (reply: string) => {
+      if (!activeSessionId || status === "streaming") return;
+      setClarificationBySession((prev) => ({ ...prev, [activeSessionId]: null }));
+      await submit(reply);
+    },
+    [activeSessionId, status, submit],
   );
 
   const cancel = useCallback(() => {
@@ -517,6 +664,7 @@ export function useCampaignRun() {
     tokenUsage,
     error,
     pendingUploads,
+    pendingQuestions,
     selectSession,
     newCampaign,
     removeSession,
@@ -524,6 +672,7 @@ export function useCampaignRun() {
     attachFile,
     removePendingUpload,
     submit,
+    answerClarification,
     cancel,
     dismissError: useCallback(() => setError(null), []),
   };

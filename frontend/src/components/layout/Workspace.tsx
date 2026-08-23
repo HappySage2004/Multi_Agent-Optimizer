@@ -68,9 +68,11 @@ export function Workspace() {
             stages={campaign.stageStates}
             toolTrail={campaign.toolTrail}
             error={campaign.error}
+            pendingQuestions={campaign.pendingQuestions}
             onCancel={campaign.cancel}
             onOpenInspector={openInspector}
             onDismissError={campaign.dismissError}
+            onAnswerClarification={(reply) => void campaign.answerClarification(reply)}
           />
 
           <PromptInputBar

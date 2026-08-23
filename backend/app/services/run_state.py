@@ -168,7 +168,18 @@ def overall_provenance(run_id: str) -> Provenance:
 
 def snapshot(run_id: str) -> dict[str, Any]:
     """Compact view of run progress. Safe to render into a prompt."""
-    record = _require(run_id)
+    return snapshot_of(_require(run_id))
+
+
+def snapshot_of(record: dict[str, Any]) -> dict[str, Any]:
+    """`snapshot` for a record already in hand.
+
+    `GET /runs` was N+1 on file reads: it loaded runs.json once to list the runs, then
+    called `snapshot(run_id)` per run, and each of those re-read and re-parsed the whole
+    file. Listing is on the session-open path, so it pays that cost every time the user
+    switches session.
+    """
+    run_id = record["id"]
     artifacts = record.get("artifacts") or {}
     opt = record.get("optimization")
     return {

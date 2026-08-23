@@ -3,7 +3,9 @@
  *
  * Endpoints (backend/app/api/):
  *   GET    /health
- *   POST   /sessions            GET /sessions            DELETE /sessions/{id}
+ *   POST   /sessions            GET /sessions            PATCH/DELETE /sessions/{id}
+ *   GET    /sessions/{id}/messages   POST/DELETE the same path
+ *   GET    /messages/{id}       PATCH/DELETE /messages/{id}
  *   POST   /uploads             GET /uploads?session_id=
  *   POST   /campaign/run        POST /campaign/stream (SSE)
  *   GET    /runs/{id}           GET /runs/{id}/artifacts/{kind}?limit=
@@ -13,7 +15,11 @@ import type {
   ArtifactKind,
   ArtifactRowsOut,
   CampaignRunOut,
+  ChatMessageRecord,
+  ClarificationOut,
+  ClarificationRequest,
   HealthOut,
+  NewChatMessage,
   RunRecord,
   RunSnapshot,
   ScreenCandidate,
@@ -25,8 +31,19 @@ import type {
   Upload,
 } from "./types";
 
+/**
+ * `127.0.0.1`, not `localhost`, and the difference is worth seconds on every panel load.
+ *
+ * uvicorn binds IPv4 only. `localhost` resolves to `::1` first on Windows, and a SYN to
+ * `[::1]:8000` here is *dropped* rather than refused — so the client waits out a connect
+ * timeout before falling back to IPv4. Measured on the four-request session-open path,
+ * host as the only variable: 8.18s via `localhost` against 0.053s via `127.0.0.1`.
+ *
+ * Set NEXT_PUBLIC_API_BASE_URL to override; keep it on 127.0.0.1 unless uvicorn is bound
+ * to `::` as well.
+ */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://127.0.0.1:8000";
 
 /** An error carrying the backend's own status and `detail`, which is safe to display. */
 export class ApiError extends Error {
@@ -101,6 +118,50 @@ export function deleteSession(sessionId: string): Promise<{ deleted: string }> {
   });
 }
 
+// ------------------------------------------------------------------- messages
+
+/**
+ * The transcript. Persisted server-side by the campaign endpoints, so these are a read
+ * and amend surface rather than the write path for a normal turn — the browser does not
+ * have to POST its own messages for them to survive a reload.
+ */
+export function listMessages(sessionId: string): Promise<ChatMessageRecord[]> {
+  return request<ChatMessageRecord[]>(`/sessions/${encodeURIComponent(sessionId)}/messages`);
+}
+
+export function createMessage(
+  sessionId: string,
+  message: NewChatMessage,
+): Promise<ChatMessageRecord> {
+  return request<ChatMessageRecord>(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
+    method: "POST",
+    body: JSON.stringify(message),
+  });
+}
+
+export function updateMessage(
+  messageId: string,
+  patch: Partial<NewChatMessage>,
+): Promise<ChatMessageRecord> {
+  return request<ChatMessageRecord>(`/messages/${encodeURIComponent(messageId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+}
+
+export function deleteMessage(messageId: string): Promise<{ deleted: string }> {
+  return request<{ deleted: string }>(`/messages/${encodeURIComponent(messageId)}`, {
+    method: "DELETE",
+  });
+}
+
+/** Clear a session's transcript. Its runs and packages are left intact. */
+export function clearMessages(sessionId: string): Promise<{ deleted: number }> {
+  return request<{ deleted: number }>(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
+    method: "DELETE",
+  });
+}
+
 // -------------------------------------------------------------------- uploads
 
 /** Multipart, so this one bypasses the JSON content-type in `request`. */
@@ -159,6 +220,20 @@ export interface CampaignQuery {
   query: string;
   session_id?: string | null;
   upload_ids?: string[];
+}
+
+/**
+ * The session's open clarifying questions, or null.
+ *
+ * Needed on hydration: the questions ride in on the SSE `done` event, so a reload or a
+ * session switch would otherwise leave the rep looking at an answer that refers to options
+ * no longer on screen.
+ */
+export async function getClarification(sessionId: string): Promise<ClarificationRequest | null> {
+  const out = await request<ClarificationOut>(
+    `/sessions/${encodeURIComponent(sessionId)}/clarification`,
+  );
+  return out.pending_questions;
 }
 
 /** Blocking run. Returns the answer but no stage progress; prefer `streamCampaign`. */
