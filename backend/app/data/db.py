@@ -38,6 +38,9 @@ OPTIONAL_TABLES = ("ridership_actuals",)
 
 _conn: duckdb.DuckDBPyConnection | None = None
 _lock = threading.Lock()
+# Separate from `_lock` on purpose. `get_connection` acquires `_lock` itself, so guarding
+# `get_connection().cursor()` with the same non-reentrant lock deadlocks on the first call.
+_cursor_lock = threading.Lock()
 
 
 def _csv_view(con: duckdb.DuckDBPyConnection, name: str, path: Path) -> None:
@@ -481,10 +484,41 @@ def _create_poi_view(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def query_df(sql: str, params: list | None = None) -> pd.DataFrame:
-    """Run read-only SQL and return a DataFrame. Never hand the result to an LLM directly."""
+    """Run read-only SQL and return a DataFrame. Never hand the result to an LLM directly.
+
+    EVERY QUERY GETS ITS OWN CURSOR, and that is not a style choice. DuckDB binds a result
+    set to the connection that produced it, so two threads sharing one connection overwrite
+    each other's results and `fetch_df()` comes back None — surfacing as
+    `'NoneType' object has no attribute 'pivot_table'` in whichever caller lost the race.
+    Reproduced at 20 failures in 36 queries across three threads on the shared connection.
+
+    A cursor is a lightweight handle onto the same in-memory database and the same catalog,
+    so the CSV views are all visible through it. This is DuckDB's documented pattern for
+    concurrent reads, and it beats a global query lock: the engine builds scan 191k bookings
+    and 2.05M ridership rows, and serialising those behind one mutex would make every
+    concurrent request wait out the slowest scan.
+    """
+    # Resolve the connection BEFORE taking the cursor lock: `get_connection` acquires
+    # `_lock` itself, and nesting the two is how this deadlocked the first time.
     con = get_connection()
-    rel = con.execute(sql, params) if params else con.execute(sql)
-    return rel.fetch_df()
+    with _cursor_lock:
+        # Creation touches the parent connection, so it is serialised. The query itself is
+        # not — that is the entire point.
+        cursor = con.cursor()
+    try:
+        rel = cursor.execute(sql, params) if params else cursor.execute(sql)
+        frame = rel.fetch_df()
+    finally:
+        cursor.close()
+
+    if frame is None:
+        # Defensive: if this ever fires again the message names the cause instead of an
+        # AttributeError three frames away in a pandas call.
+        raise RuntimeError(
+            f"DuckDB returned no result set for: {sql.strip()[:120]}. This is the "
+            f"shared-connection race if a cursor was not used."
+        )
+    return frame
 
 
 def table_schema(table: str) -> pd.DataFrame:
