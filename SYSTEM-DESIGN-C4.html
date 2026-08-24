@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>System Design — C4 Model · Transit Media Campaign Intelligence Platform</title>
+<style>
+  :root{
+    --ink:#1f2124; --ink-2:#2e3136; --paper:#ffffff; --paper-2:#fafafb;
+    --accent:#dff250; --accent-2:#eef8a8; --lav:#eef0f9; --lav-2:#f6f7fc;
+    --muted:#6b7280; --line:#d9dbe4; --ok:#1f7a4d; --warn:#8a5a00;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-size:15.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1220px;margin:0 auto;padding:0 40px 120px}
+
+  header.hero{background:var(--ink);color:#fff;padding:56px 0 44px}
+  header.hero .wrap{padding-bottom:0}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;
+            font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0aa}
+  .brandrow b{color:#fff;letter-spacing:.16em;font-weight:600}
+  h1{font-size:44px;line-height:1.1;margin:26px 0 10px;letter-spacing:-.02em}
+  h1 .u{display:inline-block;border-bottom:7px solid var(--accent);padding-bottom:2px}
+  .sub{font-size:19px;color:#d7dae0;max-width:880px;margin:0 0 26px}
+  .pillrow{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .pill{background:#33373d;color:#e9ebef;border:1px solid #454a52;border-radius:999px;
+        padding:6px 14px;font-size:12.5px;letter-spacing:.02em}
+  .pill.hot{background:var(--accent);color:#1f2124;border-color:var(--accent);font-weight:600}
+
+  nav.toc{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.94);
+      backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-bottom:44px}
+  nav.toc ul{display:flex;flex-wrap:wrap;gap:2px;list-style:none;margin:0;padding:9px 0}
+  nav.toc a{display:block;padding:6px 11px;border-radius:6px;text-decoration:none;
+      color:var(--ink-2);font-size:13px;font-weight:500}
+  nav.toc a:hover{background:var(--accent);color:#1f2124}
+
+  h2{font-size:31px;letter-spacing:-.015em;margin:66px 0 6px;padding-top:8px}
+  h2 .num{color:#b9bdc7;font-variant-numeric:tabular-nums;margin-right:12px;font-weight:600}
+  .lede{color:var(--muted);font-size:17px;margin:0 0 26px;max-width:980px}
+  h3{font-size:20.5px;margin:38px 0 8px;letter-spacing:-.01em}
+  h4{font-size:13px;margin:26px 0 8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700}
+  p{margin:0 0 14px;max-width:1010px}
+  code,kbd{font-family:var(--mono);font-size:.87em;background:var(--lav);
+      border:1px solid #e2e4ef;border-radius:4px;padding:1px 5px}
+  .rule{height:8px;width:120px;background:var(--accent);border-radius:2px;margin:0 0 26px}
+  strong{font-weight:650}
+  ul.tight{margin:0 0 16px;padding-left:22px}
+  ul.tight li{margin-bottom:8px;max-width:1000px}
+
+  .call{background:var(--accent-2);border-left:6px solid var(--accent);
+        padding:16px 20px;margin:22px 0;border-radius:0 8px 8px 0}
+  .call.dark{background:var(--lav);border-left-color:var(--ink)}
+  .call p:last-child{margin-bottom:0}
+  .call .k{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+      color:#5b6070;margin-bottom:5px;font-weight:700}
+
+  .grid{display:grid;gap:16px;margin:22px 0}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{border:1px solid var(--line);border-radius:10px;padding:18px;background:var(--paper)}
+  .card.tint{background:var(--lav-2)}
+  .card h5{margin:0 0 6px;font-size:15.5px}
+  .card p{font-size:14px;color:#3f434b;margin:0}
+  .card p+p{margin-top:9px}
+  .card .tag{display:inline-block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+      background:var(--ink);color:#fff;border-radius:4px;padding:2px 7px;margin-bottom:9px;font-weight:600}
+  .card .tag.lime{background:var(--accent);color:#1f2124}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);
+      border-radius:10px;overflow:hidden;margin:26px 0 8px}
+  .stats div{padding:18px 16px;border-right:1px solid var(--line);background:var(--paper)}
+  .stats div:last-child{border-right:0}
+  .stats .n{font-size:27px;font-weight:700;letter-spacing:-.02em;display:block;line-height:1.1}
+  .stats .l{font-size:12.5px;color:var(--muted);display:block;margin-top:3px}
+
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+  th{background:var(--ink);color:#fff;text-align:left;padding:11px 13px;font-weight:600;font-size:12.5px;
+     letter-spacing:.05em;text-transform:uppercase}
+  td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:var(--lav-2)}
+  td.mono{font-family:var(--mono);font-size:12.5px}
+  td.nw{white-space:nowrap}
+
+  figure{margin:26px 0 34px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper)}
+  figure .cap{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--lav-2);
+      font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:#4a4f59;font-weight:700}
+  figure .cap span{float:right;letter-spacing:.02em;text-transform:none;color:var(--muted);font-weight:500}
+  figure svg{display:block;width:100%;height:auto;background:#fff}
+  figcaption{padding:14px 18px;border-top:1px solid var(--line);font-size:13.5px;color:#4a4f59;background:var(--paper-2)}
+  figcaption p{max-width:none;margin:0 0 8px}
+  figcaption p:last-child{margin:0}
+
+  svg text{font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif}
+  .t-title{font-size:14px;font-weight:700}
+  .t-sub{font-size:11px}
+  .t-body{font-size:11px}
+  .t-tiny{font-size:9.5px}
+  .t-lbl{font-size:10px;font-style:italic}
+  .t-hdr{font-size:11px;font-weight:700;letter-spacing:.1em}
+
+  .legend{display:flex;flex-wrap:wrap;gap:18px;padding:12px 18px;border-top:1px solid var(--line);
+      font-size:12.5px;color:#4a4f59;background:var(--paper-2)}
+  .legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:6px;
+      vertical-align:-2px;border:1px solid rgba(0,0,0,.18)}
+
+  footer{border-top:1px solid var(--line);margin-top:80px;padding:26px 0;color:var(--muted);font-size:13px}
+  @media print{
+    nav.toc{display:none} header.hero{padding:30px 0}
+    h2{page-break-after:avoid} figure{page-break-inside:avoid} body{font-size:11pt}
+  }
+  @media (max-width:900px){
+    .g3,.g4,.g2{grid-template-columns:1fr} .stats{grid-template-columns:repeat(2,1fr)}
+    .wrap{padding:0 20px 60px} h1{font-size:32px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow"><b>Urban Media &middot; Hackathon Submission</b><span>System Design — C4 Model</span></div>
+    <h1>The <span class="u">Campaign Intelligence Platform</span><br/>for Transit Media Sales</h1>
+    <p class="sub">A messy campaign brief goes in. A priced, optimised, fully verified and
+    fully explainable media package comes out — with reasoning a rep can say out loud on the
+    phone, and guardrails that stop a wrong number ever reaching a client.</p>
+    <div class="pillrow">
+      <span class="pill hot">4 systems working in harmony</span>
+      <span class="pill">LangGraph Deep Agents</span>
+      <span class="pill">FastAPI &middot; Python 3.13</span>
+      <span class="pill">DuckDB over 165 MB / 14 tables</span>
+      <span class="pill">MILP &middot; HiGHS</span>
+      <span class="pill">Next.js 15 &middot; React 19</span>
+      <span class="pill">362 automated tests</span>
+      <span class="pill">Built in 3 days</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap"><ul>
+  <li><a href="#summary">Summary</a></li>
+  <li><a href="#c1">C1 &middot; Context</a></li>
+  <li><a href="#c2">C2 &middot; Containers</a></li>
+  <li><a href="#c3">C3 &middot; Agent runtime</a></li>
+  <li><a href="#c3b">C3 &middot; Relevance</a></li>
+  <li><a href="#c3c">C3 &middot; Pricing</a></li>
+  <li><a href="#c3d">C3 &middot; Optimizer</a></li>
+  <li><a href="#runtime">Runtime view</a></li>
+  <li><a href="#tech">Technical capabilities</a></li>
+  <li><a href="#logic">Logical correctness</a></li>
+  <li><a href="#loop">Feedback loop</a></li>
+  <li><a href="#quality">Rigor &amp; scale</a></li>
+  <li><a href="#judge">Scorecard</a></li>
+</ul></div></nav>
+
+<div class="wrap">
+
+<h2 id="summary"><span class="num">00</span>Executive summary</h2>
+<div class="rule"></div>
+<p class="lede">Today a rep opens a spreadsheet, eyeballs the available screens, invents a
+price and sends a proposal. Nobody knows whether the price was right, whether those screens
+fit the audience, or whether three other advertisers wanted the same inventory that week. We
+replaced that with one conversation.</p>
+
+<div class="stats">
+  <div><span class="n">11,163</span><span class="l">screens scored every run</span></div>
+  <div><span class="n">972</span><span class="l">de-duplicated audience pools</span></div>
+  <div><span class="n">191,110</span><span class="l">bookings priced against</span></div>
+  <div><span class="n">2.05 M</span><span class="l">ridership rows behind reach</span></div>
+  <div><span class="n">~90 s</span><span class="l">brief &rarr; verified package</span></div>
+</div>
+
+<div class="grid g3">
+  <div class="card tint"><span class="tag lime">Sense</span><h5>It reads the whole brief</h5>
+  <p>The chat message <em>and</em> the attached RFP. Budget, flight dates, market list and
+  mandatory zones are extracted from PDF/DOCX once at upload, so a one-line "see attached"
+  still builds a complete spec — and a scanned PDF is reported as unreadable rather than
+  silently ignored.</p></div>
+  <div class="card tint"><span class="tag lime">Plan</span><h5>It reasons, then it calculates</h5>
+  <p>The language models orchestrate, interpret and explain. Every number comes from a
+  deterministic engine: a transparent relevance model, a pricing engine built on real
+  contracted prices, and a mixed-integer program that proves its allocation optimal.</p></div>
+  <div class="card tint"><span class="tag lime">Adapt</span><h5>It advises, and it listens</h5>
+  <p>It asks up to three targeted questions when a brief is missing something load-bearing,
+  ends every answer with costed suggestions, and turns what a rep knows — "this client never
+  pays a peak premium" — into a re-priced package on the next turn.</p></div>
+</div>
+
+<div class="call"><span class="k">The one principle behind all of it</span>
+<p><strong>LLMs reason; tools calculate — and every number is checked by something that did
+not produce it.</strong> The Master Agent never does arithmetic. It orchestrates four
+specialised systems, then runs 19 independent verification checks that re-derive reach, cost,
+availability, geography, dates and every brief-declared constraint from scratch. If a check
+fails, the package is not presented as sales-ready. That is the difference between a demo and
+something a rep can quote a client from.</p></div>
+
+<h3>How to read this document</h3>
+<p>It follows the C4 model. <strong>Context</strong> — who uses the system and what it
+touches. <strong>Containers</strong> — the deployable pieces and the three deliberately
+separate data layers. <strong>Components</strong> — four diagrams, one per subsystem, because
+the interesting engineering is inside them. Then a <strong>runtime view</strong> of a single
+turn, and two sections making the technical and the analytical case respectively.</p>
+
+<h2 id="c1"><span class="num">01</span>C1 &middot; System Context</h2>
+<div class="rule"></div>
+<p class="lede">One platform, one human firmly in the loop, and four things outside our
+boundary: the advertiser, the rep's inbox, the model providers, and Urban Media's own data.</p>
+
+<figure>
+  <div class="cap">Figure 1 — System Context<span>C4 Level 1</span></div>
+  <svg viewBox="0 0 1160 660" role="img" aria-label="System context diagram">
+    <defs>
+      <marker id="ar" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+      <marker id="arl" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker>
+    </defs>
+
+    <rect x="40" y="258" width="215" height="120" rx="10" fill="#2e3136"/>
+    <circle cx="147" cy="290" r="14" fill="#dff250"/>
+    <text x="147" y="328" text-anchor="middle" class="t-title" fill="#ffffff">Media Sales Rep</text>
+    <text x="147" y="346" text-anchor="middle" class="t-sub" fill="#c3c7cf">50-person sales team</text>
+    <text x="147" y="362" text-anchor="middle" class="t-sub" fill="#9aa0aa">[Person]</text>
+
+    <rect x="425" y="238" width="330" height="162" rx="12" fill="#dff250" stroke="#1f2124" stroke-width="2"/>
+    <text x="590" y="266" text-anchor="middle" class="t-hdr" fill="#5b6070">SOFTWARE SYSTEM</text>
+    <text x="590" y="296" text-anchor="middle" style="font-size:16px;font-weight:700" fill="#1f2124">Campaign Intelligence</text>
+    <text x="590" y="318" text-anchor="middle" style="font-size:16px;font-weight:700" fill="#1f2124">Platform</text>
+    <text x="590" y="344" text-anchor="middle" class="t-body" fill="#3a3e45">Brief &rarr; best-fit screens, right slots,</text>
+    <text x="590" y="360" text-anchor="middle" class="t-body" fill="#3a3e45">defensible price, credible reach —</text>
+    <text x="590" y="376" text-anchor="middle" class="t-body" fill="#3a3e45">and the reasoning behind all four</text>
+
+    <rect x="430" y="52" width="320" height="98" rx="10" fill="#eef0f9" stroke="#b9bdc7"/>
+    <text x="590" y="78" text-anchor="middle" class="t-hdr" fill="#6b7280">EXTERNAL &middot; REASONING</text>
+    <text x="590" y="102" text-anchor="middle" class="t-title" fill="#1f2124">Model Providers</text>
+    <text x="590" y="122" text-anchor="middle" class="t-body" fill="#3f434b">Google Gemini &middot; Azure OpenAI</text>
+    <text x="590" y="138" text-anchor="middle" class="t-body" fill="#3f434b">three models, rep picks per turn</text>
+
+    <rect x="370" y="490" width="430" height="112" rx="10" fill="#eef0f9" stroke="#b9bdc7"/>
+    <text x="585" y="516" text-anchor="middle" class="t-hdr" fill="#6b7280">EXTERNAL &middot; SYSTEM OF RECORD</text>
+    <text x="585" y="540" text-anchor="middle" class="t-title" fill="#1f2124">Urban Media Operational Data</text>
+    <text x="585" y="560" text-anchor="middle" class="t-body" fill="#3f434b">14 tables &middot; 165 MB &middot; geography, network, inventory,</text>
+    <text x="585" y="576" text-anchor="middle" class="t-body" fill="#3f434b">context, commercial history + 2.05 M ridership rows</text>
+    <text x="585" y="593" text-anchor="middle" class="t-lbl" fill="#6b7280">read-only — the platform never writes here</text>
+
+    <rect x="905" y="258" width="215" height="120" rx="10" fill="#eef0f9" stroke="#b9bdc7"/>
+    <text x="1012" y="284" text-anchor="middle" class="t-hdr" fill="#6b7280">EXTERNAL &middot; PERSON</text>
+    <text x="1012" y="310" text-anchor="middle" class="t-title" fill="#1f2124">Advertiser</text>
+    <text x="1012" y="330" text-anchor="middle" class="t-body" fill="#3f434b">500+ accounts, 96% repeat</text>
+    <text x="1012" y="348" text-anchor="middle" class="t-body" fill="#3f434b">receives the proposal PDF</text>
+    <text x="1012" y="364" text-anchor="middle" class="t-body" fill="#3f434b">and the sell email</text>
+
+    <rect x="40" y="466" width="252" height="104" rx="10" fill="#eef0f9" stroke="#b9bdc7"/>
+    <text x="166" y="492" text-anchor="middle" class="t-hdr" fill="#6b7280">EXTERNAL &middot; CONTENT</text>
+    <text x="166" y="516" text-anchor="middle" class="t-title" fill="#1f2124">Client Briefs &amp; RFPs</text>
+    <text x="166" y="535" text-anchor="middle" class="t-body" fill="#3f434b">PDF &middot; DOCX &middot; TXT</text>
+    <text x="166" y="553" text-anchor="middle" class="t-lbl" fill="#6b7280">data, never instructions</text>
+
+    <line x1="255" y1="294" x2="418" y2="294" stroke="#1f2124" stroke-width="2" marker-end="url(#arl)"/>
+    <text x="336" y="285" text-anchor="middle" class="t-body" fill="#1f2124">brief, answers, rep context</text>
+    <line x1="418" y1="344" x2="258" y2="344" stroke="#5b6070" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="336" y="364" text-anchor="middle" class="t-body" fill="#5b6070">package, price rationale,</text>
+    <text x="336" y="378" text-anchor="middle" class="t-body" fill="#5b6070">suggestions worth acting on</text>
+
+    <line x1="620" y1="238" x2="620" y2="156" stroke="#5b6070" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="634" y="196" class="t-body" fill="#5b6070">orchestration prompts</text>
+    <text x="634" y="211" class="t-body" fill="#5b6070">(never raw data rows)</text>
+    <line x1="530" y1="156" x2="530" y2="232" stroke="#5b6070" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="400" y="200" class="t-body" fill="#5b6070">plan, prose</text>
+
+    <line x1="585" y1="400" x2="585" y2="484" stroke="#1f2124" stroke-width="2" marker-end="url(#arl)"/>
+    <text x="600" y="430" class="t-body" fill="#1f2124">SQL over DuckDB views —</text>
+    <text x="600" y="445" class="t-body" fill="#1f2124">no spreadsheet ever opened</text>
+
+    <line x1="755" y1="300" x2="898" y2="300" stroke="#1f2124" stroke-width="2" marker-end="url(#arl)"/>
+    <text x="826" y="290" text-anchor="middle" class="t-body" fill="#1f2124">proposal PDF,</text>
+    <text x="826" y="332" text-anchor="middle" class="t-body" fill="#1f2124">editable sell email</text>
+
+    <line x1="292" y1="490" x2="428" y2="394" stroke="#5b6070" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="296" y="440" class="t-body" fill="#5b6070">uploaded, parsed once</text>
+  </svg>
+  <div class="legend">
+    <span><i style="background:#dff250"></i>Our system</span>
+    <span><i style="background:#2e3136"></i>Person (internal)</span>
+    <span><i style="background:#eef0f9"></i>External actor / system</span>
+    <span><i style="background:#1f2124;height:3px;border-radius:0"></i>Primary flow</span>
+  </div>
+  <figcaption>
+  <p><strong>What the boundary tells you.</strong> Only two artefacts cross it toward a client
+  — the proposal document and the email — and both are template-rendered from the verified run
+  record rather than written by a language model, so neither can quote a price the optimizer
+  did not produce, and neither leaks the internal pricing rationale that is the seller's
+  position in a negotiation.</p>
+  <p>The operational data is read-only by construction. Model providers are interchangeable
+  and chosen per request, so no single vendor's rate limit can take the demo — or a sales
+  floor — offline.</p>
+  </figcaption>
+</figure>
+
+<h2 id="c2"><span class="num">02</span>C2 &middot; Containers</h2>
+<div class="rule"></div>
+<p class="lede">A single-page Next.js workspace, one FastAPI process holding the agent runtime
+and three deterministic engines, and three storage layers that are deliberately never
+conflated.</p>
+
+<figure>
+  <div class="cap">Figure 2 — Container diagram<span>C4 Level 2</span></div>
+  <svg viewBox="0 0 1160 1020" role="img" aria-label="Container diagram">
+    <defs>
+      <marker id="a2" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+      <marker id="a2d" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker>
+    </defs>
+
+    <!-- PERSON -->
+    <rect x="24" y="40" width="180" height="74" rx="9" fill="#2e3136"/>
+    <circle cx="114" cy="63" r="10" fill="#dff250"/>
+    <text x="114" y="90" text-anchor="middle" class="t-title" fill="#fff">Media Sales Rep</text>
+    <text x="114" y="106" text-anchor="middle" class="t-sub" fill="#c3c7cf">browser</text>
+
+    <!-- FRONTEND BOUNDARY -->
+    <rect x="24" y="140" width="1112" height="176" rx="12" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="164" class="t-hdr" fill="#6b7280">CONTAINER &middot; BROWSER SPA — Next.js 15 (App Router) &middot; React 19 &middot; TypeScript &middot; Tailwind 4</text>
+
+    <rect x="44" y="178" width="204" height="120" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="146" y="202" text-anchor="middle" class="t-title" fill="#1f2124">Chat Workspace</text>
+    <text x="146" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">brief + attachments,</text>
+    <text x="146" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">live stage rail, package</text>
+    <text x="146" y="254" text-anchor="middle" class="t-body" fill="#3a3e45">table, metrics deck,</text>
+    <text x="146" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">clarification cards</text>
+    <text x="146" y="289" text-anchor="middle" class="t-lbl" fill="#4a4f59">consumes SSE</text>
+
+    <rect x="264" y="178" width="216" height="120" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="372" y="202" text-anchor="middle" class="t-title" fill="#1f2124">Evidence Inspector</text>
+    <text x="372" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">D1 Audience &middot; D2 Relevance</text>
+    <text x="372" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">D3 Pricing &middot; D4 Optimizer</text>
+    <text x="372" y="258" text-anchor="middle" class="t-body" fill="#3a3e45">every claim traced back to</text>
+    <text x="372" y="274" text-anchor="middle" class="t-body" fill="#3a3e45">the artifact row behind it</text>
+
+    <rect x="496" y="178" width="214" height="120" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="603" y="202" text-anchor="middle" class="t-title" fill="#1f2124">Export &amp; Handoff</text>
+    <text x="603" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">print-ready proposal doc</text>
+    <text x="603" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">(client-safe subset)</text>
+    <text x="603" y="258" text-anchor="middle" class="t-body" fill="#3a3e45">editable sell email &rarr;</text>
+    <text x="603" y="274" text-anchor="middle" class="t-body" fill="#3a3e45">clipboard / mailto</text>
+
+    <rect x="726" y="178" width="180" height="120" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="816" y="202" text-anchor="middle" class="t-title" fill="#1f2124">Model Picker</text>
+    <text x="816" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">catalogue served by</text>
+    <text x="816" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">the backend, never</text>
+    <text x="816" y="254" text-anchor="middle" class="t-body" fill="#3a3e45">hard-coded in the UI</text>
+    <text x="816" y="273" text-anchor="middle" class="t-lbl" fill="#4a4f59">remembered per rep</text>
+
+    <rect x="922" y="178" width="194" height="120" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="1019" y="202" text-anchor="middle" class="t-title" fill="#1f2124">Session Rail</text>
+    <text x="1019" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">campaigns named by</text>
+    <text x="1019" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">objective, transcripts</text>
+    <text x="1019" y="254" text-anchor="middle" class="t-body" fill="#3a3e45">restored server-side,</text>
+    <text x="1019" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">per-session run cache</text>
+
+    <!-- BACKEND BOUNDARY -->
+    <rect x="24" y="344" width="1112" height="382" rx="12" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="368" class="t-hdr" fill="#6b7280">CONTAINER &middot; APPLICATION SERVER — FastAPI (uvicorn, 127.0.0.1:8000) &middot; Python 3.13</text>
+
+    <rect x="44" y="382" width="1072" height="86" rx="9" fill="#eef0f9" stroke="#1f2124"/>
+    <text x="580" y="404" text-anchor="middle" class="t-title" fill="#1f2124">API Layer — REST + Server-Sent Events</text>
+    <text x="580" y="424" text-anchor="middle" class="t-body" fill="#3f434b">/campaign/run &middot; /campaign/stream (SSE: session, update, done) &middot; /sessions &middot; /sessions/{id}/messages &middot; /uploads &middot; /runs &middot; /runs/{id}/artifacts/{kind} &middot; /models &middot; /health</text>
+    <text x="580" y="444" text-anchor="middle" class="t-body" fill="#3f434b">Pydantic v2 schemas at every edge &middot; provider faults mapped to honest statuses: 429 quota, 503 upstream, 502 credentials, 400 unknown model, 410 missing artifact</text>
+    <text x="580" y="461" text-anchor="middle" class="t-lbl" fill="#6b7280">one compiled agent graph cached per model selection; all selections share one conversation checkpointer</text>
+
+    <rect x="44" y="484" width="330" height="224" rx="9" fill="#dff250" stroke="#1f2124" stroke-width="2"/>
+    <text x="209" y="508" text-anchor="middle" class="t-hdr" fill="#5b6070">AGENT RUNTIME</text>
+    <text x="209" y="532" text-anchor="middle" class="t-title" fill="#1f2124">LangGraph Deep Agents</text>
+    <text x="209" y="554" text-anchor="middle" class="t-body" fill="#3a3e45">Master Agent + 2 specialists</text>
+    <text x="209" y="572" text-anchor="middle" class="t-body" fill="#3a3e45">19 tools &middot; strict stage ordering</text>
+    <text x="209" y="590" text-anchor="middle" class="t-body" fill="#3a3e45">run handles, never payloads</text>
+    <text x="209" y="614" text-anchor="middle" class="t-body" fill="#3a3e45">shared per-provider rate limiter</text>
+    <text x="209" y="632" text-anchor="middle" class="t-body" fill="#3a3e45">one tracing callback for the whole</text>
+    <text x="209" y="648" text-anchor="middle" class="t-body" fill="#3a3e45">tree: tokens, calls, tool trail</text>
+    <text x="209" y="672" text-anchor="middle" class="t-lbl" fill="#4a4f59">verification is Master-owned:</text>
+    <text x="209" y="688" text-anchor="middle" class="t-lbl" fill="#4a4f59">19 deterministic checks before answering</text>
+
+    <rect x="390" y="484" width="726" height="224" rx="9" fill="#ffffff" stroke="#1f2124"/>
+    <text x="753" y="506" text-anchor="middle" class="t-hdr" fill="#5b6070">DETERMINISTIC ENGINES — no LLM inside any of these</text>
+
+    <rect x="404" y="518" width="230" height="176" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="519" y="540" text-anchor="middle" class="t-title" fill="#1f2124">Audience &amp; Relevance</text>
+    <text x="519" y="558" text-anchor="middle" class="t-body" fill="#3a3e45">11,163 screens, 5 weighted</text>
+    <text x="519" y="574" text-anchor="middle" class="t-body" fill="#3a3e45">components, 972 pools,</text>
+    <text x="519" y="590" text-anchor="middle" class="t-body" fill="#3a3e45">ridership by block &amp; day type</text>
+    <text x="519" y="612" text-anchor="middle" class="t-body" fill="#3a3e45">process singleton, ~15 s build</text>
+    <text x="519" y="634" text-anchor="middle" class="t-lbl" fill="#4a4f59">Master calls it directly —</text>
+    <text x="519" y="650" text-anchor="middle" class="t-lbl" fill="#4a4f59">a fixed calculation does not</text>
+    <text x="519" y="666" text-anchor="middle" class="t-lbl" fill="#4a4f59">need an LLM wrapper</text>
+
+    <rect x="646" y="518" width="230" height="176" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="761" y="540" text-anchor="middle" class="t-title" fill="#1f2124">Pricing &amp; Demand</text>
+    <text x="761" y="558" text-anchor="middle" class="t-body" fill="#3a3e45">8 modules: occupancy, band,</text>
+    <text x="761" y="574" text-anchor="middle" class="t-body" fill="#3a3e45">booking probability, season,</text>
+    <text x="761" y="590" text-anchor="middle" class="t-body" fill="#3a3e45">demand value, client profile,</text>
+    <text x="761" y="606" text-anchor="middle" class="t-body" fill="#3a3e45">levers, price optimizer</text>
+    <text x="761" y="628" text-anchor="middle" class="t-body" fill="#3a3e45">process singleton, ~9 s build</text>
+    <text x="761" y="650" text-anchor="middle" class="t-lbl" fill="#4a4f59">every quote carries the</text>
+    <text x="761" y="666" text-anchor="middle" class="t-lbl" fill="#4a4f59">assumptions that produced it</text>
+
+    <rect x="888" y="518" width="214" height="176" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="995" y="540" text-anchor="middle" class="t-title" fill="#1f2124">MILP Optimizer</text>
+    <text x="995" y="558" text-anchor="middle" class="t-body" fill="#3a3e45">HiGHS via SciPy</text>
+    <text x="995" y="574" text-anchor="middle" class="t-body" fill="#3a3e45">binary slot-depth ladder,</text>
+    <text x="995" y="590" text-anchor="middle" class="t-body" fill="#3a3e45">pooled reach R &le; min(E,P),</text>
+    <text x="995" y="606" text-anchor="middle" class="t-body" fill="#3a3e45">hard + elastic constraints</text>
+    <text x="995" y="628" text-anchor="middle" class="t-body" fill="#3a3e45">reports gap &amp; optimality</text>
+    <text x="995" y="650" text-anchor="middle" class="t-lbl" fill="#4a4f59">infeasibility is a first-class</text>
+    <text x="995" y="666" text-anchor="middle" class="t-lbl" fill="#4a4f59">answer with relaxation options</text>
+
+    <!-- STORAGE BOUNDARY -->
+    <rect x="24" y="754" width="1112" height="196" rx="12" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="778" class="t-hdr" fill="#6b7280">THREE STORAGE LAYERS — never conflated, each with one owner</text>
+
+    <rect x="44" y="792" width="256" height="140" rx="9" fill="#2e3136"/>
+    <text x="172" y="816" text-anchor="middle" class="t-title" fill="#fff">DuckDB (in-process)</text>
+    <text x="172" y="836" text-anchor="middle" class="t-body" fill="#c3c7cf">14 CSVs registered as views,</text>
+    <text x="172" y="852" text-anchor="middle" class="t-body" fill="#c3c7cf">11 derived analytical views</text>
+    <text x="172" y="872" text-anchor="middle" class="t-body" fill="#c3c7cf">165 MB scanned columnar,</text>
+    <text x="172" y="888" text-anchor="middle" class="t-body" fill="#c3c7cf">zero-copy, single connection</text>
+    <text x="172" y="910" text-anchor="middle" class="t-lbl" fill="#dff250">the analytical layer</text>
+
+    <rect x="316" y="792" width="256" height="140" rx="9" fill="#2e3136"/>
+    <text x="444" y="816" text-anchor="middle" class="t-title" fill="#fff">localDB (JSON)</text>
+    <text x="444" y="836" text-anchor="middle" class="t-body" fill="#c3c7cf">sessions, transcripts, runs,</text>
+    <text x="444" y="852" text-anchor="middle" class="t-body" fill="#c3c7cf">uploads, specs, levers</text>
+    <text x="444" y="872" text-anchor="middle" class="t-body" fill="#c3c7cf">insertion-ordered, atomic</text>
+    <text x="444" y="888" text-anchor="middle" class="t-body" fill="#c3c7cf">writes, cascading deletes</text>
+    <text x="444" y="910" text-anchor="middle" class="t-lbl" fill="#dff250">the application layer</text>
+
+    <rect x="588" y="792" width="256" height="140" rx="9" fill="#2e3136"/>
+    <text x="716" y="816" text-anchor="middle" class="t-title" fill="#fff">Artifact Store (Parquet)</text>
+    <text x="716" y="836" text-anchor="middle" class="t-body" fill="#c3c7cf">screen_candidates,</text>
+    <text x="716" y="852" text-anchor="middle" class="t-body" fill="#c3c7cf">screen_economics</text>
+    <text x="716" y="872" text-anchor="middle" class="t-body" fill="#c3c7cf">referenced by portable id,</text>
+    <text x="716" y="888" text-anchor="middle" class="t-body" fill="#c3c7cf">never by absolute path</text>
+    <text x="716" y="910" text-anchor="middle" class="t-lbl" fill="#dff250">keeps big tables out of context</text>
+
+    <rect x="860" y="792" width="256" height="140" rx="9" fill="#2e3136"/>
+    <text x="988" y="816" text-anchor="middle" class="t-title" fill="#fff">Upload Stage</text>
+    <text x="988" y="836" text-anchor="middle" class="t-body" fill="#c3c7cf">stage/{session}/ per rep,</text>
+    <text x="988" y="852" text-anchor="middle" class="t-body" fill="#c3c7cf">extracted-text sidecar</text>
+    <text x="988" y="872" text-anchor="middle" class="t-body" fill="#c3c7cf">type + size validated,</text>
+    <text x="988" y="888" text-anchor="middle" class="t-body" fill="#c3c7cf">never executed, never whole</text>
+    <text x="988" y="910" text-anchor="middle" class="t-lbl" fill="#dff250">untrusted input, bounded excerpt</text>
+
+    <!-- external providers -->
+    <rect x="922" y="40" width="194" height="74" rx="9" fill="#eef0f9" stroke="#b9bdc7"/>
+    <text x="1019" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Model Providers</text>
+    <text x="1019" y="82" text-anchor="middle" class="t-body" fill="#3f434b">Gemini &middot; Azure OpenAI</text>
+    <text x="1019" y="100" text-anchor="middle" class="t-body" fill="#3f434b">HTTPS, keys from .env</text>
+
+    <!-- arrows -->
+    <line x1="114" y1="114" x2="114" y2="172" stroke="#1f2124" stroke-width="2" marker-end="url(#a2d)"/>
+    <line x1="580" y1="316" x2="580" y2="376" stroke="#1f2124" stroke-width="2" marker-end="url(#a2d)"/>
+    <text x="592" y="340" class="t-body" fill="#1f2124">JSON / SSE over 127.0.0.1 — IPv4 loopback by name, measured 150x faster to connect than "localhost" on Windows</text>
+    <line x1="374" y1="596" x2="384" y2="596" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <line x1="209" y1="708" x2="209" y2="786" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <text x="222" y="742" class="t-body" fill="#5b6070">run state, transcripts</text>
+    <line x1="519" y1="694" x2="400" y2="786" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <line x1="761" y1="694" x2="716" y2="786" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <line x1="995" y1="694" x2="1000" y2="786" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <text x="640" y="742" class="t-body" fill="#5b6070">SQL over views &middot; parquet artifacts by id</text>
+    <line x1="1019" y1="484" x2="1019" y2="122" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a2)"/>
+    <text x="1032" y="300" class="t-body" fill="#5b6070">bounded prompts</text>
+  </svg>
+  <div class="legend">
+    <span><i style="background:#dff250"></i>Container / runtime we own</span>
+    <span><i style="background:#eef8a8"></i>Deterministic engine</span>
+    <span><i style="background:#2e3136"></i>Data store</span>
+    <span><i style="background:#eef0f9"></i>External</span>
+  </div>
+  <figcaption>
+  <p><strong>Why the three data layers stay separate.</strong> The analytical layer is 165 MB
+  and read-only; the application layer is small, hot and rewritten constantly; the artifact
+  layer is intermediate results too large for either. Collapsing any two of them is the
+  classic way a working prototype becomes unshippable — a 250-row candidate table in a JSON
+  document, or a chat transcript inside an analytical scan.</p>
+  <p><strong>Everything runs in one process on a laptop.</strong> No Spark, no warehouse, no
+  vector store, no queue. Both heavy engines are process singletons built once at first use,
+  and the whole system is <code>uvicorn app.main:app</code> plus <code>npm run dev</code>.</p>
+  </figcaption>
+</figure>
+
+<h2 id="c3"><span class="num">03</span>C3 &middot; Components: the agent runtime</h2>
+<div class="rule"></div>
+<p class="lede">One Master Agent and two specialists — not five. Delegation is reserved for
+the stages where a specialist genuinely reasons about its own output; everything else is a
+Master-owned tool, because an LLM wrapper around a fixed calculation buys latency and a
+chance to paraphrase a number wrongly.</p>
+
+<figure>
+  <div class="cap">Figure 3 — Agent runtime components<span>C4 Level 3</span></div>
+  <svg viewBox="0 0 1160 900" role="img" aria-label="Agent runtime component diagram">
+    <defs>
+      <marker id="a3" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+      <marker id="a3d" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker>
+    </defs>
+
+    <!-- master -->
+    <rect x="290" y="30" width="580" height="118" rx="11" fill="#1f2124"/>
+    <text x="580" y="56" text-anchor="middle" class="t-hdr" fill="#dff250">MASTER DEEP AGENT — owns stages 1, 2, 6 and 7</text>
+    <text x="580" y="82" text-anchor="middle" style="font-size:15px;font-weight:700" fill="#fff">Orchestration &middot; brief comprehension &middot; verification &middot; the answer</text>
+    <text x="580" y="103" text-anchor="middle" class="t-body" fill="#c3c7cf">Triage first on every turn: ANSWER from the existing package, or REBUILD because a campaign input actually changed</text>
+    <text x="580" y="121" text-anchor="middle" class="t-body" fill="#c3c7cf">One clarification gate, one delegation per turn, no arithmetic, no number stated that a tool did not return</text>
+    <text x="580" y="139" text-anchor="middle" class="t-lbl" fill="#9aa0aa">writes in plain commercial English: simplify the language, never the caveat</text>
+
+    <!-- master tools band -->
+    <rect x="24" y="180" width="1112" height="196" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="204" class="t-hdr" fill="#6b7280">MASTER-OWNED TOOL SURFACE — 12 tools, all deterministic</text>
+
+    <rect x="42" y="216" width="176" height="70" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="130" y="238" text-anchor="middle" class="t-title" fill="#1f2124">Brief intake</text>
+    <text x="130" y="255" text-anchor="middle" class="t-body" fill="#3a3e45">resolve_geography_terms</text>
+    <text x="130" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">create_campaign_spec</text>
+
+    <rect x="230" y="216" width="176" height="70" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="318" y="238" text-anchor="middle" class="t-title" fill="#1f2124">Document reader</text>
+    <text x="318" y="255" text-anchor="middle" class="t-body" fill="#3a3e45">read_campaign_document</text>
+    <text x="318" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">bounded 20k excerpt only</text>
+
+    <rect x="418" y="216" width="176" height="70" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="506" y="238" text-anchor="middle" class="t-title" fill="#1f2124">Guided intake</text>
+    <text x="506" y="255" text-anchor="middle" class="t-body" fill="#3a3e45">ask_clarifying_questions</text>
+    <text x="506" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">max 3, one round, ever</text>
+
+    <rect x="606" y="216" width="176" height="70" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="694" y="238" text-anchor="middle" class="t-title" fill="#1f2124">Commercial context</text>
+    <text x="694" y="255" text-anchor="middle" class="t-body" fill="#3a3e45">set_pricing_levers</text>
+    <text x="694" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">get_client_negotiation_profile</text>
+
+    <rect x="794" y="216" width="164" height="70" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="876" y="238" text-anchor="middle" class="t-title" fill="#1f2124">Run state</text>
+    <text x="876" y="255" text-anchor="middle" class="t-body" fill="#3a3e45">get_active_run</text>
+    <text x="876" y="270" text-anchor="middle" class="t-body" fill="#3a3e45">get_run_state</text>
+
+    <rect x="970" y="216" width="146" height="70" rx="8" fill="#1f2124"/>
+    <text x="1043" y="238" text-anchor="middle" class="t-title" fill="#dff250">Verification</text>
+    <text x="1043" y="255" text-anchor="middle" class="t-body" fill="#e9ebef">verify_package</text>
+    <text x="1043" y="270" text-anchor="middle" class="t-body" fill="#e9ebef">check_explanations</text>
+
+    <rect x="42" y="298" width="360" height="64" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="222" y="320" text-anchor="middle" class="t-title" fill="#1f2124">Audience &amp; Relevance Engine (stage 2, no LLM)</text>
+    <text x="222" y="338" text-anchor="middle" class="t-body" fill="#3a3e45">describe_inventory &middot; build_screen_candidates &middot; describe_relevance_model</text>
+    <text x="222" y="354" text-anchor="middle" class="t-lbl" fill="#4a4f59">called directly by the Master — Figure 4</text>
+
+    <rect x="414" y="298" width="330" height="64" rx="8" fill="#ffffff" stroke="#1f2124"/>
+    <text x="579" y="320" text-anchor="middle" class="t-title" fill="#1f2124">Validation Layer — 19 independent checks</text>
+    <text x="579" y="338" text-anchor="middle" class="t-body" fill="#3f434b">cost &middot; reconciliation &middot; reach &middot; inventory &middot; geography &middot; dates</text>
+    <text x="579" y="354" text-anchor="middle" class="t-body" fill="#3f434b">hard constraints &middot; slot cap &middot; availability &middot; explanations</text>
+
+    <rect x="756" y="298" width="360" height="64" rx="8" fill="#ffffff" stroke="#1f2124"/>
+    <text x="936" y="320" text-anchor="middle" class="t-title" fill="#1f2124">Observability — one callback traces the whole tree</text>
+    <text x="936" y="338" text-anchor="middle" class="t-body" fill="#3f434b">tool trail, per-stage timings, tokens and call counts</text>
+    <text x="936" y="354" text-anchor="middle" class="t-body" fill="#3f434b">returned to the UI and written into the transcript</text>
+
+    <!-- specialists -->
+    <rect x="24" y="410" width="552" height="216" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="434" class="t-hdr" fill="#6b7280">SPECIALIST 1 — delegated via the task tool</text>
+    <rect x="42" y="448" width="516" height="162" rx="9" fill="#2e3136"/>
+    <text x="300" y="472" text-anchor="middle" class="t-title" fill="#dff250">ML / Pricing &amp; Demand Forecasting Agent</text>
+    <text x="300" y="494" text-anchor="middle" class="t-body" fill="#e9ebef">Tools: estimate_screen_economics &middot; describe_pricing_model</text>
+    <text x="300" y="514" text-anchor="middle" class="t-body" fill="#c3c7cf">Owns: market price band, occupancy-driven quote, booking probability,</text>
+    <text x="300" y="530" text-anchor="middle" class="t-body" fill="#c3c7cf">day-by-day availability, seasonality and event premium, demand value</text>
+    <text x="300" y="552" text-anchor="middle" class="t-body" fill="#c3c7cf">Explicitly does NOT own audience volume — it carries the relevance</text>
+    <text x="300" y="568" text-anchor="middle" class="t-body" fill="#c3c7cf">engine's figures through and attributes them to the audience model</text>
+    <text x="300" y="590" text-anchor="middle" class="t-lbl" fill="#9aa0aa">must state which levers a human moved, because a quote a rep adjusted</text>
+    <text x="300" y="604" text-anchor="middle" class="t-lbl" fill="#9aa0aa">is a different claim from a quote the model derived</text>
+
+    <rect x="584" y="410" width="552" height="216" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="602" y="434" class="t-hdr" fill="#6b7280">SPECIALIST 2 — delegated via the task tool</text>
+    <rect x="602" y="448" width="516" height="162" rx="9" fill="#2e3136"/>
+    <text x="860" y="472" text-anchor="middle" class="t-title" fill="#dff250">OR / Optimization Agent</text>
+    <text x="860" y="494" text-anchor="middle" class="t-body" fill="#e9ebef">Tools: optimize_package &middot; compare_objectives</text>
+    <text x="860" y="514" text-anchor="middle" class="t-body" fill="#c3c7cf">Owns: the allocation, the constraint status map, the slot structure,</text>
+    <text x="860" y="530" text-anchor="middle" class="t-body" fill="#c3c7cf">the reach-vs-frequency trade-off, and the infeasibility report</text>
+    <text x="860" y="552" text-anchor="middle" class="t-body" fill="#c3c7cf">Must quote reach and exposures separately, name which is which, and</text>
+    <text x="860" y="568" text-anchor="middle" class="t-body" fill="#c3c7cf">never present gross views as the number of people reached</text>
+    <text x="860" y="590" text-anchor="middle" class="t-lbl" fill="#9aa0aa">a brief-declared constraint is read off the run, never off a tool</text>
+    <text x="860" y="604" text-anchor="middle" class="t-lbl" fill="#9aa0aa">argument — a number that travels as text eventually arrives wrong</text>
+
+    <!-- shared state -->
+    <rect x="24" y="660" width="1112" height="212" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="684" class="t-hdr" fill="#6b7280">SHARED STATE — run handles, not payloads</text>
+
+    <rect x="42" y="698" width="256" height="156" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="170" y="722" text-anchor="middle" class="t-title" fill="#1f2124">Run State</text>
+    <text x="170" y="742" text-anchor="middle" class="t-body" fill="#3a3e45">normalized campaign spec,</text>
+    <text x="170" y="758" text-anchor="middle" class="t-body" fill="#3a3e45">artifact references, package,</text>
+    <text x="170" y="774" text-anchor="middle" class="t-body" fill="#3a3e45">validation report, levers</text>
+    <text x="170" y="796" text-anchor="middle" class="t-body" fill="#3a3e45">missing_prerequisite() makes a</text>
+    <text x="170" y="812" text-anchor="middle" class="t-body" fill="#3a3e45">stage run early recoverable,</text>
+    <text x="170" y="828" text-anchor="middle" class="t-body" fill="#3a3e45">not a crash</text>
+
+    <rect x="314" y="698" width="256" height="156" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="442" y="722" text-anchor="middle" class="t-title" fill="#1f2124">Pydantic Contracts</text>
+    <text x="442" y="742" text-anchor="middle" class="t-body" fill="#3a3e45">CampaignSpec &middot; ScreenCandidate</text>
+    <text x="442" y="758" text-anchor="middle" class="t-body" fill="#3a3e45">ScreenEconomics &middot; OptimizedPackage</text>
+    <text x="442" y="774" text-anchor="middle" class="t-body" fill="#3a3e45">ValidationReport</text>
+    <text x="442" y="796" text-anchor="middle" class="t-body" fill="#3a3e45">closed vocabularies with</text>
+    <text x="442" y="812" text-anchor="middle" class="t-body" fill="#3a3e45">validators — an unrecognised</text>
+    <text x="442" y="828" text-anchor="middle" class="t-body" fill="#3a3e45">constraint key fails, not passes</text>
+
+    <rect x="586" y="698" width="256" height="156" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="714" y="722" text-anchor="middle" class="t-title" fill="#1f2124">Artifact Store</text>
+    <text x="714" y="742" text-anchor="middle" class="t-body" fill="#3a3e45">screen_candidates (250 rows),</text>
+    <text x="714" y="758" text-anchor="middle" class="t-body" fill="#3a3e45">screen_economics (750+ rows)</text>
+    <text x="714" y="780" text-anchor="middle" class="t-body" fill="#3a3e45">parquet on disk, id in context</text>
+    <text x="714" y="802" text-anchor="middle" class="t-lbl" fill="#4a4f59">this is what keeps a 90-second</text>
+    <text x="714" y="818" text-anchor="middle" class="t-lbl" fill="#4a4f59">orchestration inside a small</text>
+    <text x="714" y="834" text-anchor="middle" class="t-lbl" fill="#4a4f59">token budget</text>
+
+    <rect x="858" y="698" width="258" height="156" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="987" y="722" text-anchor="middle" class="t-title" fill="#1f2124">Provider Registry</text>
+    <text x="987" y="742" text-anchor="middle" class="t-body" fill="#3a3e45">catalogue, client construction,</text>
+    <text x="987" y="758" text-anchor="middle" class="t-body" fill="#3a3e45">per-provider rate limiters</text>
+    <text x="987" y="780" text-anchor="middle" class="t-body" fill="#3a3e45">one shared limiter across the</text>
+    <text x="987" y="796" text-anchor="middle" class="t-body" fill="#3a3e45">Master and both specialists —</text>
+    <text x="987" y="812" text-anchor="middle" class="t-body" fill="#3a3e45">the quota is per project, so</text>
+    <text x="987" y="828" text-anchor="middle" class="t-body" fill="#3a3e45">separate limiters would collide</text>
+
+    <line x1="580" y1="148" x2="580" y2="176" stroke="#1f2124" stroke-width="2" marker-end="url(#a3d)"/>
+    <line x1="300" y1="376" x2="300" y2="442" stroke="#1f2124" stroke-width="2" marker-end="url(#a3d)"/>
+    <text x="312" y="402" class="t-body" fill="#1f2124">task(run_id)</text>
+    <line x1="860" y1="376" x2="860" y2="442" stroke="#1f2124" stroke-width="2" marker-end="url(#a3d)"/>
+    <text x="872" y="402" class="t-body" fill="#1f2124">task(run_id)</text>
+    <line x1="300" y1="610" x2="300" y2="692" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a3)"/>
+    <line x1="860" y1="610" x2="860" y2="692" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a3)"/>
+    <text x="580" y="650" text-anchor="middle" class="t-body" fill="#5b6070">reads its own inputs, writes its own artifact — never a table pasted into a message</text>
+  </svg>
+  <div class="legend">
+    <span><i style="background:#1f2124"></i>Master / verification</span>
+    <span><i style="background:#2e3136"></i>Specialist agent</span>
+    <span><i style="background:#dff250"></i>Deterministic tool / state</span>
+    <span><i style="background:#eef8a8"></i>Engine invoked directly</span>
+  </div>
+  <figcaption>
+  <p><strong>Two specialists, not three.</strong> The brief's own architecture sketch implies a
+  data-intelligence agent as well. We built it, measured it, and removed it: audience scoring
+  is a fixed calculation, so wrapping it in a model added latency, a rate-limited call and the
+  risk of a paraphrased number, and removed nothing. Stage 2 now costs <strong>zero model
+  calls</strong>. That is a considered departure, documented in the codebase at the site where
+  the decision lives.</p>
+  <p><strong>Sequencing is enforced in code, not hoped for in a prompt.</strong> Each dependent
+  tool asks run state whether its input exists and returns a recoverable
+  <code>prerequisite_missing</code> naming the producing stage — so a supervisor that tries to
+  run pricing before scoring gets a correction, not a crash and not a fabricated answer.</p>
+  </figcaption>
+</figure>
+
+<h2 id="c3b"><span class="num">04</span>C3 &middot; Components: Audience &amp; Relevance Engine</h2>
+<div class="rule"></div>
+<p class="lede">Deliverables D1 and D2 in one deterministic engine. It answers "who is near
+this screen, when, and why does that fit this campaign" for all 11,163 screens, and it uses
+every one of the five data layers to do it.</p>
+
+<figure>
+  <div class="cap">Figure 4 — Audience &amp; Relevance Engine<span>C4 Level 3</span></div>
+  <svg viewBox="0 0 1160 790" role="img" aria-label="Relevance engine component diagram">
+    <defs>
+      <marker id="a4" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+    </defs>
+
+    <!-- sources -->
+    <text x="24" y="30" class="t-hdr" fill="#6b7280">SOURCE LAYER — all five dataset families, nothing left on the table</text>
+    <g>
+      <rect x="24" y="42" width="206" height="58" rx="7" fill="#eef0f9" stroke="#b9bdc7"/>
+      <text x="127" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Geography</text>
+      <text x="127" y="82" text-anchor="middle" class="t-body" fill="#3f434b">cities, zone_demographics,</text>
+      <text x="127" y="96" text-anchor="middle" class="t-body" fill="#3f434b">locations</text>
+
+      <rect x="242" y="42" width="230" height="58" rx="7" fill="#eef0f9" stroke="#b9bdc7"/>
+      <text x="357" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Network</text>
+      <text x="357" y="82" text-anchor="middle" class="t-body" fill="#3f434b">route_stops, route_schedules,</text>
+      <text x="357" y="96" text-anchor="middle" class="t-body" fill="#3f434b">vehicles, ridership_actuals (2.05 M)</text>
+
+      <rect x="484" y="42" width="182" height="58" rx="7" fill="#eef0f9" stroke="#b9bdc7"/>
+      <text x="575" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Inventory</text>
+      <text x="575" y="82" text-anchor="middle" class="t-body" fill="#3f434b">screens: type, size,</text>
+      <text x="575" y="96" text-anchor="middle" class="t-body" fill="#3f434b">mount position, host</text>
+
+      <rect x="678" y="42" width="196" height="58" rx="7" fill="#eef0f9" stroke="#b9bdc7"/>
+      <text x="776" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Context</text>
+      <text x="776" y="82" text-anchor="middle" class="t-body" fill="#3f434b">points_of_interest,</text>
+      <text x="776" y="96" text-anchor="middle" class="t-body" fill="#3f434b">events, dim_slot</text>
+
+      <rect x="886" y="42" width="230" height="58" rx="7" fill="#eef0f9" stroke="#b9bdc7"/>
+      <text x="1001" y="64" text-anchor="middle" class="t-title" fill="#1f2124">Commercial</text>
+      <text x="1001" y="82" text-anchor="middle" class="t-body" fill="#3f434b">bookings (191,110), client_facts,</text>
+      <text x="1001" y="96" text-anchor="middle" class="t-body" fill="#3f434b">lost_leads</text>
+    </g>
+
+    <!-- feature layer -->
+    <rect x="24" y="130" width="1092" height="150" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="154" class="t-hdr" fill="#6b7280">FEATURE LAYER — 11 DuckDB views, the joins done once in SQL</text>
+
+    <rect x="42" y="166" width="248" height="98" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="166" y="188" text-anchor="middle" class="t-title" fill="#1f2124">v_route_stop_weight</text>
+    <text x="166" y="206" text-anchor="middle" class="t-body" fill="#3a3e45">each stop takes its SHARE of the</text>
+    <text x="166" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">route's riders, termini weighted</text>
+    <text x="166" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">higher; shares sum to exactly 1.0</text>
+    <text x="166" y="257" text-anchor="middle" class="t-lbl" fill="#4a4f59">a rider cannot be 20 people</text>
+
+    <rect x="302" y="166" width="248" height="98" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="426" y="188" text-anchor="middle" class="t-title" fill="#1f2124">v_location_site</text>
+    <text x="426" y="206" text-anchor="middle" class="t-body" fill="#3a3e45">910 location rows &rarr; 878 physical</text>
+    <text x="426" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">sites, keyed on city + name +</text>
+    <text x="426" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">the set of corridors serving it</text>
+    <text x="426" y="257" text-anchor="middle" class="t-lbl" fill="#4a4f59">two platforms, one crowd</text>
+
+    <rect x="562" y="166" width="266" height="98" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="695" y="188" text-anchor="middle" class="t-title" fill="#1f2124">v_screen_demand_history</text>
+    <text x="695" y="206" text-anchor="middle" class="t-body" fill="#3a3e45">average daily riders per screen</text>
+    <text x="695" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">&times; 4-hour time block &times; day type</text>
+    <text x="695" y="240" text-anchor="middle" class="t-body" fill="#3a3e45">observed actuals for stops,</text>
+    <text x="695" y="256" text-anchor="middle" class="t-body" fill="#3a3e45">scheduled estimates for vehicles</text>
+
+    <rect x="840" y="166" width="276" height="98" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="978" y="188" text-anchor="middle" class="t-title" fill="#1f2124">v_screen_profile</text>
+    <text x="978" y="206" text-anchor="middle" class="t-body" fill="#3a3e45">zone demographics, POI draw and</text>
+    <text x="978" y="222" text-anchor="middle" class="t-body" fill="#3a3e45">counts, screen attributes, and the</text>
+    <text x="978" y="238" text-anchor="middle" class="t-body" fill="#3a3e45">pool_key that reach de-duplicates on</text>
+    <text x="978" y="257" text-anchor="middle" class="t-lbl" fill="#4a4f59">one row per screen, 972 pools total</text>
+
+    <!-- scoring -->
+    <rect x="24" y="308" width="1092" height="230" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="332" class="t-hdr" fill="#6b7280">SCORING — a transparent weighted sum, normalised across the whole inventory so campaigns stay comparable</text>
+
+    <rect x="42" y="344" width="200" height="180" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="142" y="366" text-anchor="middle" class="t-title" fill="#1f2124">0.40 Audience fit</text>
+    <text x="142" y="386" text-anchor="middle" class="t-body" fill="#3a3e45">9 audience sub-scores:</text>
+    <text x="142" y="402" text-anchor="middle" class="t-body" fill="#3a3e45">income, young adult,</text>
+    <text x="142" y="418" text-anchor="middle" class="t-body" fill="#3a3e45">professional, young</text>
+    <text x="142" y="434" text-anchor="middle" class="t-body" fill="#3a3e45">professionals, student,</text>
+    <text x="142" y="450" text-anchor="middle" class="t-body" fill="#3a3e45">family, high income,</text>
+    <text x="142" y="466" text-anchor="middle" class="t-body" fill="#3a3e45">commuter</text>
+    <text x="142" y="488" text-anchor="middle" class="t-lbl" fill="#4a4f59">occupation mix is GRADED</text>
+    <text x="142" y="503" text-anchor="middle" class="t-lbl" fill="#4a4f59">across all five values, not</text>
+    <text x="142" y="518" text-anchor="middle" class="t-lbl" fill="#4a4f59">a white-collar yes/no flag</text>
+
+    <rect x="254" y="344" width="188" height="180" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="348" y="366" text-anchor="middle" class="t-title" fill="#1f2124">0.20 Geographic fit</text>
+    <text x="348" y="386" text-anchor="middle" class="t-body" fill="#3a3e45">requested cities, zones</text>
+    <text x="348" y="402" text-anchor="middle" class="t-body" fill="#3a3e45">and corridors, resolved</text>
+    <text x="348" y="418" text-anchor="middle" class="t-body" fill="#3a3e45">from the rep's own words</text>
+    <text x="348" y="440" text-anchor="middle" class="t-body" fill="#3a3e45">a corridor inherits the</text>
+    <text x="348" y="456" text-anchor="middle" class="t-body" fill="#3a3e45">zones it actually passes</text>
+    <text x="348" y="478" text-anchor="middle" class="t-lbl" fill="#4a4f59">unresolvable place names</text>
+    <text x="348" y="493" text-anchor="middle" class="t-lbl" fill="#4a4f59">are surfaced before the</text>
+    <text x="348" y="508" text-anchor="middle" class="t-lbl" fill="#4a4f59">run starts, not after</text>
+
+    <rect x="454" y="344" width="188" height="180" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="548" y="366" text-anchor="middle" class="t-title" fill="#1f2124">0.15 Context fit</text>
+    <text x="548" y="386" text-anchor="middle" class="t-body" fill="#3a3e45">advertiser vertical mapped</text>
+    <text x="548" y="402" text-anchor="middle" class="t-body" fill="#3a3e45">to the POI types that</text>
+    <text x="548" y="418" text-anchor="middle" class="t-body" fill="#3a3e45">matter for it — retail,</text>
+    <text x="548" y="434" text-anchor="middle" class="t-body" fill="#3a3e45">campus, office, transit</text>
+    <text x="548" y="456" text-anchor="middle" class="t-body" fill="#3a3e45">13-value closed vocabulary</text>
+    <text x="548" y="472" text-anchor="middle" class="t-body" fill="#3a3e45">with a validator</text>
+    <text x="548" y="494" text-anchor="middle" class="t-lbl" fill="#4a4f59">vehicles have no POI set by</text>
+    <text x="548" y="509" text-anchor="middle" class="t-lbl" fill="#4a4f59">construction: scored neutral,</text>
+    <text x="548" y="524" text-anchor="middle" class="t-lbl" fill="#4a4f59">not penalised</text>
+
+    <rect x="654" y="344" width="188" height="180" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="748" y="366" text-anchor="middle" class="t-title" fill="#1f2124">0.15 Time-of-day fit</text>
+    <text x="748" y="386" text-anchor="middle" class="t-body" fill="#3a3e45">the audience's own peak</text>
+    <text x="748" y="402" text-anchor="middle" class="t-body" fill="#3a3e45">hours against this screen's</text>
+    <text x="748" y="418" text-anchor="middle" class="t-body" fill="#3a3e45">measured ridership shape</text>
+    <text x="748" y="440" text-anchor="middle" class="t-body" fill="#3a3e45">six 4-hour blocks, weekday</text>
+    <text x="748" y="456" text-anchor="middle" class="t-body" fill="#3a3e45">and weekend held apart</text>
+    <text x="748" y="478" text-anchor="middle" class="t-lbl" fill="#4a4f59">commuter share computed</text>
+    <text x="748" y="493" text-anchor="middle" class="t-lbl" fill="#4a4f59">from peak vs total, so it is</text>
+    <text x="748" y="508" text-anchor="middle" class="t-lbl" fill="#4a4f59">a measurement not a label</text>
+
+    <rect x="854" y="344" width="262" height="180" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="985" y="366" text-anchor="middle" class="t-title" fill="#1f2124">0.10 Historical performance</text>
+    <text x="985" y="386" text-anchor="middle" class="t-body" fill="#3a3e45">did past bookings on this screen,</text>
+    <text x="985" y="402" text-anchor="middle" class="t-body" fill="#3a3e45">in this vertical, complete?</text>
+    <text x="985" y="424" text-anchor="middle" class="t-body" fill="#3a3e45">screens with no history in the</text>
+    <text x="985" y="440" text-anchor="middle" class="t-body" fill="#3a3e45">vertical fall back to neutral and</text>
+    <text x="985" y="456" text-anchor="middle" class="t-body" fill="#3a3e45">SAY they did, in defaults_applied</text>
+    <text x="985" y="480" text-anchor="middle" class="t-lbl" fill="#4a4f59">this is how the system behaves when</text>
+    <text x="985" y="495" text-anchor="middle" class="t-lbl" fill="#4a4f59">a signal is absent: neutral, disclosed,</text>
+    <text x="985" y="510" text-anchor="middle" class="t-lbl" fill="#4a4f59">and never quietly invented</text>
+
+    <!-- outputs -->
+    <rect x="24" y="566" width="1092" height="200" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="590" class="t-hdr" fill="#6b7280">OUTPUT — the screen_candidates artifact, plus the honesty payload that travels with it</text>
+
+    <rect x="42" y="602" width="330" height="150" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="207" y="626" text-anchor="middle" class="t-title" fill="#1f2124">Ranked ScreenCandidate[]</text>
+    <text x="207" y="646" text-anchor="middle" class="t-body" fill="#3a3e45">relevance score + all five sub-scores</text>
+    <text x="207" y="662" text-anchor="middle" class="t-body" fill="#3a3e45">impressions by block and day type</text>
+    <text x="207" y="678" text-anchor="middle" class="t-body" fill="#3a3e45">pool_key, site name, partition count</text>
+    <text x="207" y="694" text-anchor="middle" class="t-body" fill="#3a3e45">reason strings citing real values</text>
+    <text x="207" y="716" text-anchor="middle" class="t-lbl" fill="#4a4f59">ties broken by size, then ambient</text>
+    <text x="207" y="731" text-anchor="middle" class="t-lbl" fill="#4a4f59">footfall, then id — so the artifact</text>
+    <text x="207" y="746" text-anchor="middle" class="t-lbl" fill="#4a4f59">is reproducible run to run</text>
+
+    <rect x="384" y="602" width="352" height="150" rx="8" fill="#ffffff" stroke="#1f2124"/>
+    <text x="560" y="626" text-anchor="middle" class="t-title" fill="#1f2124">Stratified truncation, not a blind cut</text>
+    <text x="560" y="646" text-anchor="middle" class="t-body" fill="#3f434b">A single global top-250 is categorical: bus</text>
+    <text x="560" y="662" text-anchor="middle" class="t-body" fill="#3f434b">stops average 0.589 against metro's 0.607 —</text>
+    <text x="560" y="678" text-anchor="middle" class="t-body" fill="#3f434b">a 2.9% gap — and landed 0 of 250.</text>
+    <text x="560" y="700" text-anchor="middle" class="t-body" fill="#3f434b">screen_type_mix allocates the cut per type,</text>
+    <text x="560" y="716" text-anchor="middle" class="t-body" fill="#3f434b">redistributes shortfall, and reports the</text>
+    <text x="560" y="732" text-anchor="middle" class="t-body" fill="#3f434b">achieved composition on EVERY run</text>
+
+    <rect x="748" y="602" width="368" height="150" rx="8" fill="#ffffff" stroke="#1f2124"/>
+    <text x="932" y="626" text-anchor="middle" class="t-title" fill="#1f2124">describe_relevance_model — self-disclosure</text>
+    <text x="932" y="646" text-anchor="middle" class="t-body" fill="#3f434b">the weights, the vocabularies, the demand</text>
+    <text x="932" y="662" text-anchor="middle" class="t-body" fill="#3f434b">source actually live, every default applied,</text>
+    <text x="932" y="678" text-anchor="middle" class="t-body" fill="#3f434b">and every sub-score that came back constant</text>
+    <text x="932" y="700" text-anchor="middle" class="t-body" fill="#3f434b">pool composition by screen type, unfilled mix,</text>
+    <text x="932" y="716" text-anchor="middle" class="t-body" fill="#3f434b">and the model's own known limitations</text>
+    <text x="932" y="738" text-anchor="middle" class="t-lbl" fill="#4a4f59">a flat sub-score looks exactly like success from outside — so it is reported</text>
+
+    <line x1="127" y1="100" x2="127" y2="160" stroke="#5b6070" stroke-width="1.4" marker-end="url(#a4)"/>
+    <line x1="357" y1="100" x2="357" y2="160" stroke="#5b6070" stroke-width="1.4" marker-end="url(#a4)"/>
+    <line x1="575" y1="100" x2="575" y2="160" stroke="#5b6070" stroke-width="1.4" marker-end="url(#a4)"/>
+    <line x1="776" y1="100" x2="776" y2="160" stroke="#5b6070" stroke-width="1.4" marker-end="url(#a4)"/>
+    <line x1="1001" y1="100" x2="1001" y2="160" stroke="#5b6070" stroke-width="1.4" marker-end="url(#a4)"/>
+    <line x1="580" y1="280" x2="580" y2="338" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a4)"/>
+    <line x1="580" y1="538" x2="580" y2="596" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a4)"/>
+  </svg>
+  <figcaption>
+  <p><strong>The correction that matters most in the whole system.</strong> The obvious way to
+  model a stop's audience is to credit it with its route's ridership. Do that and the stops
+  along one corridor sum to <strong>20.4&times;</strong> the corridor's own riders — one
+  commuter counted once per stop they pass. Weighting each stop by its share of the route
+  brings a corridor's stops to <strong>exactly 1.00&times;</strong> its ridership against the
+  same source. Every reach figure in the product depends on this being right.</p>
+  <p><strong>Reach is not the sum of impressions</strong>, and the gap is not a rounding error:
+  on the canonical 250-screen pool, naively summing exposures over-counts by
+  <strong>~25&times;</strong> (1,656,829 against 65,801). The de-duplication key is the
+  <em>site</em>, not the location row — one station is several rows in the source data, and
+  screens on opposite platforms see the same crowd.</p>
+  </figcaption>
+</figure>
+
+<h2 id="c3c"><span class="num">05</span>C3 &middot; Components: Pricing &amp; Demand Forecasting</h2>
+<div class="rule"></div>
+<p class="lede">Deliverable D3. The specialist receives the shortlisted screens and the
+requested time blocks, and runs a nine-step decision for every screen &times; block
+combination — with each step's reasoning attached to the row it produced.</p>
+
+<figure>
+  <div class="cap">Figure 5 — Pricing engine: the nine-step decision<span>C4 Level 3</span></div>
+  <svg viewBox="0 0 1160 940" role="img" aria-label="Pricing engine component diagram">
+    <defs>
+      <marker id="a5" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+      <marker id="a5d" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker>
+    </defs>
+
+    <rect x="24" y="24" width="1112" height="62" rx="9" fill="#1f2124"/>
+    <text x="580" y="48" text-anchor="middle" class="t-title" fill="#dff250">INPUT — shortlisted screens (from Figure 4) &times; requested time blocks &times; flight dates &times; advertiser vertical &times; the rep's levers</text>
+    <text x="580" y="70" text-anchor="middle" class="t-body" fill="#c3c7cf">read off the run, not passed as text: a float that has to survive a paraphrase is a float that eventually arrives wrong</text>
+
+    <!-- STEP 1 -->
+    <rect x="24" y="106" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="44" y="130" class="t-hdr" fill="#5b6070">STEP 1 — FEASIBILITY GATE</text>
+    <text x="44" y="154" class="t-title" fill="#1f2124">Day-by-day slot occupancy</text>
+    <text x="44" y="173" class="t-body" fill="#3a3e45">6 slots &times; screen &times; block &times; day, walked across</text>
+    <text x="44" y="188" class="t-body" fill="#3a3e45">the whole flight from live bookings. The figure</text>
+    <text x="44" y="203" class="t-body" fill="#3a3e45">reported is the TIGHTEST SINGLE DAY, not an average.</text>
+    <text x="44" y="218" class="t-lbl" fill="#4a4f59">infeasible screens are returned with their diagnostics, never silently dropped</text>
+
+    <!-- STEP 2 -->
+    <rect x="392" y="106" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="412" y="130" class="t-hdr" fill="#5b6070">STEP 2 — MARKET PRICE BAND</text>
+    <text x="412" y="154" class="t-title" fill="#1f2124">What comparable inventory actually sold for</text>
+    <text x="412" y="173" class="t-body" fill="#3a3e45">floor / target / cap from the real distribution of</text>
+    <text x="412" y="188" class="t-body" fill="#3a3e45">191,110 bookings, segmented size &times; type &times; position</text>
+    <text x="412" y="203" class="t-body" fill="#3a3e45">&times; ZONE &times; daypart, with a 5-rung fallback ladder</text>
+    <text x="412" y="218" class="t-lbl" fill="#4a4f59">95.6% of bookings land in a zone+daypart cell with n&ge;30</text>
+
+    <!-- STEP 3 -->
+    <rect x="760" y="106" width="376" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="780" y="130" class="t-hdr" fill="#5b6070">STEP 3 — DEAL SHAPE</text>
+    <text x="780" y="154" class="t-title" fill="#1f2124">A bundle is not a single-screen quote</text>
+    <text x="780" y="173" class="t-body" fill="#3a3e45">every location rung is also split by bundle vs single</text>
+    <text x="780" y="188" class="t-body" fill="#3a3e45">and tried split-first: a non-bundle deal holds one</text>
+    <text x="780" y="203" class="t-body" fill="#3a3e45">screen, a bundled one a median of twenty</text>
+    <text x="780" y="218" class="t-lbl" fill="#4a4f59">worth ~3.8% end to end; first dimension surrendered when a cell is thin</text>
+
+    <!-- STEP 4 -->
+    <rect x="24" y="242" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="44" y="266" class="t-hdr" fill="#5b6070">STEP 4 — SEASONALITY &amp; EVENTS</text>
+    <text x="44" y="290" class="t-title" fill="#1f2124">Day-of-week shape and nearby events</text>
+    <text x="44" y="309" class="t-body" fill="#3a3e45">derived from 2.05 M observed ridership rows, plus an</text>
+    <text x="44" y="324" class="t-body" fill="#3a3e45">event premium matched on radius and attendance</text>
+    <text x="44" y="339" class="t-body" fill="#3a3e45">the two terms are weighted SEPARATELY, so a rep can</text>
+    <text x="44" y="354" class="t-body" fill="#3a3e45">keep the event premium and drop the weekend haircut</text>
+
+    <!-- STEP 5 -->
+    <rect x="392" y="242" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="412" y="266" class="t-hdr" fill="#5b6070">STEP 5 — SCARCITY-DRIVEN POSITION</text>
+    <text x="412" y="290" class="t-title" fill="#1f2124">floor + occupancy &times; (cap &minus; floor)</text>
+    <text x="412" y="309" class="t-body" fill="#3a3e45">the primary driver, and it is exact rather than fitted:</text>
+    <text x="412" y="324" class="t-body" fill="#3a3e45">an empty screen quotes at the floor, a nearly-full one</text>
+    <text x="412" y="339" class="t-body" fill="#3a3e45">at the cap, and the curve between is dialable</text>
+    <text x="412" y="354" class="t-lbl" fill="#4a4f59">this is the answer to "pricing ignores demand and occupancy"</text>
+
+    <!-- STEP 6 -->
+    <rect x="760" y="242" width="376" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="780" y="266" class="t-hdr" fill="#5b6070">STEP 6 — DEMAND VALUE (the second opinion)</text>
+    <text x="780" y="290" class="t-title" fill="#1f2124">The one signal that may disagree with history</text>
+    <text x="780" y="309" class="t-body" fill="#3a3e45">scores what a screen physically DELIVERS — riders, zone</text>
+    <text x="780" y="324" class="t-body" fill="#3a3e45">income, daytime activity, POI draw — and never sees a</text>
+    <text x="780" y="339" class="t-body" fill="#3a3e45">price. Flags systematically underpriced inventory, +15% cap</text>
+    <text x="780" y="354" class="t-lbl" fill="#4a4f59">four gates withhold 6,305 of 6,690 eligible screens: it is deliberately shy</text>
+
+    <!-- STEP 7 -->
+    <rect x="24" y="378" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="44" y="402" class="t-hdr" fill="#5b6070">STEP 7 — COMMERCIAL ADJUSTMENT</text>
+    <text x="44" y="426" class="t-title" fill="#1f2124">What the rep knows, applied last</text>
+    <text x="44" y="445" class="t-body" fill="#3a3e45">seven levers with identity defaults: seasonality, event,</text>
+    <text x="44" y="460" class="t-body" fill="#3a3e45">industry, occupancy curve, band position, commercial</text>
+    <text x="44" y="475" class="t-body" fill="#3a3e45">multiplier, and an explicit floor override</text>
+    <text x="44" y="490" class="t-lbl" fill="#4a4f59">clamped and REPORTED rather than rejected — a retry costs a rate-limited call</text>
+
+    <!-- STEP 8 -->
+    <rect x="392" y="378" width="352" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="412" y="402" class="t-hdr" fill="#5b6070">STEP 8 — BOOKING PROBABILITY</text>
+    <text x="412" y="426" class="t-title" fill="#1f2124">Calibrated model, reported as a diagnostic</text>
+    <text x="412" y="445" class="t-body" fill="#3a3e45">trained on 191,109 won bookings against 393 leads lost</text>
+    <text x="412" y="460" class="t-body" fill="#3a3e45">specifically on price, guarded by a coefficient sign check</text>
+    <text x="412" y="475" class="t-body" fill="#3a3e45">flags when its own argmax diverges &gt;15% from the quote</text>
+    <text x="412" y="490" class="t-lbl" fill="#4a4f59">not the price driver, and the code says why in eleven lines of measurement</text>
+
+    <!-- STEP 9 -->
+    <rect x="760" y="378" width="376" height="118" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="780" y="402" class="t-hdr" fill="#5b6070">STEP 9 — SLOT CURVE &amp; DISCLOSURE</text>
+    <text x="780" y="426" class="t-title" fill="#1f2124">Price per slot count, 1 through 6</text>
+    <text x="780" y="445" class="t-body" fill="#3a3e45">flat by measurement, not by omission: the raw volume</text>
+    <text x="780" y="460" class="t-body" fill="#3a3e45">discount (1.00 &rarr; 0.926) is a composition confound —</text>
+    <text x="780" y="475" class="t-body" fill="#3a3e45">controlling for segment leaves ~1.6%, inside noise</text>
+    <text x="780" y="490" class="t-lbl" fill="#4a4f59">unavailable slot counts return null rather than a fabricated price</text>
+
+    <!-- ADVISORY -->
+    <rect x="24" y="520" width="1112" height="140" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="544" class="t-hdr" fill="#6b7280">ALONGSIDE — the negotiation intelligence, wired to no price by design</text>
+
+    <rect x="42" y="556" width="530" height="90" rx="8" fill="#2e3136"/>
+    <text x="307" y="580" text-anchor="middle" class="t-title" fill="#dff250">Client Negotiation Profile</text>
+    <text x="307" y="600" text-anchor="middle" class="t-body" fill="#e9ebef">what this account has actually paid relative to comparable inventory,</text>
+    <text x="307" y="616" text-anchor="middle" class="t-body" fill="#e9ebef">judged against its own standard error &middot; their recorded price objections</text>
+    <text x="307" y="636" text-anchor="middle" class="t-lbl" fill="#9aa0aa">96% of accounts are repeat business, so there is nearly always real history to lead with</text>
+
+    <rect x="588" y="556" width="528" height="90" rx="8" fill="#eef0f9" stroke="#1f2124"/>
+    <text x="852" y="580" text-anchor="middle" class="t-title" fill="#1f2124">Advisory is structural, not squeamish</text>
+    <text x="852" y="600" text-anchor="middle" class="t-body" fill="#3f434b">price-driven loss rates are FLAT across leverage tiers (34.2% / 32.5% / 34.8%),</text>
+    <text x="852" y="616" text-anchor="middle" class="t-body" fill="#3f434b">so posture predicts what you settle at, never whether you lose the deal</text>
+    <text x="852" y="636" text-anchor="middle" class="t-lbl" fill="#4a4f59">it suggests an opening multiplier; only the rep may apply it</text>
+
+    <!-- OUTPUT -->
+    <rect x="24" y="686" width="1112" height="140" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="710" class="t-hdr" fill="#6b7280">OUTPUT — the screen_economics artifact, one row per screen &times; time block</text>
+    <rect x="42" y="722" width="352" height="90" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="218" y="746" text-anchor="middle" class="t-title" fill="#1f2124">The commercial figures</text>
+    <text x="218" y="766" text-anchor="middle" class="t-body" fill="#3a3e45">floor / target / cap / recommended,</text>
+    <text x="218" y="782" text-anchor="middle" class="t-body" fill="#3a3e45">occupancy, purchasable slots,</text>
+    <text x="218" y="798" text-anchor="middle" class="t-body" fill="#3a3e45">booking probability, expected revenue</text>
+
+    <rect x="410" y="722" width="352" height="90" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="586" y="746" text-anchor="middle" class="t-title" fill="#1f2124">The audience figures, carried through</text>
+    <text x="586" y="766" text-anchor="middle" class="t-body" fill="#3a3e45">people passing, the reach ceiling, and</text>
+    <text x="586" y="782" text-anchor="middle" class="t-body" fill="#3a3e45">exposures per slot per day — converted</text>
+    <text x="586" y="798" text-anchor="middle" class="t-body" fill="#3a3e45">in ONE module, called from ONE place</text>
+
+    <rect x="778" y="722" width="338" height="90" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="947" y="746" text-anchor="middle" class="t-title" fill="#1f2124">The reasoning</text>
+    <text x="947" y="766" text-anchor="middle" class="t-body" fill="#3a3e45">every fallback rung used, every</text>
+    <text x="947" y="782" text-anchor="middle" class="t-body" fill="#3a3e45">multiplier applied, every lever moved,</text>
+    <text x="947" y="798" text-anchor="middle" class="t-body" fill="#3a3e45">as a per-row assumption list</text>
+
+    <rect x="24" y="852" width="1112" height="66" rx="9" fill="#1f2124"/>
+    <text x="580" y="876" text-anchor="middle" class="t-title" fill="#dff250">THE GUARDRAIL — no lever, no premium and no rep instruction reaches the feasibility gate</text>
+    <text x="580" y="898" text-anchor="middle" class="t-body" fill="#c3c7cf">Availability, occupancy and the band's comparables are inventory truth, not posture. A sold-out screen stays sold out.</text>
+
+    <line x1="200" y1="224" x2="200" y2="236" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="568" y1="224" x2="568" y2="236" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="948" y1="224" x2="948" y2="236" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="200" y1="360" x2="200" y2="372" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="568" y1="360" x2="568" y2="372" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="948" y1="360" x2="948" y2="372" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a5)"/>
+    <line x1="580" y1="496" x2="580" y2="514" stroke="#1f2124" stroke-width="2" marker-end="url(#a5d)"/>
+    <line x1="580" y1="660" x2="580" y2="680" stroke="#1f2124" stroke-width="2" marker-end="url(#a5d)"/>
+    <line x1="580" y1="826" x2="580" y2="846" stroke="#1f2124" stroke-width="2" marker-end="url(#a5d)"/>
+  </svg>
+  <figcaption>
+  <p><strong>Why occupancy drives the price and elasticity does not.</strong> We built the
+  textbook version first — argmax of price &times; P(booked) — and it degenerated to the cap for
+  every single screen. Diagnosed cause, in the code where the decision lives: within one
+  segment's realistic band, predicted booking probability moves only 0.1–0.2%, because it is
+  estimated from 393 price-driven losses spread across thousands of screen/city/industry
+  combinations. The signal is correctly signed and far too diffuse to price on. Occupancy is
+  exact, validated against real bookings, and is what a seller should actually respond to. The
+  probability model is kept as a diagnostic and as a divergence alarm.</p>
+  <p><strong>The demand-value model is the answer to "pricing is a mirror".</strong> Everything
+  else in the engine asks what screens like this have sold for, so a screen always sold cheap
+  is quoted cheap forever. Merit scoring never sees a price, which is what lets it find a wrong
+  norm rather than only a deviation from one — measured, top-quintile bus stops carry
+  <strong>6.2&times;</strong> the riders of the bottom quintile and only <strong>1.59&times;</strong>
+  the price. It is the one adjustment permitted to carry a quote above the band cap, because an
+  underpriced screen's own comparables are precisely what understate it.</p>
+  </figcaption>
+</figure>
+
+<h2 id="c3d"><span class="num">06</span>C3 &middot; Components: the OR Optimizer</h2>
+<div class="rule"></div>
+<p class="lede">Deliverable D4. Priced screens in, the best buyable package out — as a
+mixed-integer program that either proves its allocation optimal or explains, in reason codes
+and relaxation options, why no package exists.</p>
+
+<figure>
+  <div class="cap">Figure 6 — MILP optimizer components<span>C4 Level 3</span></div>
+  <svg viewBox="0 0 1160 860" role="img" aria-label="Optimizer component diagram">
+    <defs>
+      <marker id="a6" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#5b6070"/></marker>
+      <marker id="a6d" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+        <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker>
+    </defs>
+
+    <rect x="24" y="24" width="1112" height="58" rx="9" fill="#1f2124"/>
+    <text x="580" y="48" text-anchor="middle" class="t-title" fill="#dff250">INPUT — priced screen &times; block cells, each with its purchasable slot depth, its audience pool, and its context score</text>
+    <text x="580" y="68" text-anchor="middle" class="t-body" fill="#c3c7cf">plus the campaign's own constraints, read off the run: budget, dates, geography, screen count, required blocks, slot structure</text>
+
+    <!-- contract -->
+    <rect x="24" y="102" width="352" height="126" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="44" y="126" class="t-hdr" fill="#5b6070">CONTRACT — input validation</text>
+    <text x="44" y="150" class="t-title" fill="#1f2124">Nothing enters the solver unchecked</text>
+    <text x="44" y="169" class="t-body" fill="#3a3e45">types, ranges, missing cells, and the pool</text>
+    <text x="44" y="184" class="t-body" fill="#3a3e45">population arithmetic that turns a vehicle's</text>
+    <text x="44" y="199" class="t-body" fill="#3a3e45">share back into its corridor's whole crowd</text>
+    <text x="44" y="220" class="t-lbl" fill="#4a4f59">the divisor is defined once and consumed by both halves</text>
+
+    <!-- exposure -->
+    <rect x="392" y="102" width="352" height="126" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="412" y="126" class="t-hdr" fill="#5b6070">EXPOSURE — one implementation, one call site</text>
+    <text x="412" y="150" class="t-title" fill="#1f2124">People passing &rarr; people who look</text>
+    <text x="412" y="169" class="t-body" fill="#3a3e45">a 4-hour block runs all 6 slots on a fast loop, so</text>
+    <text x="412" y="184" class="t-body" fill="#3a3e45">slot POSITION is meaningless and holding k of 6</text>
+    <text x="412" y="199" class="t-body" fill="#3a3e45">is share of voice — exposures are LINEAR in k</text>
+    <text x="412" y="220" class="t-lbl" fill="#4a4f59">viewability differs in-vehicle (captive) vs at a stop (brief dwell)</text>
+
+    <!-- pooled -->
+    <rect x="760" y="102" width="376" height="126" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="780" y="126" class="t-hdr" fill="#5b6070">POOLED — the shared-audience structure</text>
+    <text x="780" y="150" class="t-title" fill="#1f2124">972 pools, each with a hard ceiling</text>
+    <text x="780" y="169" class="t-body" fill="#3a3e45">878 sites + 94 corridors. Boards at one stop, and</text>
+    <text x="780" y="184" class="t-body" fill="#3a3e45">boards on one route, reach the SAME commuters —</text>
+    <text x="780" y="199" class="t-body" fill="#3a3e45">so they share a ceiling instead of stacking</text>
+    <text x="780" y="220" class="t-lbl" fill="#4a4f59">this is the modelling error the brief warned about, handled in the formulation</text>
+
+    <!-- formulation -->
+    <rect x="24" y="248" width="1112" height="292" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="272" class="t-hdr" fill="#6b7280">SOLVER — HiGHS branch-and-bound via SciPy, solved to a 1% relative gap and told which it got</text>
+
+    <rect x="42" y="284" width="530" height="112" rx="8" fill="#2e3136"/>
+    <text x="307" y="308" text-anchor="middle" class="t-title" fill="#dff250">Decision variables</text>
+    <text x="60" y="332" class="t-body" fill="#e9ebef">y[i,k]  binary — cell i holds at least k+1 rotation slots (k = 0..5)</text>
+    <text x="60" y="350" class="t-body" fill="#e9ebef">z[s]    binary — screen s is used (counts SCREENS, not screen&times;block cells)</text>
+    <text x="60" y="368" class="t-body" fill="#e9ebef">E[p], R[p] continuous — exposures and reach accumulated in pool p</text>
+    <text x="60" y="386" class="t-body" fill="#e9ebef">c[g], w[p] continuous — elastic shortfall on coverage and on wear-out</text>
+
+    <rect x="588" y="284" width="528" height="112" rx="8" fill="#2e3136"/>
+    <text x="852" y="308" text-anchor="middle" class="t-title" fill="#dff250">Objective, switched by campaign goal</text>
+    <text x="606" y="332" class="t-body" fill="#e9ebef">max  w_reach &middot; &Sigma;R  +  w_freq &middot; &Sigma;E  +  w_conv &middot; &Sigma;(context &middot; E)</text>
+    <text x="606" y="350" class="t-body" fill="#e9ebef">     &minus; coverage_penalty &middot; &Sigma;c  &minus; wear_out_penalty &middot; &Sigma;w  &minus; tie_break &middot; cost</text>
+    <text x="606" y="372" class="t-body" fill="#c3c7cf">reach / awareness / frequency / conversion are genuinely different plans,</text>
+    <text x="606" y="388" class="t-body" fill="#c3c7cf">not relabelled copies — and the rep can see all four side by side</text>
+
+    <rect x="42" y="410" width="530" height="116" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="307" y="434" text-anchor="middle" class="t-title" fill="#1f2124">HARD constraints — an LLM may never reason these away</text>
+    <text x="60" y="456" class="t-body" fill="#3a3e45">&bull; budget ceiling, and a relaxing spend-floor ladder rather than an invented 90%</text>
+    <text x="60" y="472" class="t-body" fill="#3a3e45">&bull; per-day availability: no cell can buy a slot that is already sold</text>
+    <text x="60" y="488" class="t-body" fill="#3a3e45">&bull; slot ordering, distinct screen count, required time blocks, mandated zones</text>
+    <text x="60" y="504" class="t-body" fill="#3a3e45">&bull; slots per SCREEN per day, summed across blocks — the compliance reading</text>
+    <text x="60" y="520" class="t-body" fill="#3a3e45">&bull; reach bounded EXACTLY: R[p] &le; E[p] and R[p] &le; P[p]. No fitted curve.</text>
+
+    <rect x="588" y="410" width="528" height="116" rx="8" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="852" y="434" text-anchor="middle" class="t-title" fill="#1f2124">ELASTIC constraints — they yield, and they report</text>
+    <text x="606" y="456" class="t-body" fill="#3a3e45">&bull; group coverage: penalised shortfall, so a missed zone is named and quantified</text>
+    <text x="606" y="472" class="t-body" fill="#3a3e45">&bull; wear-out cap: expressed as a MULTIPLE of the flight's unavoidable exposure</text>
+    <text x="606" y="488" class="t-body" fill="#3a3e45">  floor, because an absolute cap is satisfiable by no plan at all on a long flight</text>
+    <text x="606" y="510" class="t-lbl" fill="#4a4f59">an elastic constraint that binds produces a finding a rep can act on; a hard one</text>
+    <text x="606" y="524" class="t-lbl" fill="#4a4f59">produces an infeasibility nobody can interpret</text>
+
+    <!-- outputs -->
+    <rect x="24" y="562" width="1112" height="192" rx="11" fill="#f6f7fc" stroke="#b9bdc7" stroke-dasharray="6 4"/>
+    <text x="42" y="586" class="t-hdr" fill="#6b7280">OUTPUT — the package, or an honest refusal</text>
+
+    <rect x="42" y="598" width="352" height="142" rx="8" fill="#dff250" stroke="#1f2124"/>
+    <text x="218" y="622" text-anchor="middle" class="t-title" fill="#1f2124">The package</text>
+    <text x="218" y="642" text-anchor="middle" class="t-body" fill="#3a3e45">line by line: screen, place name, block,</text>
+    <text x="218" y="658" text-anchor="middle" class="t-body" fill="#3a3e45">slots, days, unit price, line cost</text>
+    <text x="218" y="680" text-anchor="middle" class="t-body" fill="#3a3e45">people reached, gross views, frequency,</text>
+    <text x="218" y="696" text-anchor="middle" class="t-body" fill="#3a3e45">budget utilisation, constraint status map</text>
+    <text x="218" y="718" text-anchor="middle" class="t-lbl" fill="#4a4f59">optimization_method names the solver,</text>
+    <text x="218" y="732" text-anchor="middle" class="t-lbl" fill="#4a4f59">the objective, the gap and whether proven</text>
+
+    <rect x="410" y="598" width="352" height="142" rx="8" fill="#ffffff" stroke="#1f2124"/>
+    <text x="586" y="622" text-anchor="middle" class="t-title" fill="#1f2124">The findings — where the money went</text>
+    <text x="586" y="642" text-anchor="middle" class="t-body" fill="#3f434b">unspent budget comes with its CAUSE, and</text>
+    <text x="586" y="658" text-anchor="middle" class="t-body" fill="#3f434b">the two causes read very differently:</text>
+    <text x="586" y="678" text-anchor="middle" class="t-body" fill="#3f434b">audience saturation means the money cannot</text>
+    <text x="586" y="694" text-anchor="middle" class="t-body" fill="#3f434b">buy more people and should not pad a package;</text>
+    <text x="586" y="710" text-anchor="middle" class="t-body" fill="#3f434b">a client's own slot cap costing reach is a</text>
+    <text x="586" y="726" text-anchor="middle" class="t-body" fill="#3f434b">trade-off that belongs to the client</text>
+
+    <rect x="778" y="598" width="338" height="142" rx="8" fill="#2e3136"/>
+    <text x="947" y="622" text-anchor="middle" class="t-title" fill="#dff250">Infeasibility as a first-class answer</text>
+    <text x="947" y="642" text-anchor="middle" class="t-body" fill="#e9ebef">reason codes, a plain explanation, and</text>
+    <text x="947" y="658" text-anchor="middle" class="t-body" fill="#e9ebef">the specific relaxation that would work</text>
+    <text x="947" y="680" text-anchor="middle" class="t-body" fill="#c3c7cf">the agent may not assemble a plausible</text>
+    <text x="947" y="696" text-anchor="middle" class="t-body" fill="#c3c7cf">package instead, relax a client's own</text>
+    <text x="947" y="712" text-anchor="middle" class="t-body" fill="#c3c7cf">constraint on its own initiative, or</text>
+    <text x="947" y="728" text-anchor="middle" class="t-body" fill="#c3c7cf">present a partial fill as a solution</text>
+
+    <rect x="24" y="778" width="1112" height="62" rx="9" fill="#1f2124"/>
+    <text x="580" y="802" text-anchor="middle" class="t-title" fill="#dff250">THREE INDEPENDENT IMPLEMENTATIONS OF REACH, ONE DEFINITION</text>
+    <text x="580" y="824" text-anchor="middle" class="t-body" fill="#c3c7cf">The solver maximises it, the OR tool reports it, the validator re-derives it from scratch. None imports another — agreement is the evidence, and a test holds them in step.</text>
+
+    <line x1="200" y1="228" x2="200" y2="242" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a6)"/>
+    <line x1="568" y1="228" x2="568" y2="242" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a6)"/>
+    <line x1="948" y1="228" x2="948" y2="242" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a6)"/>
+    <line x1="580" y1="540" x2="580" y2="556" stroke="#1f2124" stroke-width="2" marker-end="url(#a6d)"/>
+    <line x1="580" y1="754" x2="580" y2="772" stroke="#1f2124" stroke-width="2" marker-end="url(#a6d)"/>
+  </svg>
+  <figcaption>
+  <p><strong>A MILP, and it earns the cost.</strong> The predecessor was a greedy fill. A test
+  in the suite pins the comparison, so the claim is checked rather than asserted. The reach
+  bound is the reason it is fast as well as correct: bounding the true <code>min(E,P)</code>
+  needs two exact linear constraints, where the fitted exponential saturation curve it replaced
+  needed six tangent lines, carried an unmeasurable constant, left measured audience on the
+  table, and turned a 0.1-second solve into a 30-second timeout.</p>
+  <p><strong>Non-linearity, handled where it actually lives.</strong> The brief asks for
+  non-linearity in impressions vs boards vs price. It is not in the slot count — all six slots
+  loop continuously through the block, so the sixth is worth what the first is. It is at the
+  <em>pool</em>, where a shared crowd saturates, and that is exactly the one concavity in the
+  model. Getting this the right way round is what stops a plan buying depth on a stop it has
+  already saturated.</p>
+  </figcaption>
+</figure>
+
+<h2 id="runtime"><span class="num">07</span>Runtime view: one turn, end to end</h2>
+<div class="rule"></div>
+<p class="lede">What actually happens in the ninety seconds between a rep pressing send and a
+quotable package appearing — and what happens on the turn after that, which is usually the
+turn that matters.</p>
+
+<figure>
+  <div class="cap">Figure 7 — Runtime sequence, opening brief<span>Dynamic view</span></div>
+  <svg viewBox="0 0 1160 700" role="img" aria-label="Runtime sequence diagram">
+    <defs>
+      <marker id="a7" markerWidth="9" markerHeight="7" refX="8" refY="3.2" orient="auto">
+        <path d="M0,0 L8,3.2 L0,6.4 Z" fill="#1f2124"/></marker>
+      <marker id="a7g" markerWidth="9" markerHeight="7" refX="8" refY="3.2" orient="auto">
+        <path d="M0,0 L8,3.2 L0,6.4 Z" fill="#8a9a20"/></marker>
+    </defs>
+    <g class="t-body" fill="#1f2124">
+      <rect x="24" y="24" width="150" height="40" rx="7" fill="#2e3136"/><text x="99" y="49" text-anchor="middle" class="t-title" fill="#fff">Rep / UI</text>
+      <rect x="204" y="24" width="150" height="40" rx="7" fill="#eef0f9" stroke="#b9bdc7"/><text x="279" y="49" text-anchor="middle" class="t-title">API + SSE</text>
+      <rect x="384" y="24" width="150" height="40" rx="7" fill="#1f2124"/><text x="459" y="49" text-anchor="middle" class="t-title" fill="#dff250">Master</text>
+      <rect x="564" y="24" width="170" height="40" rx="7" fill="#eef8a8" stroke="#8a9a20"/><text x="649" y="49" text-anchor="middle" class="t-title">Relevance</text>
+      <rect x="764" y="24" width="150" height="40" rx="7" fill="#2e3136"/><text x="839" y="49" text-anchor="middle" class="t-title" fill="#dff250">ML Agent</text>
+      <rect x="944" y="24" width="150" height="40" rx="7" fill="#2e3136"/><text x="1019" y="49" text-anchor="middle" class="t-title" fill="#dff250">OR Agent</text>
+    </g>
+    <g stroke="#c9ccd6" stroke-width="1.2" stroke-dasharray="4 4">
+      <line x1="99" y1="64" x2="99" y2="660"/><line x1="279" y1="64" x2="279" y2="660"/>
+      <line x1="459" y1="64" x2="459" y2="660"/><line x1="649" y1="64" x2="649" y2="660"/>
+      <line x1="839" y1="64" x2="839" y2="660"/><line x1="1019" y1="64" x2="1019" y2="660"/>
+    </g>
+    <g class="t-body">
+      <line x1="99" y1="94" x2="272" y2="94" stroke="#1f2124" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="106" y="88" fill="#1f2124">brief + attachments + chosen model</text>
+      <line x1="279" y1="122" x2="106" y2="122" stroke="#8a9a20" stroke-width="1.6" marker-end="url(#a7g)"/>
+      <text x="112" y="116" fill="#5b6070">SSE: session named, user message already persisted</text>
+      <line x1="279" y1="150" x2="452" y2="150" stroke="#1f2124" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="286" y="144" fill="#1f2124">invoke graph (session_id, upload ids)</text>
+
+      <rect x="384" y="168" width="500" height="58" rx="6" fill="#f6f7fc" stroke="#b9bdc7"/>
+      <text x="396" y="188" fill="#1f2124" class="t-title">1 &middot; INTAKE</text>
+      <text x="396" y="205" fill="#3f434b">read_campaign_document &rarr; resolve_geography_terms &rarr; the one clarification gate</text>
+      <text x="396" y="220" fill="#5b6070" class="t-lbl">if something load-bearing is missing, it asks up to 3 questions HERE and stops. Never mid-pipeline.</text>
+
+      <line x1="459" y1="248" x2="459" y2="262" stroke="#1f2124" stroke-width="1.6"/>
+      <text x="470" y="258" fill="#1f2124">create_campaign_spec &rarr; run_id (the handle everything else travels on)</text>
+
+      <line x1="459" y1="288" x2="642" y2="288" stroke="#1f2124" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="466" y="282" fill="#1f2124">build_screen_candidates(run_id)</text>
+      <rect x="564" y="300" width="380" height="46" rx="6" fill="#eef8a8" stroke="#8a9a20"/>
+      <text x="574" y="318" fill="#1f2124" class="t-title">2 &middot; AUDIENCE + RELEVANCE — zero model calls</text>
+      <text x="574" y="335" fill="#3f434b">11,163 screens scored, stratified cut, artifact written</text>
+      <line x1="642" y1="364" x2="466" y2="364" stroke="#8a9a20" stroke-width="1.6" marker-end="url(#a7g)"/>
+      <text x="472" y="358" fill="#5b6070">artifact ref + composition + defaults applied</text>
+
+      <line x1="459" y1="394" x2="832" y2="394" stroke="#1f2124" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="466" y="388" fill="#1f2124">task: price this run (set_pricing_levers first, if the rep gave context)</text>
+      <rect x="700" y="406" width="380" height="46" rx="6" fill="#f6f7fc" stroke="#b9bdc7"/>
+      <text x="710" y="424" fill="#1f2124" class="t-title">3 &middot; PRICING — the nine steps, per screen &times; block</text>
+      <text x="710" y="441" fill="#3f434b">reads candidates, writes economics, reports levers applied</text>
+      <line x1="832" y1="470" x2="466" y2="470" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="472" y="464" fill="#5b6070">aggregates only — never per-screen rows into context</text>
+
+      <line x1="459" y1="500" x2="1012" y2="500" stroke="#1f2124" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="466" y="494" fill="#1f2124">task: optimise this run</text>
+      <rect x="700" y="512" width="380" height="46" rx="6" fill="#f6f7fc" stroke="#b9bdc7"/>
+      <text x="710" y="530" fill="#1f2124" class="t-title">4 &middot; OPTIMIZATION — MILP</text>
+      <text x="710" y="547" fill="#3f434b">package or infeasibility, plus the constraint status map</text>
+      <line x1="1012" y1="576" x2="466" y2="576" stroke="#5b6070" stroke-width="1.6" marker-end="url(#a7)"/>
+      <text x="472" y="570" fill="#5b6070">objective, method, reach, exposures, findings</text>
+
+      <rect x="384" y="590" width="500" height="42" rx="6" fill="#1f2124"/>
+      <text x="396" y="608" fill="#dff250" class="t-title">5 &middot; VERIFY — 19 checks, always, no exceptions</text>
+      <text x="396" y="625" fill="#c3c7cf">cost, reach, availability, geography, dates, every declared constraint, every named screen's explanation</text>
+
+      <line x1="452" y1="654" x2="106" y2="654" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a7)"/>
+      <text x="112" y="648" fill="#1f2124">answer in 9 numbered sections, ending in costed suggestions — plus the run id, tool trail and token count</text>
+    </g>
+  </svg>
+  <figcaption>
+  <p><strong>The turn after is the one that pays.</strong> On every later turn the Master first
+  reads the active run and compares the campaign inputs the optimizer actually consumed against
+  what the rep just said. A question is <em>answered from the existing package</em> in seconds;
+  only a changed input triggers a rebuild. That single triage rule is what makes the product
+  feel like a colleague rather than a batch job — a rep can interrogate a plan for free, and
+  the interface knows not to re-render a metrics deck for an answer that changed nothing.</p>
+  </figcaption>
+</figure>
+
+<h2 id="tech"><span class="num">08</span>Technical capabilities</h2>
+<div class="rule"></div>
+<p class="lede">Seven choices we would defend in a design review, not seven features on a
+slide. Each one exists because the obvious alternative was tried, measured, or would have
+failed on the sales floor.</p>
+
+<h3>1 &middot; The agent guides. It does not just answer.</h3>
+<p>Most agent demos are a one-shot function call wearing a chat interface: brief in, wall of
+output out, and the human's judgement is nowhere in the loop. Ours is built the other way
+round — it is designed to be a colleague who knows the inventory and knows what it does not
+know.</p>
+<div class="grid g2">
+  <div class="card"><span class="tag">Before the run</span><h5>It asks, exactly once, and only about what matters</h5>
+  <p>A brief with no audience named leaves <strong>55% of the relevance weight</strong> sitting
+  at a flat neutral value, and a brief with no advertiser category leaves another 25% — so the
+  system would spend 90 seconds producing a confident ranking decided almost entirely by
+  geography. Rather than hide that, it asks.</p>
+  <p>The gate is deliberately narrow: <strong>up to three questions, one round, at one moment
+  only</strong> — after geography resolves and before the spec is built. Never mid-pipeline,
+  never on a rebuild, never on a follow-up. Everything else has a defensible default and a
+  recorded reason, and interrupting a 90-second run to buy one input is the fastest way to make
+  a tool exhausting to use.</p></div>
+
+  <div class="card"><span class="tag">How it asks</span><h5>Clickable options, not an open question</h5>
+  <p>The agent supplies the two most probable answers for <em>this</em> brief and says which one
+  it would pick. The tool builds the four options the rep sees: A, B, a
+  <em>"decide for yourself"</em> that quotes the recommendation back, and a free-text
+  <em>"something else"</em>. The rep clicks and the run continues.</p>
+  <p>Options must be drawn from the vocabulary the engine actually scores — an off-vocabulary
+  audience term silently collapses to neutral, which is the exact failure the question exists to
+  prevent, so the tool rejects it. A dry cleaner and a nightclub do not get the same two
+  options.</p></div>
+
+  <div class="card"><span class="tag">After the run</span><h5>Every answer ends in costed suggestions</h5>
+  <p>A <em>Worth considering</em> section, last, after the package is complete and quotable —
+  two or three items, each one line, each carrying the number that makes it worth doing. "The
+  plan leaves 47% of budget unspent because reach saturated at 53 stops — widening to the
+  airport corridor would add roughly 40 more" is useful. "Consider broadening the geography" is
+  not, and is explicitly disallowed.</p>
+  <p>The rep must be able to ignore that section entirely and send the package as it stands. It
+  is a nudge, never a caveat that makes the plan provisional.</p></div>
+
+  <div class="card"><span class="tag">Before the call</span><h5>It briefs the rep on their own client</h5>
+  <p>Name the advertiser and the agent pulls their negotiation history: what they have actually
+  paid relative to comparable inventory, judged against its own standard error, and what they
+  have objected to on price. <strong>96% of accounts are repeat business</strong>, so there is
+  nearly always real history.</p>
+  <p>It is advisory by design and says so — it may suggest an opening multiplier and only the
+  rep may apply it. And it leads with the honest statistic: deals lost to price were asking for
+  about <strong>a third off</strong>, so a few percent is not what loses business.</p></div>
+</div>
+
+<h3>2 &middot; DuckDB in the backend — nobody opens a spreadsheet again</h3>
+<p>The problem statement's own description of today's workflow starts with "the rep opens a
+spreadsheet". Our answer is architectural: <strong>the 14 source tables are registered as
+DuckDB views and queried with SQL</strong> — columnar, vectorised, in-process, zero-copy, and
+never loaded into a workbook or a pandas frame in full.</p>
+<table>
+  <thead><tr><th style="width:26%">What it buys</th><th>Why it matters here</th></tr></thead>
+  <tbody>
+    <tr><td><strong>165 MB, none of it opened</strong></td><td>Including a 124 MB / 2.05 M-row ridership table that would freeze Excel and take minutes through a naive CSV read. DuckDB scans only the columns a query touches.</td></tr>
+    <tr><td><strong>The joins happen once, in SQL</strong></td><td>Eleven derived analytical views — stop weights, site grouping, schedule blocks, route and corridor demand, screen profile, POI attachment — so the Python layer receives finished features instead of re-deriving a fourteen-table join per request.</td></tr>
+    <tr><td><strong>Zero infrastructure</strong></td><td>No warehouse to provision, no cluster, no credentials, no network hop. Judges can clone and run it; a sales team could too. It also means the whole analytical layer is reproducible from the CSVs on any machine.</td></tr>
+    <tr><td><strong>Graceful degradation</strong></td><td>The optional ridership table may be absent. The system detects that, falls back to scheduled estimates, and <em>reports which source is live</em> on the health endpoint and in its own model description — rather than returning quietly different numbers.</td></tr>
+    <tr><td><strong>Room to grow</strong></td><td>The same SQL runs against Parquet, S3 or Postgres with a changed source clause. Scaling to more cities is a data-volume problem DuckDB is built for, not a rewrite.</td></tr>
+  </tbody>
+</table>
+
+<h3>3 &middot; A clean codebase with a full test suite — 362 tests, no API key required</h3>
+<p>The suite is the reason we could move this fast for three days and still trust the output.
+It runs in seconds, needs no model credentials and no network, and it pins <em>behaviour</em>
+rather than implementation.</p>
+<div class="stats" style="grid-template-columns:repeat(6,1fr)">
+  <div><span class="n">362</span><span class="l">tests collected</span></div>
+  <div><span class="n">18</span><span class="l">test modules</span></div>
+  <div><span class="n">19</span><span class="l">verification checks</span></div>
+  <div><span class="n">0</span><span class="l">stubbed stages</span></div>
+  <div><span class="n">0</span><span class="l">model calls in CI</span></div>
+  <div><span class="n">3</span><span class="l">days elapsed</span></div>
+</div>
+<table>
+  <thead><tr><th style="width:30%">Suite</th><th>What it holds still</th></tr></thead>
+  <tbody>
+    <tr><td class="nw"><code>test_pipeline_smoke</code></td><td>Every stage end to end with <strong>no LLM at all</strong>, asserting the validator accepts the result. This is what makes a refactor safe without burning quota.</td></tr>
+    <tr><td class="nw"><code>test_relevance_engine</code> (44)</td><td>The audience units, the stop-share arithmetic, the site-level pooling, the closed vocabularies, and the stratified truncation.</td></tr>
+    <tr><td class="nw"><code>test_optimizer</code> (19)</td><td>Constraint semantics, the wear-out arithmetic, the per-screen slot reading, and a <strong>MILP-beats-greedy</strong> comparison — the performance claim is tested, not asserted.</td></tr>
+    <tr><td class="nw"><code>test_pricing_engine</code> + <code>_levers</code> + <code>_demand_value</code> + <code>_client_profile</code> (90)</td><td>Band fallbacks, identity defaults, clamping behaviour, the rule that <em>only</em> the demand premium may exceed a band cap, and the ranking-partition trap that once inflated flagged screens from 385 to 811.</td></tr>
+    <tr><td class="nw"><code>test_documents</code> (34)</td><td>Every upload failure mode: scanned PDF, locked PDF, oversized DOCX, unsupported type. Each returns a status a rep can act on; none raises into the request.</td></tr>
+    <tr><td class="nw"><code>test_clarification</code> + <code>_api</code> (23)</td><td>The question gate: vocabulary enforcement, the three-question ceiling, and the stopping rule that a turn which asks does not also build.</td></tr>
+    <tr><td class="nw"><code>test_providers</code> (14)</td><td>The model catalogue, the resolution rules and the Azure deployment mapping — without touching the network.</td></tr>
+    <tr><td class="nw"><code>test_transcripts</code>, <code>_session_titles</code>, <code>_followup_turns</code>, <code>_artifact_store</code>, <code>_tracing</code>, <code>_presentation_labels</code> (87)</td><td>Persistence, restoration, the answer-vs-rebuild triage, artifact portability, and the rule that internal identifiers never reach a rep's screen.</td></tr>
+  </tbody>
+</table>
+<div class="call dark"><span class="k">What "clean" means in this repo</span>
+<p>Strict monorepo boundaries; one module per agent; Pydantic v2 contracts at every seam; full
+type hints; <code>ruff</code> for lint and format; a documented layering rule that
+<strong>engines never import tools and tools never import each other</strong>. Every constant
+in the optimizer is tagged by provenance — <code>STRUCTURAL</code> (validated against the
+data), <code>ASSUMED</code> (ours to defend), <code>SOLVER</code> (no business meaning) — so a
+reviewer can find every assumption in the system in one file. And rejected alternatives are
+documented <em>at the site of the decision</em> with the measurement that rejected them, which
+is why nobody re-adds them on intuition.</p></div>
+
+<h3>4 &middot; Multiple models, chosen per request by the person doing the selling</h3>
+<p>Two providers and three models, selectable from the sidebar and remembered per rep. This is
+not a checkbox — it is a resilience decision made after being burned by a free-tier daily
+quota mid-run.</p>
+<table>
+  <thead><tr><th>Provider</th><th>Models</th><th>Rate limit</th><th>Why both are wired</th></tr></thead>
+  <tbody>
+    <tr><td>Google Gemini</td><td class="mono">gemini-3.5-flash-lite</td><td>12 req/min</td><td>Fast and cheap, but a free tier allows roughly 20 requests per day per model and one orchestration costs 15–20 of them. A demo runs out of Gemini before it runs out of questions.</td></tr>
+    <tr><td>Azure OpenAI</td><td class="mono">gpt-5.4-nano<br/>gpt-5.4-mini</td><td>60 req/min</td><td>Enterprise-governed, five times the throughput. The fallback that keeps a demo — or a Monday morning — alive.</td></tr>
+  </tbody>
+</table>
+<ul class="tight">
+  <li><strong>The catalogue is a backend fact.</strong> <code>GET /models</code> serves it, and the UI holds no copy — whether a provider has credentials is something only the server knows, and a stale client list offers the rep an option that fails.</li>
+  <li><strong>Unconfigured providers are still listed</strong>, with the missing environment variable named. More actionable than an option that quietly vanishes.</li>
+  <li><strong>Switching model mid-conversation keeps the conversation.</strong> One compiled graph is cached per selection, and all selections share one checkpointer, so a Gemini turn replays cleanly into an OpenAI one.</li>
+  <li><strong>Rate limiting is mandatory and correctly scoped</strong> — one shared limiter across the Master and both specialists <em>within</em> a provider (the quota is per project), never shared <em>across</em> providers (the two caps differ fivefold).</li>
+  <li><strong>Failures map to honest statuses</strong> through provider-agnostic exception bases, so the mapping survives a vendor swap: 429 quota, 503 upstream, 502 credentials with the right variable named, 400 for a stale model id.</li>
+</ul>
+
+<h3>5 &middot; Export integrations that finish the rep's job</h3>
+<p>A recommendation the rep then has to retype into a proposal has not saved anyone any time.
+Two exports close that gap, and both are deliberately <strong>template-rendered from the
+verified run record rather than generated by a model</strong>.</p>
+<div class="grid g2">
+  <div class="card"><span class="tag lime">Export</span><h5>The client-facing proposal document</h5>
+  <p>A purpose-built print layout — not the app window sent to a printer. Screens, places,
+  clock times, per-line cost, totals and the delivery estimate.</p>
+  <p><strong>What a client deliberately never sees:</strong> price bands and where in one we
+  quoted, occupancy, booking probability, relevance scores, the solver and its gap, and any
+  pricing lever the rep applied. That is the seller's position in a negotiation the client is on
+  the other side of, and leaking it would be worse than not exporting at all.</p></div>
+  <div class="card"><span class="tag lime">Export</span><h5>The sell email, drafted and editable</h5>
+  <p>Opens instantly, costs zero tokens, and goes out via clipboard or the rep's own mail
+  client. Short by design: what they get, what it costs, one reason to say yes, one ask.</p>
+  <p>Because it is filled from the run record it <strong>cannot quote a price the optimizer did
+  not produce</strong> — and the rep edits it before sending, because they know the client and
+  we do not.</p></div>
+</div>
+<p>Behind both sits the <strong>Evidence Inspector</strong>: four tabs (D1 audience, D2
+relevance, D3 pricing, D4 optimizer) exposing the actual artifact rows behind every claim, so a
+rep challenged on a number can produce the row that produced it. And when an artifact is
+genuinely missing, the inspector <em>says so</em> — an earlier version swallowed the error and
+rendered an empty table while still reporting 250 rows, which is the one failure mode worse than
+an error message.</p>
+
+<h3>6 &middot; A full Next.js application, in a three-day window</h3>
+<p>Not a Streamlit page and not a notebook. A real single-page product on Next.js 15 (App
+Router), React 19, TypeScript and Tailwind 4, with three resizable panels, streaming
+orchestration, restored transcripts and a persisted session rail.</p>
+<div class="grid g3">
+  <div class="card tint"><h5>Streaming, not spinning</h5><p>Server-sent events drive a live
+  stage rail through all six stages. The session is named and the user's message persisted
+  <em>before the first model call</em>, so a turn that dies on a quota error still records what
+  was asked — and the rail never sits on a placeholder for 90 seconds.</p></div>
+  <div class="card tint"><h5>Nothing is lost on reload</h5><p>Transcripts are stored
+  server-side with each turn's metadata — run id, tool trail, token usage, and whether the
+  pipeline actually ran. A restored follow-up therefore does not re-render a metrics deck for an
+  answer that changed nothing, exactly as in the live stream.</p></div>
+  <div class="card tint"><h5>Fast because we measured it</h5><p>The "the UI takes 5–6 seconds"
+  complaint was one hostname: uvicorn binds IPv4, and on Windows a connection to the IPv6
+  loopback is dropped rather than refused. Same four-request path, host as the only variable —
+  <strong>8.18 s via <code>localhost</code>, 0.053 s via <code>127.0.0.1</code></strong>. Two
+  N+1 request patterns went with it.</p></div>
+</div>
+
+<h3>7 &middot; LangGraph Deep Agents as the framework — a considered choice</h3>
+<p>We evaluated the agent SDKs available to us and chose LangGraph's Deep Agents pattern.
+On this workload — long-horizon orchestration over analytical tools rather than code
+generation — it gave us the better result, and three structural properties we were not willing
+to give up:</p>
+<ul class="tight">
+  <li><strong>A supervisor with real sub-agents.</strong> The Master genuinely delegates, and each specialist carries its own prompt, its own tool surface and its own guardrails. Our ML agent is <em>told what it does not own</em> — audience volume — and that boundary is enforced by the tool surface, not by hope.</li>
+  <li><strong>A graph we control, with checkpointing.</strong> Multi-turn sessions, mid-conversation model switching, and a compiled graph cached per selection all fall out of the runtime rather than being bolted on.</li>
+  <li><strong>Provider neutrality.</strong> Chat clients are constructed explicitly from our own settings, so the provider is a per-request choice rather than a deployment-time environment variable. That is what made the two-provider resilience story possible at all.</li>
+  <li><strong>Observability for free, correctly scoped.</strong> One callback handler registered once in the run config traces the Master <em>and</em> every subagent, because callbacks propagate — so every run ends with a token and call summary that also comes back in the API response.</li>
+</ul>
+<div class="call"><span class="k">And the discipline we kept on top of the framework</span>
+<p><strong>Run handles, not payloads.</strong> Every tool takes a <code>run_id</code>. Specs,
+artifact references, packages and validation reports live in run state and the artifact store,
+so a 250-row candidate table and a 750-row price table <em>never enter a model's context</em>.
+That single rule is why a seven-stage orchestration over 11,163 screens fits in a small token
+budget — and why the numbers a rep reads are the numbers the engines computed, not a
+paraphrase of them.</p></div>
+
+<h2 id="logic">
+<span class="num">09</span>Logical correctness: four systems in harmony</h2>
+<div class="rule"></div>
+<p class="lede">The architecture is not four models bolted together. It is one orchestrator that
+understands the brief, and three specialists each of which owns exactly one question and is
+forbidden from answering anyone else's.</p>
+
+<figure>
+  <div class="cap">Figure 8 — Who owns which question<span>Responsibility map</span></div>
+  <svg viewBox="0 0 1160 400" role="img" aria-label="Responsibility map">
+    <defs><marker id="a8" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+      <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker></defs>
+    <rect x="290" y="20" width="580" height="86" rx="10" fill="#1f2124"/>
+    <text x="580" y="46" text-anchor="middle" class="t-title" fill="#dff250">MASTER AGENT — "what is this campaign actually asking for?"</text>
+    <text x="580" y="68" text-anchor="middle" class="t-body" fill="#e9ebef">Reads the brief and every attachment thoroughly, resolves the geography, extracts the context</text>
+    <text x="580" y="85" text-anchor="middle" class="t-body" fill="#e9ebef">every worker needs, then verifies what they return and writes the answer a rep can quote from</text>
+    <text x="580" y="101" text-anchor="middle" class="t-lbl" fill="#9aa0aa">it never computes — it orchestrates, checks and explains</text>
+
+    <rect x="24" y="160" width="352" height="120" rx="10" fill="#eef8a8" stroke="#8a9a20" stroke-width="2"/>
+    <text x="200" y="186" text-anchor="middle" class="t-title" fill="#1f2124">AUDIENCE + RELEVANCE ENGINE</text>
+    <text x="200" y="208" text-anchor="middle" class="t-body" fill="#3a3e45">"who is near this screen, when,</text>
+    <text x="200" y="224" text-anchor="middle" class="t-body" fill="#3a3e45">and does that fit this campaign?"</text>
+    <text x="200" y="246" text-anchor="middle" class="t-body" fill="#3a3e45">owns audience, volume and the pools</text>
+    <text x="200" y="266" text-anchor="middle" class="t-lbl" fill="#4a4f59">deterministic — zero model calls</text>
+
+    <rect x="404" y="160" width="352" height="120" rx="10" fill="#dff250" stroke="#1f2124" stroke-width="2"/>
+    <text x="580" y="186" text-anchor="middle" class="t-title" fill="#1f2124">PRICING &amp; DEMAND AGENT</text>
+    <text x="580" y="208" text-anchor="middle" class="t-body" fill="#3a3e45">"what should this screen&times;block cost,</text>
+    <text x="580" y="224" text-anchor="middle" class="t-body" fill="#3a3e45">and is it even free on every day?"</text>
+    <text x="580" y="246" text-anchor="middle" class="t-body" fill="#3a3e45">owns bands, scarcity, availability</text>
+    <text x="580" y="266" text-anchor="middle" class="t-lbl" fill="#4a4f59">forbidden from claiming audience volume</text>
+
+    <rect x="784" y="160" width="352" height="120" rx="10" fill="#dff250" stroke="#1f2124" stroke-width="2"/>
+    <text x="960" y="186" text-anchor="middle" class="t-title" fill="#1f2124">OR OPTIMIZER AGENT</text>
+    <text x="960" y="208" text-anchor="middle" class="t-body" fill="#3a3e45">"given all of that, what is the best</text>
+    <text x="960" y="224" text-anchor="middle" class="t-body" fill="#3a3e45">buyable combination — and is it optimal?"</text>
+    <text x="960" y="246" text-anchor="middle" class="t-body" fill="#3a3e45">owns allocation, reach, trade-offs</text>
+    <text x="960" y="266" text-anchor="middle" class="t-lbl" fill="#4a4f59">forbidden from inventing a package</text>
+
+    <rect x="24" y="316" width="1112" height="64" rx="10" fill="#2e3136"/>
+    <text x="580" y="340" text-anchor="middle" class="t-title" fill="#dff250">VALIDATION — the Master re-derives, independently, before it says a word</text>
+    <text x="580" y="362" text-anchor="middle" class="t-body" fill="#c3c7cf">19 checks over cost, reach, inventory, geography, dates, availability and every constraint the brief declared. A failed check is stated plainly and the package is not called sales-ready.</text>
+
+    <line x1="420" y1="106" x2="240" y2="154" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+    <line x1="580" y1="106" x2="580" y2="154" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+    <line x1="740" y1="106" x2="920" y2="154" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+    <text x="376" y="140" text-anchor="end" class="t-body" fill="#5b6070">audience, geography, dayparts</text>
+    <text x="592" y="140" class="t-body" fill="#5b6070">vertical, dates, rep's levers</text>
+    <text x="784" y="140" class="t-body" fill="#5b6070">objective, budget, constraints</text>
+    <line x1="200" y1="280" x2="200" y2="310" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+    <line x1="580" y1="280" x2="580" y2="310" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+    <line x1="960" y1="280" x2="960" y2="310" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a8)"/>
+  </svg>
+  <figcaption><strong>Ownership is the whole design.</strong> The pricing agent is explicitly
+  told that audience volume is not its number, and its tool surface makes that true. The
+  optimizer is told that a brief-declared constraint comes off the run rather than out of a
+  message. The relevance engine is told that volume is not a fit score. Each boundary was a bug
+  we found and then made structurally impossible.</figcaption>
+</figure>
+
+<h3>9.1 &middot; The Master Agent reads the brief properly, then gets out of the way</h3>
+<ul class="tight">
+  <li><strong>The attachment is read before anything else.</strong> Uploads used to be accepted and never read — the agent's file tools addressed a virtual state filesystem, not the disk, so a staged RFP was unreachable and raw PDF bytes would not have helped anyway. Now every readable document is parsed once at upload and reached through a single tool that returns a <strong>bounded excerpt</strong>, never the file.</li>
+  <li><strong>Three formats, honestly.</strong> PDF, DOCX and TXT, because those are what a rep forwards. Formats with no parser are rejected with a clear error rather than attaching cleanly and contributing nothing. DOCX <em>tables</em> are read as well as paragraphs — briefs put the budget and the market list in a table about as often as in a sentence.</li>
+  <li><strong>A scanned PDF and a locked PDF get different messages</strong>, because the rep's next action is opposite: retype the numbers, versus resend it unlocked.</li>
+  <li><strong>Documents are data, never instructions.</strong> They come from a third party. A directive found inside a client deck is text to summarise, and the agent is required to mention that it noticed and carry on.</li>
+  <li><strong>Anything the document implies but does not state goes into <code>missing_information</code></strong>. A document is not a licence to guess — and the final answer names, in one line, every input that came from the agent's judgement rather than from the brief.</li>
+  <li><strong>Context is extracted once and passed as a normalised spec</strong> to every worker. The specialists read their inputs from the run, so no number is ever re-interpreted from prose twice.</li>
+</ul>
+
+<h3>9.2 &middot; The Audience + Relevance Engine leaves no data on the table</h3>
+<p>It shortlists screens from the brief using <strong>all five dataset layers</strong> — and
+these are the points worth challenging us on:</p>
+<ul class="tight">
+  <li><strong>A route's riders are shared between its stops, not multiplied by them.</strong> The single most consequential number in the system. Crediting each stop with its route's whole ridership makes a corridor's stops sum to <strong>20.4&times;</strong> that corridor's riders. Share-weighting brings it to exactly <strong>1.00&times;</strong>. Correcting it cut fixed-screen volume 13–16&times; — and every reach figure we report with it. That is the intended outcome of getting it right, not a regression.</li>
+  <li><strong>A pool is a site, not a location row.</strong> 910 stop-mounted location rows are 878 physical sites. Grouping on name alone over-merges by 31% because station names are a low-cardinality template; adding the serving-corridor set is correct on both counts. Merging makes our reported reach <em>smaller</em> and more honest.</li>
+  <li><strong>Reach is never the sum of exposures.</strong> On the canonical pool, naive summation over-counts <strong>~25&times;</strong>. Three independent implementations of the definition — solver, reporter, validator — agree, and none imports another.</li>
+  <li><strong>Audience scores are graded, not binary.</strong> Occupation mix has five values and "mixed" is the most common of them, so a white-collar yes/no flag scored <em>mixed</em> identically to <em>student</em>. Three affinity maps now grade all five, and two audience terms that were reading the wrong column have their own.</li>
+  <li><strong>The advertiser vertical is a closed vocabulary, enforced.</strong> It used to be free text, and every value the agent actually wrote missed — pinning <strong>25% of every relevance score</strong> to a constant while the tool reported a perfectly normal-looking ranking. Now it is validated against the 13 real values, normalised for case and separators, with a test that stops the vocabulary and its POI map drifting apart.</li>
+  <li><strong>Sparse and absent signals are neutral and disclosed.</strong> Screens with no booking history in a vertical, and vehicles which by construction have no nearby-POI set, score neutral and appear in <code>defaults_applied</code> — never a silent penalty and never an invented value. Any sub-score that comes back constant pool-wide is reported, because from the outside that state is indistinguishable from success.</li>
+  <li><strong>Weak signals are quarantined rather than blended.</strong> Ambient footfall correlates only 0.12–0.26 with transit ridership and can disagree 20&times; at one location, so it is used as a tie-break and enters no impressions, reach or price figure. Blending it in would quietly undo the stop-share correction.</li>
+  <li><strong>A zero means "not modelled", never "nobody there".</strong> No scheduled service starts between midnight and 4am, so measured volume in that block is zero for every screen — while 4.5% of real bookings sit there. The estimate for that block is published <em>separately</em> and excluded from every total, so no validated figure moves with an assumed constant. The agent is required to say what a zero means whenever it reports one.</li>
+  <li><strong>Ties are broken at sort time, never inside the score</strong>, with the screen id last — which is what makes the artifact reproducible run to run.</li>
+</ul>
+
+<h3>9.3 &middot; The Pricing Agent prices every screen &times; block on evidence</h3>
+<p>Nine steps, detailed in Figure 5. What makes it defensible rather than merely elaborate:</p>
+<ul class="tight">
+  <li><strong>The band is what comparable inventory actually transacted at</strong> — the real distribution of 191,110 bookings, not a rate card and not a model's opinion. Floor, target and cap all come from that distribution.</li>
+  <li><strong>Zone sits above city, and that was measured.</strong> Holding city, size, type and position fixed, the median contracted price still varies <strong>1.87&times;–2.52&times; across zones of one city</strong> — so segmenting on city alone was quoting all of them off one blended band. Coverage supports the depth: 95.6% of bookings sit in a zone+daypart cell with n&ge;30.</li>
+  <li><strong>A bundle is priced as a bundle.</strong> A non-bundle historical deal holds exactly one screen; a bundled one a median of twenty. A package this system builds is commercially a bundle, so quoting it off single-screen comparables reads ~3.8% high. It is also the <em>first</em> dimension surrendered when a cell is thin, because it is worth 6.5–9% against zone's 87–152%.</li>
+  <li><strong>One dimension was tested and rejected</strong> — campaign duration, ~2% between the buckets most campaigns fall in once bundle is controlled, and non-monotone on thin cells. Documented in the code so nobody re-adds it on intuition.</li>
+  <li><strong>Occupancy drives the price, and elasticity does not</strong> — for the measured reason in Figure 5. The textbook alternative degenerated to the cap for every screen.</li>
+  <li><strong>Availability is the tightest single day of the flight</strong>, not an average. An average lets a plan sell a screen that is full on the launch day.</li>
+  <li><strong>Lost deals are used where they are informative and nowhere else.</strong> They train the booking-probability diagnostic and they supply the honest negotiation statistic — deals lost to price wanted about a third off, deals lost to competitors 2.5%. What they do <em>not</em> do is set a price off 393 examples spread across thousands of segments.</li>
+  <li><strong>Client history informs the rep, not the quote.</strong> Because price-driven loss rates are flat across leverage tiers, applying posture automatically would be pricing off the half of the finding that does not hold. And a missing price-gap reads as "not recorded" rather than "0% off" — which would tell a rep the exact opposite of the truth.</li>
+  <li><strong>The demand-value model is the one signal allowed to disagree with history</strong>, capped at +15%, gated four ways, and never shown a price. It is also self-correcting: if a raised price stops a screen selling, occupancy falls and the formula pulls it back down on the next run.</li>
+  <li><strong>Every quote carries its own audit trail</strong> — which fallback rung resolved the band, every multiplier applied, and every lever a human moved.</li>
+</ul>
+
+<h3>9.4 &middot; The OR Optimizer finds the best package, and proves it</h3>
+<ul class="tight">
+  <li><strong>It is a real mixed-integer program</strong>, not a greedy fill, and it reports the solver, the objective, the optimality gap and whether optimality was <em>proven</em>. A feasible-but-unproven result says so rather than being dressed up as an optimum.</li>
+  <li><strong>Reach is bounded exactly.</strong> <code>R &le; min(E, P)</code> is two linear constraints with no fitted constant, so the solver maximises precisely the number the validator re-derives. The fitted saturation curve it replaced left measured audience on the table and turned a 0.1-second solve into a 30-second timeout.</li>
+  <li><strong>Extra context from the Master lands as real constraints.</strong> Mandated zones become elastic coverage groups that report their shortfall by name; required dayparts become hard rows; the client's leasing structure becomes a hard per-screen slot ceiling.</li>
+  <li><strong>The slot cap binds per screen per day, summed across blocks</strong> — the compliance reading, and the stricter one. The per-cell alternative lets a screen bought in two blocks take two slots and pass; measured on a 45-day brief, it did exactly that. And honouring it <strong>costs no reach</strong>, measured across four briefs, four cap levels and all four objectives.</li>
+  <li><strong>A bundle is one joint decision.</strong> Screens, blocks and slot depths are chosen simultaneously under one budget against one pooled reach ceiling — never three independent picks stitched together.</li>
+  <li><strong>Non-linearity is placed where it exists.</strong> Slot depth is linear (all six slots loop continuously through the block); the concavity is at the pool, where a shared crowd saturates. Getting this the right way round is what stops the plan buying depth on a stop it has already saturated.</li>
+  <li><strong>No constraint is invented.</strong> The imported formulation carried a hard 90% spend floor that no brief declares; it became a relaxing ladder, and the level used is reported. With the floor hard and nothing else binding, the solver had been converting every leftover rupee into depth — 100% of budget spent, 112 exposures per person, and not one of those last rupees adding a single person to reach.</li>
+  <li><strong>Unspent budget comes with its cause</strong>, and the two causes read very differently: audience saturation means the money cannot buy more people and must not be absorbed by padding, while a client's own slot cap costing reach is a trade-off that belongs to the client. The agent may never offer to relax the client's constraint just to spend money.</li>
+  <li><strong>The reach-versus-frequency trade-off belongs to the human.</strong> <code>compare_objectives</code> puts the plans side by side with real figures rather than picking one silently — and it withholds any profile whose exposures per person exceed the wear-out cap, reporting the measurement and the reason, while never withholding or substituting the campaign's own stated objective.</li>
+  <li><strong>Infeasibility is an answer.</strong> Reason codes, a plain explanation, and the specific relaxation that would work. Never a plausible-looking package assembled instead.</li>
+  <li><strong>An honest substitution is declared.</strong> There is no conversion model in this data, so a conversion objective weights the audience engine's industry-to-POI context score as a proxy — and the agent is required to say so rather than present the result as a conversion optimum.</li>
+</ul>
+
+<h3>9.5 &middot; The verification layer — the reason any of this is quotable</h3>
+<p>The Master validates every specialist output before answering. Nineteen deterministic checks,
+run without exception, each re-deriving its quantity independently of the code that produced
+it.</p>
+<table>
+  <thead><tr><th style="width:24%">Check family</th><th>What it re-derives, from scratch</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Cost</strong></td><td>Line costs from unit price &times; slots &times; days, the total from the lines, and the total against the brief's budget.</td></tr>
+    <tr><td><strong>Reconciliation</strong></td><td>Every reported aggregate against the lines it claims to summarise.</td></tr>
+    <tr><td class="hl"><strong>Reach</strong></td><td class="hl">The pooled definition recomputed from the artifacts — the third independent implementation, and the one that would catch the other two drifting.</td></tr>
+    <tr><td><strong>Inventory</strong></td><td>Every selected screen exists, no duplicated screen&times;block line, slot depth within capacity.</td></tr>
+    <tr><td><strong>Availability</strong></td><td>No line buys a slot that was already sold on any day of the flight.</td></tr>
+    <tr><td><strong>Geography &amp; dates</strong></td><td>Every screen inside the requested geography; every line inside the flight window.</td></tr>
+    <tr><td class="hl"><strong>Hard constraints</strong></td><td class="hl">Every key the brief declared, enforced — and an <em>unrecognised</em> key <strong>fails</strong> verification rather than being echoed back and ignored. A false failure costs one turn; a silent pass ships a package that breaches a written brief.</td></tr>
+    <tr><td><strong>Slot structure</strong></td><td>The per-screen daily slot count against the declared cap, with the semantics named so the figure says which reading produced it.</td></tr>
+    <tr><td><strong>Explanations</strong></td><td>Every screen the agent names in prose must cite a real attribute from the package. "This screen is highly relevant" is not an explanation and does not pass.</td></tr>
+  </tbody>
+</table>
+<div class="call"><span class="k">Two rules that keep verification meaningful</span>
+<p><strong>A validated number may not depend on an assumed constant.</strong> If a figure the
+validator checks moves with a constant nobody can measure, the check validates nothing about the
+one thing that is genuinely uncertain. This is why the saturation constant reaches only a
+labelled diagnostic, and why the block-1 estimate is excluded from every total.</p>
+<p><strong>A constraint the brief declares gets a check, or it is not enforced.</strong> We
+learned this the hard way: a client asked for one rotating slot per screen, the package shipped
+three, and every layer reported success while the constraint sat visible in the spec the whole
+time. Without an independent re-derivation, nothing surfaces a silent miss.</p></div>
+
+<h2 id="loop"><span class="num">10</span>The feedback loop</h2>
+<div class="rule"></div>
+<p class="lede">The rep knows things the brief does not say. A system that cannot absorb that is
+a report generator, not a colleague — so the loop is a first-class part of the architecture,
+not a comment box.</p>
+
+<figure>
+  <div class="cap">Figure 9 — The adapt loop<span>Dynamic view</span></div>
+  <svg viewBox="0 0 1160 330" role="img" aria-label="Feedback loop diagram">
+    <defs><marker id="a9" markerWidth="10" markerHeight="8" refX="8.5" refY="3.6" orient="auto">
+      <path d="M0,0 L9,3.6 L0,7.2 Z" fill="#1f2124"/></marker></defs>
+    <rect x="24" y="40" width="212" height="112" rx="9" fill="#2e3136"/>
+    <text x="130" y="66" text-anchor="middle" class="t-title" fill="#dff250">1 &middot; The rep speaks</text>
+    <text x="130" y="88" text-anchor="middle" class="t-body" fill="#e9ebef">"this client never pays</text>
+    <text x="130" y="104" text-anchor="middle" class="t-body" fill="#e9ebef">a peak premium"</text>
+    <text x="130" y="122" text-anchor="middle" class="t-body" fill="#e9ebef">"drop it to $30k"</text>
+    <text x="130" y="140" text-anchor="middle" class="t-body" fill="#e9ebef">"why this stop?"</text>
+
+    <rect x="266" y="40" width="212" height="112" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="372" y="66" text-anchor="middle" class="t-title" fill="#1f2124">2 &middot; Triage</text>
+    <text x="372" y="88" text-anchor="middle" class="t-body" fill="#3a3e45">the active run's inputs vs</text>
+    <text x="372" y="104" text-anchor="middle" class="t-body" fill="#3a3e45">what was just said</text>
+    <text x="372" y="126" text-anchor="middle" class="t-lbl" fill="#4a4f59">ANSWER in seconds, or</text>
+    <text x="372" y="141" text-anchor="middle" class="t-lbl" fill="#4a4f59">REBUILD — never both</text>
+
+    <rect x="508" y="40" width="212" height="112" rx="9" fill="#dff250" stroke="#1f2124"/>
+    <text x="614" y="66" text-anchor="middle" class="t-title" fill="#1f2124">3 &middot; Levers set</text>
+    <text x="614" y="88" text-anchor="middle" class="t-body" fill="#3a3e45">seven typed parameters,</text>
+    <text x="614" y="104" text-anchor="middle" class="t-body" fill="#3a3e45">stored ON THE RUN,</text>
+    <text x="614" y="120" text-anchor="middle" class="t-body" fill="#3a3e45">clamped and reported</text>
+    <text x="614" y="140" text-anchor="middle" class="t-lbl" fill="#4a4f59">not in a delegation message</text>
+
+    <rect x="750" y="40" width="182" height="112" rx="9" fill="#eef8a8" stroke="#8a9a20"/>
+    <text x="841" y="66" text-anchor="middle" class="t-title" fill="#1f2124">4 &middot; Re-priced</text>
+    <text x="841" y="88" text-anchor="middle" class="t-body" fill="#3a3e45">pricing and optimization</text>
+    <text x="841" y="104" text-anchor="middle" class="t-body" fill="#3a3e45">re-run on the new</text>
+    <text x="841" y="120" text-anchor="middle" class="t-body" fill="#3a3e45">parameters, re-verified</text>
+
+    <rect x="962" y="40" width="174" height="112" rx="9" fill="#1f2124"/>
+    <text x="1049" y="66" text-anchor="middle" class="t-title" fill="#dff250">5 &middot; Disclosed</text>
+    <text x="1049" y="88" text-anchor="middle" class="t-body" fill="#e9ebef">"these prices include</text>
+    <text x="1049" y="104" text-anchor="middle" class="t-body" fill="#e9ebef">the adjustment you</text>
+    <text x="1049" y="120" text-anchor="middle" class="t-body" fill="#e9ebef">asked for", and what</text>
+    <text x="1049" y="136" text-anchor="middle" class="t-body" fill="#e9ebef">changed against before</text>
+
+    <line x1="236" y1="96" x2="260" y2="96" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a9)"/>
+    <line x1="478" y1="96" x2="502" y2="96" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a9)"/>
+    <line x1="720" y1="96" x2="744" y2="96" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a9)"/>
+    <line x1="932" y1="96" x2="956" y2="96" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a9)"/>
+    <path d="M1049 152 L1049 200 L130 200 L130 158" fill="none" stroke="#1f2124" stroke-width="1.8" marker-end="url(#a9)"/>
+    <text x="590" y="192" text-anchor="middle" class="t-body" fill="#1f2124">the package, the changed figures, and two or three costed suggestions — the conversation continues</text>
+
+    <rect x="24" y="228" width="1112" height="82" rx="9" fill="#f6f7fc" stroke="#b9bdc7"/>
+    <text x="42" y="252" class="t-title" fill="#1f2124">Four rules that keep the loop trustworthy</text>
+    <text x="42" y="272" class="t-body" fill="#3f434b">1 &middot; Every lever's default is IDENTITY — a run that sets none produces exactly the model's own derived prices.   2 &middot; Weights dial INFLUENCE, not magnitude, so "off" means off whether the multiplier sat above or below 1.0.</text>
+    <text x="42" y="290" class="t-body" fill="#3f434b">3 &middot; No lever reaches the feasibility gate — a sold-out screen stays sold out.   4 &middot; A package a human moved SAYS SO, everywhere it is shown: in the pricing stage, in the inspector, and in the answer.</text>
+  </svg>
+  <figcaption>
+  <p><strong>Why levers live on the run and not in a message.</strong> A float that has to survive
+  an LLM paraphrase is a float that will eventually arrive wrong. Levers are set by a typed tool,
+  stored on the run, and read by the pricing stage — the same rule the artifacts follow. They
+  then appear in the run's campaign inputs, which is what makes moving one a <em>rebuild</em>
+  rather than a question.</p>
+  <p><strong>And the loop is a real customisation surface.</strong> The seven levers cover the
+  things reps actually push back on: the weekend discount (the day-of-week multiplier averages
+  0.913 over a full week, so a whole-week flight takes a ~9% haircut off a band already built
+  from real contracted prices — a rep can switch that off for a flight where it is wrong), the
+  event premium, the vertical adjustment, how hard scarcity pushes the price, quoting at a stated
+  band position instead of a scarcity-driven one, a negotiation multiplier, and an explicit
+  authorisation to quote below the floor. Each one is bounded, disclosed and reversible.</p>
+  </figcaption>
+</figure>
+
+<h2 id="quality"><span class="num">11</span>Engineering rigor, performance and scale</h2>
+<div class="rule"></div>
+
+<h3>Where the time goes, and why it is acceptable</h3>
+<table>
+  <thead><tr><th style="width:26%">Stage</th><th style="width:16%">Cost</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Engine warm-up (once per process)</td><td class="nw">~9 s pricing<br/>~15 s audience</td><td>Both are process singletons. Paid once at first use, never per request — the ridership scan dominates the audience build.</td></tr>
+    <tr><td>Audience + relevance scoring</td><td class="nw">~1–2 s</td><td>All 11,163 screens, in SQL and vectorised Python. <strong>Zero model calls.</strong></td></tr>
+    <tr><td>Pricing, per screen &times; block</td><td class="nw">~2–4 s</td><td>250 screens across three blocks — 750 priced lines with full audit trails.</td></tr>
+    <tr><td>MILP solve</td><td class="nw">~0.1–2 s</td><td>To a 1% gap, usually proven optimal. The exact reach bound is why: two linear constraints instead of six tangent lines.</td></tr>
+    <tr><td>Verification</td><td class="nw">&lt;1 s</td><td>19 checks, all deterministic.</td></tr>
+    <tr><td class="hl">Full orchestration</td><td class="nw hl">~90 s</td><td class="hl">Dominated by model latency and the per-minute rate limit, <em>not</em> by computation. A follow-up question answered off the existing run returns in seconds.</td></tr>
+  </tbody>
+</table>
+
+<h3>How it scales past three cities</h3>
+<div class="grid g3">
+  <div class="card"><span class="tag">Inventory volume</span><h5>The columnar layer absorbs it</h5>
+  <p>Scoring is a set of SQL aggregations over views, so ten times the screens is a data-volume
+  problem DuckDB is built for. Nothing in the feature layer is per-screen Python.</p></div>
+  <div class="card"><span class="tag">New geographies</span><h5>No hard-coded places</h5>
+  <p>Cities, zones and corridors are resolved from the data at request time, and unresolvable
+  place names are surfaced <em>before</em> a run starts. A new city is new rows, not new code.
+  The terminus weighting only redistributes riders <em>within</em> a route, so it transfers to a
+  network with different topology.</p></div>
+  <div class="card"><span class="tag">Solve size</span><h5>Controlled deliberately</h5>
+  <p>The candidate pool is a stated truncation with a reported composition, and pool cell depth
+  is bounded on purpose — measured, raising it added spend and frequency without adding a single
+  person to reach. Latency versus quality is a knob we can defend the position of.</p></div>
+  <div class="card"><span class="tag">Context budget</span><h5>Flat in inventory size</h5>
+  <p>Because tools exchange run handles and artifact ids, token cost does not grow with the
+  number of screens. Twenty thousand screens cost the same context as eleven thousand.</p></div>
+  <div class="card"><span class="tag">Throughput</span><h5>Rate limits, not compute</h5>
+  <p>The binding constraint on concurrent reps is the model provider's per-minute cap — which is
+  precisely why two providers are wired and why the limiter is shared per provider. Adding a
+  provider adds headroom without a code change.</p></div>
+  <div class="card"><span class="tag">Safety</span><h5>Uploads treated as hostile</h5>
+  <p>Type and size validated, never executed, never passed whole into context, and the extracted
+  text bounded while it accumulates — because a 20 MB DOCX is a zip that decompresses to far
+  more, and building the whole string first turns an upload limit into a memory problem.</p></div>
+</div>
+
+<h3>Honesty as an engineering property</h3>
+<p>The most unusual thing about this codebase is how much of it exists to stop the system
+sounding more confident than it is. A short list, all of it live:</p>
+<ul class="tight">
+  <li><strong>No stage is a stub and none is a heuristic.</strong> Every artifact carries <code>provenance="computed"</code>, and the stub-reporting plumbing is retained precisely because it is the mechanism that would surface a regression.</li>
+  <li><strong>Quarantined figures stay quarantined.</strong> Two internal proxies are carried for diagnostics and mapped onto no client-facing field, with names that make misuse obvious — one because its fixed and mobile paths are on different units (a ~36&times; gap), the other because it correlates only weakly with ridership.</li>
+  <li><strong>Known limitations are surfaced by the system itself</strong>, not just written in a document: the demand source actually live, every default applied, any sub-score that came back constant, the pool's achieved composition, the assumption behind the mobile audience figure, and the absence of a held-out accuracy metric — which is exactly why no stage emits a per-screen confidence it cannot support.</li>
+  <li><strong>The agent is forbidden from stating a number no tool returned</strong>, and forbidden from naming a screen without citing a real attribute of it. A checking tool exists for that, and it is called before the answer is written.</li>
+  <li><strong>Plain English, undiminished caveats.</strong> The Master writes for a rep on a call — "screens at the same stop see the same people, so these are people reached, not views added up" — and a banned-vocabulary list keeps internal identifiers off a client-facing screen, with a test enforcing it. Simplify the language, never the caveat.</li>
+  <li><strong>Rejected alternatives are documented with the measurement that rejected them</strong>, at the site of the decision. That is why a future contributor does not re-add the elasticity-argmax pricing, the duration segment, the volume discount, or the per-cell slot cap on intuition.</li>
+</ul>
+
+<h2 id="judge"><span class="num">12</span>Against the assessment criteria</h2>
+<div class="rule"></div>
+<table>
+  <thead><tr><th style="width:22%">Criterion</th><th>Where to look, and what to check</th></tr></thead>
+  <tbody>
+    <tr><td><strong>AI &amp; Agentic Architecture</strong></td><td>Figures 3–6. One Master Deep Agent, two reasoning specialists, one deterministic engine it calls itself — and a documented, measured reason for departing from the three-specialist sketch. Stage ordering enforced in code with recoverable prerequisite errors; ML, OR and orchestration each own exactly one question.</td></tr>
+    <tr><td><strong>Feature Depth &amp; Purpose Fit</strong></td><td>&sect;08. Guided intake with clickable options, client negotiation briefing, seven pricing levers, four-objective comparison, evidence inspector, proposal and email export, model picker, restored transcripts. Every one of them exists because a rep on a call needs it.</td></tr>
+    <tr><td><strong>Recommendation Quality &amp; Personalisation</strong></td><td>&sect;09.2–09.4. Five-component relevance with graded audience affinity; zone-level price bands measured at 1.87–2.52&times; within one city; a demand model that can disagree with history; a MILP that solves the actual brief including the client's own leasing structure; and stratified truncation so a mixed-inventory brief is servable at all.</td></tr>
+    <tr><td class="hl"><strong>Explainability &amp; Trust</strong></td><td class="hl">&sect;09.5 and Figure 8. Nineteen independent checks, three independent implementations of reach that must agree, per-row pricing audit trails, a self-describing relevance model, a nine-section answer that names its own assumptions, and an inspector exposing the artifact row behind every claim. A failed check is stated plainly rather than buried.</td></tr>
+    <tr><td><strong>Performance &amp; Scalability</strong></td><td>&sect;11. DuckDB over 165 MB with no spreadsheet opened, singleton engines, a 0.1–2 s solve, a context budget flat in inventory size, and two providers so a rate limit is not an outage. Latency-versus-quality knobs are explicit and measured rather than incidental.</td></tr>
+    <tr><td><strong>Code Quality &amp; Engineering Rigor</strong></td><td>&sect;08.3. 362 tests across 18 modules, none needing a key or the network; Pydantic contracts at every seam; provenance-tagged constants; strict layering; and a smoke test that runs the whole pipeline with no model at all.</td></tr>
+    <tr><td><strong>Demo Impact &amp; Communication</strong></td><td>Figure 7 and &sect;10. A brief goes in, a stage rail streams, a package renders with a metrics deck, the rep asks "why this stop?" and gets an answer in seconds, then says something a rep would actually say — and the package comes back re-priced, re-verified, and saying which numbers a human moved.</td></tr>
+  </tbody>
+</table>
+
+<h3>The nuances the brief asked us to think through</h3>
+<table>
+  <thead><tr><th style="width:30%">Nuance</th><th>How we handled it</th></tr></thead>
+  <tbody>
+    <tr><td>Scaling beyond these cities</td><td>No hard-coded geography; places resolved from data at request time; unresolvable names surfaced before the run. The stop-weighting redistributes only within a route, so it transfers to a different network topology.</td></tr>
+    <tr><td>Impressions are estimated / non-linearity</td><td>Non-linearity is placed where it exists — at the pool, where a shared crowd saturates — and modelled as the exact concave bound the solver optimises. Slot depth is linear because all six slots loop continuously through the block, so slot <em>position</em> carries no meaning. Both readings are disclosed, not implied.</td></tr>
+    <tr><td>Demand is inferred</td><td>Occupancy from live bookings, seasonality and day-of-week from 2.05 M observed ridership rows, an event premium matched on radius and attendance, and a merit-based demand model that never sees a price.</td></tr>
+    <tr><td>Explainability matters</td><td>Every recommendation cites real feature values; a checking tool refuses generic reasons; the inspector shows the row behind the claim.</td></tr>
+    <tr><td>Some inventory has no history</td><td>Neutral scores, recorded in <code>defaults_applied</code> rather than applied silently. A five-rung band fallback ladder handles thin price cells, and the rung used is reported. Zero means "not modelled", and the agent must say so.</td></tr>
+    <tr><td class="hl">Boards on the same route share an audience</td><td class="hl">The central correction of the whole system. Site- and corridor-level pooling with a hard ceiling per pool; stop-share weighting so a corridor's stops sum to exactly 1.00&times; its riders instead of 20.4&times;; and reach de-duplicated in the objective itself, not just in the report.</td></tr>
+    <tr><td>A bundle is not three independent decisions</td><td>One MILP chooses screens, blocks and slot depths simultaneously under one budget against pooled ceilings — and the price band is segmented by deal shape, because a bundled deal and a single-screen deal genuinely transact differently.</td></tr>
+    <tr><td>Not all demand signals age equally</td><td>Lost leads are used where they are informative — training the probability diagnostic and supplying the negotiation statistic — and explicitly <em>not</em> used to set a price off 393 examples spread across thousands of segments. A missing price gap reads as "not recorded", never as "0% off".</td></tr>
+  </tbody>
+</table>
+
+<div class="call"><span class="k">In one sentence</span>
+<p>We built a system that turns a paragraph into a defensible commercial proposal in ninety
+seconds — and, more importantly, one that a sales rep can argue with, correct, and then trust,
+because every number it states is one it can show you the working for.</p></div>
+
+</div>
+
+<footer><div class="wrap">
+  System Design — C4 Model &middot; Transit Media Campaign Intelligence Platform &middot;
+  Hackathon submission, August 2026. Diagrams follow the C4 model (Context, Container,
+  Component) with an added dynamic view. All figures quoted in this document are measured
+  against the supplied datasets and pinned by the test suite.
+</div></footer>
+
+</body>
+</html>
